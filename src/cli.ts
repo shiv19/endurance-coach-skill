@@ -20,6 +20,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ProxyAgent, setGlobalDispatcher } from "undici";
 import { validatePlan, formatValidationErrors } from "./schema/training-plan.schema.js";
+import type { TrainingPlan, TrainingDay, Workout } from "./schema/training-plan.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -82,7 +83,14 @@ interface SchemaArgs {
   command: "schema";
 }
 
-type CliArgs = SyncArgs | RenderArgs | QueryArgs | AuthArgs | HelpArgs | ValidateArgs | SchemaArgs;
+interface ModifyArgs {
+  command: "modify";
+  backup: string;
+  plan: string;
+  output?: string;
+}
+
+type CliArgs = SyncArgs | RenderArgs | QueryArgs | AuthArgs | HelpArgs | ModifyArgs | ValidateArgs | SchemaArgs;
 
 function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
@@ -178,6 +186,44 @@ function parseArgs(): CliArgs {
     return { command: "schema" };
   }
 
+  if (args[0] === "modify") {
+    if (!args[1] || !args[2]) {
+      log.error("modify command requires --backup and --plan arguments");
+      process.exit(1);
+    }
+
+    const modifyArgs: ModifyArgs = {
+      command: "modify",
+      backup: "",
+      plan: "",
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--backup" || args[i] === "-b") {
+        modifyArgs.backup = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--backup=")) {
+        modifyArgs.backup = args[i].split("=")[1];
+      } else if (args[i] === "--plan" || args[i] === "-p") {
+        modifyArgs.plan = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--plan=")) {
+        modifyArgs.plan = args[i].split("=")[1];
+      } else if (args[i] === "--output" || args[i] === "-o") {
+        modifyArgs.output = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--output=")) {
+        modifyArgs.output = args[i].split("=")[1];
+      }
+    }
+
+    if (!modifyArgs.backup || !modifyArgs.plan) {
+      log.error("Both --backup and --plan are required");
+      process.exit(1);
+    }
+
+    return modifyArgs;
+  }
   if (args[0] === "--help" || args[0] === "-h" || args[0] === "help") {
     return { command: "help" };
   }
@@ -199,6 +245,7 @@ Commands:
   validate <file>   Validate a training plan JSON against the schema
   render <file>     Render a training plan JSON to HTML
   query <sql>       Run a SQL query against the database
+  modify            Apply backup changes to a training plan
   help              Show this help message
 
 Auth Options (for headless/Claude environments):
@@ -222,6 +269,11 @@ Render Options:
 Query Options:
   --json                Output as JSON (default: plain text)
 
+Modify Options:
+  --backup, -b FILE     Backup JSON file (exported from Settings)
+  --plan, -p FILE       Training plan JSON file to modify
+  --output, -o FILE     Output file (default: overwrites plan file)
+
 Examples:
   # Headless auth flow (for Claude/automated environments)
   npx claude-coach auth --client-id=12345 --client-secret=abc123
@@ -243,6 +295,12 @@ Examples:
 
   # Query the database
   npx claude-coach query "SELECT * FROM weekly_volume LIMIT 5"
+  
+  # Apply backup changes to a training plan
+  npx claude-coach modify --backup backup.json --plan plan.json
+
+  # Save modified plan to a new file
+  npx claude-coach modify -b backup.json -p plan.json -o modified_plan.json
 `);
 }
 
@@ -893,6 +951,290 @@ npx claude-coach validate plan.json
 npx claude-coach render plan.json --output plan.html
 \`\`\`
 `);
+// Modify Command
+// ============================================================================
+
+interface PlanChanges {
+  moved: Record<string, string>;
+  edited: Record<string, Partial<Workout>>;
+  deleted: string[];
+  added: Record<string, { date: string; workout: Workout }>;
+}
+
+interface BackupData {
+  [key: string]: string;
+}
+
+export interface ModifyOptions {
+  backup: string;
+  plan: string;
+  output?: string;
+}
+
+/**
+ * Extract plan ID, changes, and completed status from backup localStorage data
+ */
+function extractDataFromBackup(backupData: BackupData): {
+  planId: string | null;
+  changes: PlanChanges | null;
+  completed: Record<string, boolean> | null;
+} {
+  // Find the changes key (format: "plan-{id}-changes")
+  const changesKey = Object.keys(backupData).find((key) => key.endsWith("-changes"));
+
+  if (!changesKey) {
+    return { planId: null, changes: null, completed: null };
+  }
+
+  // Extract plan ID from key
+  const planId = changesKey.replace(/^plan-/, "").replace(/-changes$/, "");
+
+  // Parse the changes JSON
+  let changes: PlanChanges | null = null;
+  try {
+    const changesJson = backupData[changesKey];
+    changes = JSON.parse(changesJson) as PlanChanges;
+  } catch (error) {
+    console.error("Failed to parse changes:", error);
+  }
+
+  // Find and parse completed workouts
+  const completedKey = `plan-${planId}-completed`;
+  let completed: Record<string, boolean> | null = null;
+
+  if (backupData[completedKey]) {
+    try {
+      completed = JSON.parse(backupData[completedKey]) as Record<string, boolean>;
+    } catch (error) {
+      console.error("Failed to parse completed data:", error);
+    }
+  }
+
+  return { planId, changes, completed };
+}
+
+/**
+ * Apply completed status to workouts in the plan
+ */
+function applyCompletedStatus(plan: TrainingPlan, completed: Record<string, boolean>): void {
+  const completedCount = Object.keys(completed).filter((id) => completed[id]).length;
+  console.log(`Applying completed status to ${completedCount} workouts...`);
+
+  let appliedCount = 0;
+
+  plan.weeks?.forEach((week) => {
+    week.days?.forEach((day) => {
+      day.workouts?.forEach((workout) => {
+        if (completed[workout.id] !== undefined) {
+          workout.completed = completed[workout.id];
+          if (completed[workout.id]) {
+            appliedCount++;
+            console.log(`  - Marked ${workout.id} as completed`);
+          }
+        }
+      });
+    });
+  });
+
+  if (appliedCount > 0) {
+    console.log(`Applied completed status to ${appliedCount} workouts`);
+  }
+}
+
+/**
+ * Apply changes to the training plan
+ */
+function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingPlan {
+  const modifiedPlan = JSON.parse(JSON.stringify(plan)) as TrainingPlan;
+
+  // Track all workouts by ID for easy lookup
+  const workoutMap = new Map<string, { weekIdx: number; dayIdx: number; workoutIdx: number }>();
+
+  modifiedPlan.weeks?.forEach((week, weekIdx) => {
+    week.days?.forEach((day, dayIdx) => {
+      day.workouts?.forEach((workout, workoutIdx) => {
+        workoutMap.set(workout.id, { weekIdx, dayIdx, workoutIdx });
+      });
+    });
+  });
+
+  // 1. Apply deleted workouts
+  console.log(`Applying ${changes.deleted.length} deletions...`);
+  changes.deleted.forEach((workoutId) => {
+    const location = workoutMap.get(workoutId);
+    if (location) {
+      const { weekIdx, dayIdx, workoutIdx } = location;
+      modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
+      console.log(`  - Deleted workout: ${workoutId}`);
+    }
+  });
+
+  // Rebuild workout map after deletions
+  workoutMap.clear();
+  modifiedPlan.weeks?.forEach((week, weekIdx) => {
+    week.days?.forEach((day, dayIdx) => {
+      day.workouts?.forEach((workout, workoutIdx) => {
+        workoutMap.set(workout.id, { weekIdx, dayIdx, workoutIdx });
+      });
+    });
+  });
+
+  // 2. Apply edits to existing workouts
+  const editCount = Object.keys(changes.edited).length;
+  console.log(`Applying ${editCount} edits...`);
+  Object.entries(changes.edited).forEach(([workoutId, edits]) => {
+    const location = workoutMap.get(workoutId);
+    if (location) {
+      const { weekIdx, dayIdx, workoutIdx } = location;
+      const workout = modifiedPlan.weeks![weekIdx].days![dayIdx].workouts![workoutIdx];
+      Object.assign(workout, edits);
+      console.log(`  - Edited workout: ${workoutId}`);
+    }
+  });
+
+  // 3. Apply moved workouts
+  const moveCount = Object.keys(changes.moved).length;
+  console.log(`Applying ${moveCount} moves...`);
+  Object.entries(changes.moved).forEach(([workoutId, newDate]) => {
+    const location = workoutMap.get(workoutId);
+    if (!location) return;
+
+    const { weekIdx, dayIdx, workoutIdx } = location;
+
+    // Remove workout from original location
+    const [workout] = modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
+
+    // Find the target day
+    let targetDay: TrainingDay | null = null;
+    let targetWeekIdx = -1;
+    let targetDayIdx = -1;
+
+    for (let wIdx = 0; wIdx < modifiedPlan.weeks!.length; wIdx++) {
+      const week = modifiedPlan.weeks![wIdx];
+      for (let dIdx = 0; dIdx < week.days!.length; dIdx++) {
+        const day = week.days![dIdx];
+        if (day.date === newDate) {
+          targetDay = day;
+          targetWeekIdx = wIdx;
+          targetDayIdx = dIdx;
+          break;
+        }
+      }
+      if (targetDay) break;
+    }
+
+    if (targetDay) {
+      // Add workout to new location
+      if (!targetDay.workouts) {
+        targetDay.workouts = [];
+      }
+      targetDay.workouts.push(workout);
+      console.log(`  - Moved workout ${workoutId} to ${newDate}`);
+    } else {
+      console.warn(`  ! Could not find target date ${newDate} for workout ${workoutId}`);
+    }
+  });
+
+  // 4. Add new workouts
+  const addCount = Object.keys(changes.added).length;
+  console.log(`Adding ${addCount} new workouts...`);
+  Object.entries(changes.added).forEach(([workoutId, { date, workout }]) => {
+    // Find the target day
+    let targetDay: TrainingDay | null = null;
+
+    for (const week of modifiedPlan.weeks || []) {
+      for (const day of week.days || []) {
+        if (day.date === date) {
+          targetDay = day;
+          break;
+        }
+      }
+      if (targetDay) break;
+    }
+
+    if (targetDay) {
+      if (!targetDay.workouts) {
+        targetDay.workouts = [];
+      }
+      targetDay.workouts.push(workout);
+      console.log(`  - Added workout ${workoutId} on ${date}`);
+    } else {
+      console.warn(`  ! Could not find date ${date} for new workout ${workoutId}`);
+    }
+  });
+
+  // Update the plan's updatedAt timestamp
+  modifiedPlan.meta.updatedAt = new Date().toISOString();
+
+  return modifiedPlan;
+}
+
+export function modifyCommand(options: ModifyOptions): void {
+  console.log("📝 Modifying training plan...\n");
+
+  try {
+    // 1. Read backup file
+    console.log(`Reading backup: ${options.backup}`);
+    const backupContent = readFileSync(options.backup, "utf-8");
+    const backupData: BackupData = JSON.parse(backupContent);
+
+    // 2. Extract changes and completed status from backup
+    const { planId, changes, completed } = extractDataFromBackup(backupData);
+
+    if (!changes) {
+      console.error("❌ No changes found in backup file");
+      process.exit(1);
+    }
+
+    console.log(`Found data for plan: ${planId}`);
+    if (completed) {
+      const completedCount = Object.keys(completed).filter((id) => completed[id]).length;
+      console.log(`Found ${completedCount} completed workouts in backup`);
+    }
+    console.log();
+
+    // 3. Read plan file
+    console.log(`Reading plan: ${options.plan}`);
+    const planContent = readFileSync(options.plan, "utf-8");
+    const plan: TrainingPlan = JSON.parse(planContent);
+
+    // Verify plan IDs match
+    if (plan.meta.id !== planId) {
+      console.warn(
+        `⚠️  Warning: Plan ID mismatch!\n   Backup: ${planId}\n   Plan:   ${plan.meta.id}`
+      );
+      console.log("   Continuing anyway...\n");
+    }
+
+    // 4. Apply changes
+    console.log("Applying changes:\n");
+    const modifiedPlan = applyChangesToPlan(plan, changes);
+
+    // 5. Apply completed status if available
+    if (completed) {
+      console.log();
+      applyCompletedStatus(modifiedPlan, completed);
+    }
+
+    // 6. Write output
+    const outputPath = options.output || options.plan;
+    console.log(`\nWriting modified plan to: ${outputPath}`);
+    writeFileSync(outputPath, JSON.stringify(modifiedPlan, null, 2));
+
+    console.log("\n✅ Plan modified successfully!");
+    console.log(`\nSummary:`);
+    console.log(`  - Deleted: ${changes.deleted.length} workouts`);
+    console.log(`  - Edited: ${Object.keys(changes.edited).length} workouts`);
+    console.log(`  - Moved: ${Object.keys(changes.moved).length} workouts`);
+    console.log(`  - Added: ${Object.keys(changes.added).length} workouts`);
+    if (completed) {
+      const completedCount = Object.keys(completed).filter((id) => completed[id]).length;
+      console.log(`  - Completed: ${completedCount} workouts marked as done`);
+    }
+  } catch (error) {
+    console.error("❌ Error modifying plan:", error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
 }
 
 // ============================================================================
@@ -923,6 +1265,10 @@ async function main() {
       break;
     case "query":
       await runQuery(args);
+      break;
+    // ADD THIS CASE:
+    case "modify":
+      modifyCommand(args);
       break;
   }
 }

@@ -9,6 +9,7 @@
     recalculateSwimPaceZones,
   } from "../stores/settings.js";
   import { version } from "../../../package.json";
+  import UpdatePlanButton from "./UpdatePlanButton.svelte";
 
   interface Props {
     settings: Settings;
@@ -66,7 +67,7 @@
   let importStatus = $state<{ message: string; isError: boolean } | null>(null);
   let fileInput = $state<HTMLInputElement | null>(null);
 
-  function exportData() {
+  function handleExportBackup() {
     const data: Record<string, string> = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -84,6 +85,16 @@
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    importStatus = { message: "Backup downloaded!", isError: false };
+    setTimeout(() => (importStatus = null), 3000);
+  }
+
+  function handlePlanExportStatus(status: { message: string; isError: boolean } | null) {
+    importStatus = status;
+    if (status) {
+      setTimeout(() => (importStatus = null), 4000);
+    }
   }
 
   function handleImportClick() {
@@ -538,7 +549,7 @@
                 >Download a file containing all your data. Keep it somewhere safe.</span
               >
             </div>
-            <button class="data-btn export" onclick={exportData}>
+            <button class="data-btn export" onclick={handleExportBackup}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
@@ -546,6 +557,16 @@
               </svg>
               Export
             </button>
+          </div>
+
+          <div class="data-action">
+            <div class="data-action-info">
+              <span class="data-action-title">Export Updated Plan</span>
+              <span class="data-action-desc"
+                >Apply your changes and download the updated plan JSON file.</span
+              >
+            </div>
+            <UpdatePlanButton onStatus={handlePlanExportStatus} />
           </div>
 
           <div class="data-action">
