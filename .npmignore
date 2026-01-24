@@ -22,3 +22,6 @@ examples/
 # Git
 .git/
 .gitignore
+
+# Documentation
+CLAUDE.md
