@@ -1,4 +1,4 @@
-## Endurance Coach – Roadmap
+## Endurance Coach – Polished Roadmap
 
 This roadmap is organized to make **coaching correctness and judgment** the spine of the system, with tooling and UI serving that goal—not competing with it.
 
@@ -138,7 +138,59 @@ _(Not implementation-heavy yet, but directionally important)_
 
 ---
 
-## Phase 4: Web UI Enhancements (Amplify Insight, Not Distract)
+## Phase 4: Public Expression Loop (Strava Write-Back)
+
+### Epic: Coach-Authored Strava Titles & Descriptions
+
+Goal: Close the loop between **experience → reflection → coaching judgment → public expression**.
+
+This phase turns private insight into a visible artifact, while preserving athlete voice and trust.
+
+- **Strava write-back as a suggestion, not automation (by default)**
+  - Agent generates a _suggested_ Strava title and description after the post-workout interview.
+  - User explicitly approves before anything is published.
+  - Original Strava title/description are preserved for rollback.
+
+- **Tone-aware generation**
+  - User can select or customize tone, for example:
+    - Neutral / factual
+    - Coach-direct
+    - Reflective
+    - Light / minimal
+
+  - Tone preference is stored per user and can be overridden per workout.
+
+- **Iterative refinement loop**
+  - User can ask for revisions:
+    - “Make it shorter”
+    - “Less harsh”
+    - “More honest”
+    - “Focus on execution, not feeling”
+
+  - Agent revises copy while preserving factual grounding in workout + interview data.
+
+- **Copy structure constraints (to avoid AI voice leakage)**
+  - Title: short, human, opinionated
+  - Description:
+    1. What happened
+    2. Key mismatch or confirmation
+    3. One coaching takeaway
+
+- **Publishing controls**
+  - Configurable modes:
+    - `off` – no Strava write-back
+    - `suggest` – generate and ask for approval (default)
+    - `auto` – publish automatically after interview
+
+- **Audit & safety**
+  - Persist applied copy, timestamps, and approval source
+  - Allow one-command rollback to original Strava text
+
+This phase is intentionally opinionated: the coach must _commit to a perspective_, but the athlete retains final authority.
+
+---
+
+## Phase 5: Web UI Enhancements (Amplify Insight, Not Distract)
 
 ### Epic: Web UI Enhancements
 
