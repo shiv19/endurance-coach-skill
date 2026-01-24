@@ -120,6 +120,18 @@ export function parseDate(dateStr: string): Date {
   return new Date(year, month - 1, day);
 }
 
+// Add days to a date and return as ISO string
+export function addDaysToDate(dateStr: string, days: number): string {
+  const date = parseDate(dateStr);
+  date.setDate(date.getDate() + days);
+  return formatDateISO(date);
+}
+
+// Add weeks to a date and return as ISO string
+export function addWeeksToDate(dateStr: string, weeks: number): string {
+  return addDaysToDate(dateStr, weeks * 7);
+}
+
 export function getSportColor(sport: Sport): string {
   const colors: Record<Sport, string> = {
     swim: "var(--swim)",

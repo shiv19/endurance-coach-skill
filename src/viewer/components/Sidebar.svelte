@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { TrainingPlan, Sport } from "../../schema/training-plan.js";
   import type { Settings } from "../stores/settings.js";
-  import { formatEventDate, getDaysToEvent, getSportIcon } from "../lib/utils.js";
+  import { formatEventDate, getDaysToEvent, getSportIcon, addWeeksToDate } from "../lib/utils.js";
   import { exportPlanToCalendar, exportAllWorkouts } from "../lib/export/index.js";
 
   interface Props {
@@ -10,9 +10,11 @@
     filters: { sport: string; status: string };
     completed: Record<string, boolean>;
     open: boolean;
+    weekOffset: number;
     onFilterChange: (filters: { sport: string; status: string }) => void;
     onSettingsClick: () => void;
     onImportHelpClick: () => void;
+    onWeekOffsetChange: (offset: number) => void;
   }
 
   let {
@@ -21,10 +23,24 @@
     filters,
     completed,
     open = $bindable(),
+    weekOffset,
     onFilterChange,
     onSettingsClick,
     onImportHelpClick,
+    onWeekOffsetChange,
   }: Props = $props();
+
+  // Calculate adjusted dates based on week offset
+  const adjustedStartDate = $derived(
+    weekOffset !== 0
+      ? addWeeksToDate(plan.meta?.planStartDate ?? "", weekOffset)
+      : (plan.meta?.planStartDate ?? "")
+  );
+  const adjustedEventDate = $derived(
+    weekOffset !== 0
+      ? addWeeksToDate(plan.meta?.eventDate ?? "", weekOffset)
+      : (plan.meta?.eventDate ?? "")
+  );
 
   // Calculate stats
   const stats = $derived(() => {
@@ -67,13 +83,76 @@
   });
 
   const progressOffset = $derived(377 - (stats().progress / 100) * 377);
-  const daysToEvent = $derived(getDaysToEvent(plan.meta?.eventDate ?? ""));
+  const daysToEvent = $derived(getDaysToEvent(adjustedEventDate));
 
   const availableSports = $derived(
     Object.entries(stats().sportHours)
       .filter(([_, h]) => h > 0)
       .map(([sport]) => sport)
   );
+
+  // Combine constraints from assessment and athlete notes
+  const athleteConstraints = $derived(() => {
+    const constraints: string[] = [];
+    if (plan.assessment?.constraints) {
+      constraints.push(...plan.assessment.constraints);
+    }
+    if (plan.athleteNotes?.notes) {
+      constraints.push(...plan.athleteNotes.notes);
+    }
+    return constraints;
+  });
+
+  // Check if there's any athlete info to display
+  const hasAthleteInfo = $derived(
+    plan.assessment?.foundation ||
+      plan.assessment?.strengths?.length ||
+      plan.assessment?.limiters?.length ||
+      athleteConstraints().length > 0
+  );
+
+  // Organize paces by category for display
+  const organizedPaces = $derived(() => {
+    const paces = plan.athletePaces;
+    if (!paces) return null;
+
+    const running: { label: string; value: string }[] = [];
+    const intervals: { label: string; value: string }[] = [];
+    const cycling: { label: string; value: string | number }[] = [];
+    const swimming: { label: string; value: string }[] = [];
+
+    // Running paces
+    if (paces.easy) running.push({ label: "Easy", value: paces.easy });
+    if (paces.long) running.push({ label: "Long", value: paces.long });
+    if (paces.tempo) running.push({ label: "Tempo", value: paces.tempo });
+    if (paces.threshold) running.push({ label: "Threshold", value: paces.threshold });
+    if (paces.marathon) running.push({ label: "Marathon", value: paces.marathon });
+    if (paces.halfMarathon) running.push({ label: "Half Marathon", value: paces.halfMarathon });
+
+    // Interval paces
+    if (paces.r200) intervals.push({ label: "200m", value: paces.r200 });
+    if (paces.r400) intervals.push({ label: "400m", value: paces.r400 });
+    if (paces.r800) intervals.push({ label: "800m", value: paces.r800 });
+    if (paces.r1k) intervals.push({ label: "1K", value: paces.r1k });
+    if (paces.rMile) intervals.push({ label: "Mile", value: paces.rMile });
+
+    // Cycling
+    if (paces.bikeFtp) cycling.push({ label: "FTP", value: `${paces.bikeFtp}W` });
+    if (paces.bikeEasy) cycling.push({ label: "Easy", value: paces.bikeEasy });
+    if (paces.bikeTempo) cycling.push({ label: "Tempo", value: paces.bikeTempo });
+    if (paces.bikeThreshold) cycling.push({ label: "Threshold", value: paces.bikeThreshold });
+
+    // Swimming
+    if (paces.swimCss) swimming.push({ label: "CSS", value: paces.swimCss });
+    if (paces.swimEasy) swimming.push({ label: "Easy", value: paces.swimEasy });
+    if (paces.swimTempo) swimming.push({ label: "Tempo", value: paces.swimTempo });
+
+    const hasAny =
+      running.length > 0 || intervals.length > 0 || cycling.length > 0 || swimming.length > 0;
+    if (!hasAny) return null;
+
+    return { running, intervals, cycling, swimming };
+  });
 
   function toggleSportFilter(sport: string) {
     if (filters.sport === sport) {
@@ -133,8 +212,45 @@
 <aside class="sidebar" class:open>
   <div class="event-header">
     <h1 class="event-name">{plan.meta?.event ?? "Training Plan"}</h1>
-    <div class="event-date">{formatEventDate(plan.meta?.eventDate ?? "")}</div>
+    <div class="event-date">{formatEventDate(adjustedEventDate)}</div>
     <div class="athlete-name">{plan.meta?.athlete ?? "Athlete"}</div>
+  </div>
+
+  <div class="start-date-section">
+    <div class="start-date-label">Plan Start Date</div>
+    <div class="start-date-controls">
+      <button
+        class="week-adjust-btn"
+        onclick={() => onWeekOffsetChange(weekOffset - 1)}
+        title="Move start date 1 week earlier"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <div class="start-date-value">
+        <span class="start-date-text">{formatEventDate(adjustedStartDate)}</span>
+        {#if weekOffset !== 0}
+          <span class="offset-badge" class:negative={weekOffset < 0}>
+            {weekOffset > 0 ? "+" : ""}{weekOffset}w
+          </span>
+        {/if}
+      </div>
+      <button
+        class="week-adjust-btn"
+        onclick={() => onWeekOffsetChange(weekOffset + 1)}
+        title="Move start date 1 week later"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+    {#if weekOffset !== 0}
+      <button class="reset-offset-btn" onclick={() => onWeekOffsetChange(0)}>
+        Reset to original
+      </button>
+    {/if}
   </div>
 
   <div class="progress-section">
@@ -311,6 +427,143 @@
       {/each}
     </div>
   </div>
+
+  {#if organizedPaces()}
+    <div class="paces-section">
+      <h3>Training Paces</h3>
+
+      {#if organizedPaces()?.running.length}
+        <div class="pace-group">
+          <div class="pace-group-header">
+            <span class="pace-sport-icon run">🏃</span>
+            <span>Running</span>
+          </div>
+          <div class="pace-grid">
+            {#each organizedPaces()?.running ?? [] as pace}
+              <div class="pace-item">
+                <span class="pace-label">{pace.label}</span>
+                <span class="pace-value">{pace.value}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      {#if organizedPaces()?.intervals.length}
+        <div class="pace-group">
+          <div class="pace-group-header">
+            <span class="pace-sport-icon run">⚡</span>
+            <span>Intervals</span>
+          </div>
+          <div class="pace-grid">
+            {#each organizedPaces()?.intervals ?? [] as pace}
+              <div class="pace-item">
+                <span class="pace-label">{pace.label}</span>
+                <span class="pace-value">{pace.value}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      {#if organizedPaces()?.cycling.length}
+        <div class="pace-group">
+          <div class="pace-group-header">
+            <span class="pace-sport-icon bike">🚴</span>
+            <span>Cycling</span>
+          </div>
+          <div class="pace-grid">
+            {#each organizedPaces()?.cycling ?? [] as pace}
+              <div class="pace-item">
+                <span class="pace-label">{pace.label}</span>
+                <span class="pace-value">{pace.value}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      {#if organizedPaces()?.swimming.length}
+        <div class="pace-group">
+          <div class="pace-group-header">
+            <span class="pace-sport-icon swim">🏊</span>
+            <span>Swimming</span>
+          </div>
+          <div class="pace-grid">
+            {#each organizedPaces()?.swimming ?? [] as pace}
+              <div class="pace-item">
+                <span class="pace-label">{pace.label}</span>
+                <span class="pace-value">{pace.value}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  {#if hasAthleteInfo}
+    <div class="athlete-info-section">
+      <h3>Athlete Profile</h3>
+
+      {#if plan.assessment?.foundation}
+        <div class="info-group">
+          <div class="info-row">
+            <span class="info-label">Level</span>
+            <span class="info-value level-badge"
+              >{plan.assessment.foundation.foundationLevel ?? "—"}</span
+            >
+          </div>
+          {#if plan.assessment.foundation.yearsInSport}
+            <div class="info-row">
+              <span class="info-label">Experience</span>
+              <span class="info-value"
+                >{plan.assessment.foundation.yearsInSport} year{plan.assessment.foundation
+                  .yearsInSport !== 1
+                  ? "s"
+                  : ""}</span
+              >
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if plan.assessment?.strengths?.length}
+        <div class="info-group">
+          <div class="info-subtitle">Strengths</div>
+          {#each plan.assessment.strengths as strength}
+            <div class="assessment-entry strength">
+              <span class="entry-sport">{strength.sport}</span>
+              <span class="entry-evidence">{strength.evidence}</span>
+            </div>
+          {/each}
+        </div>
+      {/if}
+
+      {#if plan.assessment?.limiters?.length}
+        <div class="info-group">
+          <div class="info-subtitle">Limiters</div>
+          {#each plan.assessment.limiters as limiter}
+            <div class="assessment-entry limiter">
+              <span class="entry-sport">{limiter.sport}</span>
+              <span class="entry-evidence">{limiter.evidence}</span>
+            </div>
+          {/each}
+        </div>
+      {/if}
+
+      {#if athleteConstraints.length > 0}
+        <div class="info-group">
+          <div class="info-subtitle">Training Constraints</div>
+          <ul class="constraints-list">
+            {#each athleteConstraints as constraint}
+              <li>{constraint}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </div>
+  {/if}
 </aside>
 
 <style>
@@ -360,6 +613,105 @@
     font-size: 0.9rem;
     color: var(--text-muted);
     margin-top: 0.5rem;
+  }
+
+  /* Start Date Section */
+  .start-date-section {
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .start-date-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .start-date-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .week-adjust-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-medium);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .week-adjust-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--accent);
+  }
+
+  .week-adjust-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .start-date-value {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 160px;
+  }
+
+  .start-date-text {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    text-align: center;
+  }
+
+  .offset-badge {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: var(--accent-glow);
+    color: var(--accent);
+  }
+
+  .offset-badge.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .reset-offset-btn {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px dashed var(--border-medium);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .reset-offset-btn:hover {
+    color: var(--text-secondary);
+    border-color: var(--border-medium);
+    border-style: solid;
+    background: var(--bg-secondary);
   }
 
   /* Progress Ring */
@@ -833,6 +1185,186 @@
   .import-help-link svg {
     width: 14px;
     height: 14px;
+  }
+
+  /* Paces Section */
+  .paces-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .paces-section h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .pace-group {
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 0.75rem;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .pace-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .pace-sport-icon {
+    font-size: 0.9rem;
+  }
+
+  .pace-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .pace-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+  }
+
+  .pace-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .pace-value {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* Athlete Info Section */
+  .athlete-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .athlete-info-section h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-group {
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 0.75rem;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+  }
+
+  .info-row:not(:last-child) {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .info-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .info-value {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+  }
+
+  .level-badge {
+    text-transform: capitalize;
+    padding: 0.2rem 0.5rem;
+    background: var(--accent-glow);
+    color: var(--accent);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .info-subtitle {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .assessment-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+  }
+
+  .assessment-entry:last-child {
+    margin-bottom: 0;
+  }
+
+  .assessment-entry.strength .entry-sport {
+    color: var(--run);
+  }
+
+  .assessment-entry.limiter .entry-sport {
+    color: #ef4444;
+  }
+
+  .entry-sport {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .entry-evidence {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .constraints-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style-type: disc;
+  }
+
+  .constraints-list li {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 0.35rem;
+  }
+
+  .constraints-list li:last-child {
+    margin-bottom: 0;
   }
 
   /* Mobile */

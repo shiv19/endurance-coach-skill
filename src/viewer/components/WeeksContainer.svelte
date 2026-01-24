@@ -9,7 +9,13 @@
   import type { PlanChanges } from "../stores/changes.js";
   import { getEffectiveWorkout, isWorkoutDeleted } from "../stores/changes.js";
   import WeekCard from "./WeekCard.svelte";
-  import { getOrderedDays, getTodayISO, parseDate, formatDateISO } from "../lib/utils.js";
+  import {
+    getOrderedDays,
+    getTodayISO,
+    parseDate,
+    formatDateISO,
+    addDaysToDate,
+  } from "../lib/utils.js";
 
   interface Props {
     plan: TrainingPlan;
@@ -48,9 +54,21 @@
     return map;
   }
 
-  // Get effective date for a workout (original or moved)
+  // Calculate offset in days from weekOffset
+  const offsetDays = $derived(changes.weekOffset * 7);
+
+  // Apply week offset to a date
+  function applyOffset(dateStr: string): string {
+    if (offsetDays === 0) return dateStr;
+    return addDaysToDate(dateStr, offsetDays);
+  }
+
+  // Get effective date for a workout (original or moved), with offset applied
   function getEffectiveDate(workoutId: string, originalDate: string): string {
-    return changes.moved[workoutId] || originalDate;
+    const movedDate = changes.moved[workoutId];
+    // If moved, return the moved date (already includes offset from when it was moved)
+    // If not moved, apply offset to original date
+    return movedDate || applyOffset(originalDate);
   }
 
   // Build a full 7-day week with workouts in their effective positions
@@ -82,7 +100,9 @@
         workouts: [],
       }));
     }
-    const refDate = parseDate(refDay.date);
+    // Apply week offset to the reference date
+    const refDateStr = applyOffset(refDay.date);
+    const refDate = parseDate(refDateStr);
     const refDayIndex = dayNameOrder.indexOf(refDay.dayOfWeek);
 
     function getDateForDayName(dayName: string): string {
@@ -96,10 +116,10 @@
       return formatDateISO(date);
     }
 
-    // Build array of all 7 dates in this week
+    // Build array of all 7 dates in this week (with offset applied)
     const allWeekDates: string[] = orderedDayNames.map((dayName) => {
       const planDay = planDaysByName[dayName];
-      return planDay ? planDay.date : getDateForDayName(dayName);
+      return planDay ? applyOffset(planDay.date) : getDateForDayName(dayName);
     });
 
     // Collect workouts by their effective date (respecting moves)

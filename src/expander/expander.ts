@@ -407,6 +407,9 @@ export function expandPlan(
     phases,
     weeks,
     raceStrategy: compact.raceStrategy ? { ...compact.raceStrategy } : undefined,
+    assessment: compact.assessment ? { ...compact.assessment } : undefined,
+    athleteNotes: compact.athlete.constraints ? { ...compact.athlete.constraints } : undefined,
+    athletePaces: compact.athlete.paces ? { ...compact.athlete.paces } : undefined,
   };
 }
 

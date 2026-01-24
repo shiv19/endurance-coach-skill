@@ -183,6 +183,83 @@ export interface ExpandedUnitPreferences {
 }
 
 /**
+ * Assessment entry for strengths/limiters.
+ */
+export interface ExpandedAssessmentEntry {
+  sport: string;
+  evidence: string;
+}
+
+/**
+ * Athlete assessment data for display in the viewer.
+ */
+export interface ExpandedAssessment {
+  foundation?: {
+    raceHistory?: string[];
+    peakTrainingLoad?: number;
+    foundationLevel?: string;
+    yearsInSport?: number;
+  };
+  currentForm?: {
+    weeklyVolume?: {
+      total?: number;
+      swim?: number;
+      bike?: number;
+      run?: number;
+    };
+    longestSessions?: {
+      swim?: number;
+      bike?: number;
+      run?: number;
+    };
+    consistency?: number;
+  };
+  strengths?: ExpandedAssessmentEntry[];
+  limiters?: ExpandedAssessmentEntry[];
+  constraints?: string[];
+}
+
+/**
+ * Athlete notes from constraints configuration.
+ */
+export interface ExpandedAthleteNotes {
+  daysPerWeek?: number | string;
+  preferredDays?: string[];
+  maxLongRunHours?: number;
+  maxLongBikeHours?: number;
+  notes?: string[];
+}
+
+/**
+ * Athlete training paces for reference.
+ */
+export interface ExpandedAthletePaces {
+  // Running paces
+  easy?: string;
+  long?: string;
+  tempo?: string;
+  threshold?: string;
+  marathon?: string;
+  halfMarathon?: string;
+  interval?: string;
+  // Interval-specific paces
+  r200?: string;
+  r400?: string;
+  r800?: string;
+  r1k?: string;
+  rMile?: string;
+  // Cycling
+  bikeFtp?: number;
+  bikeEasy?: string;
+  bikeTempo?: string;
+  bikeThreshold?: string;
+  // Swimming
+  swimCss?: string;
+  swimEasy?: string;
+  swimTempo?: string;
+}
+
+/**
  * The complete expanded training plan.
  * This format is consumed by the HTML renderer.
  */
@@ -194,6 +271,9 @@ export interface ExpandedPlan {
   phases: ExpandedPhase[];
   weeks: ExpandedWeek[];
   raceStrategy?: Record<string, unknown>;
+  assessment?: ExpandedAssessment;
+  athleteNotes?: ExpandedAthleteNotes;
+  athletePaces?: ExpandedAthletePaces;
 }
 
 // ============================================================================

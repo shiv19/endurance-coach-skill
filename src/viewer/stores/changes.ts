@@ -17,6 +17,9 @@ export interface PlanChanges {
 
   // New workouts added by user: generated ID -> { date, workout }
   added: Record<string, { date: string; workout: Workout }>;
+
+  // Offset for plan start date in weeks (positive = later, negative = earlier)
+  weekOffset: number;
 }
 
 const storageKey = `plan-${planData.meta.id}-changes`;
@@ -27,6 +30,7 @@ export function emptyChanges(): PlanChanges {
     edited: {},
     deleted: [],
     added: {},
+    weekOffset: 0,
   };
 }
 
@@ -41,6 +45,7 @@ export function loadChanges(): PlanChanges {
       edited: parsed.edited || {},
       deleted: parsed.deleted || [],
       added: parsed.added || {},
+      weekOffset: parsed.weekOffset || 0,
     };
   } catch {
     return emptyChanges();

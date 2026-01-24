@@ -170,6 +170,13 @@
     triggerBanner();
     modalState = null;
   }
+
+  function handleWeekOffsetChange(offset: number) {
+    changes.weekOffset = offset;
+    changes = { ...changes };
+    saveChanges(changes);
+    triggerBanner();
+  }
 </script>
 
 {#if showBanner}
@@ -209,9 +216,11 @@
     {filters}
     {completed}
     bind:open={sidebarOpen}
+    weekOffset={changes.weekOffset}
     onFilterChange={(f) => (filters = f)}
     onSettingsClick={() => (settingsOpen = true)}
     onImportHelpClick={() => (importHelpOpen = true)}
+    onWeekOffsetChange={handleWeekOffsetChange}
   />
 
   <main class="main-content">

@@ -99,6 +99,47 @@ export interface CompactAthlete {
 }
 
 // ============================================================================
+// Assessment (Optional)
+// ============================================================================
+
+/**
+ * Strength or limiter entry in the assessment.
+ */
+export interface CompactAssessmentEntry {
+  sport: Sport;
+  evidence: string;
+}
+
+/**
+ * Athlete assessment for context on their training background.
+ */
+export interface CompactAssessment {
+  foundation?: {
+    raceHistory?: string[];
+    peakTrainingLoad?: number;
+    foundationLevel?: "beginner" | "intermediate" | "advanced" | "elite";
+    yearsInSport?: number;
+  };
+  currentForm?: {
+    weeklyVolume?: {
+      total?: number;
+      swim?: number;
+      bike?: number;
+      run?: number;
+    };
+    longestSessions?: {
+      swim?: number;
+      bike?: number;
+      run?: number;
+    };
+    consistency?: number;
+  };
+  strengths?: CompactAssessmentEntry[];
+  limiters?: CompactAssessmentEntry[];
+  constraints?: string[];
+}
+
+// ============================================================================
 // Training Phases
 // ============================================================================
 
@@ -187,6 +228,7 @@ export interface CompactRaceStrategy {
 export interface CompactPlan {
   version: "2.0";
   athlete: CompactAthlete;
+  assessment?: CompactAssessment;
   phases: CompactPhase[];
   weeks: CompactWeek[];
   raceStrategy?: CompactRaceStrategy;

@@ -159,6 +159,49 @@ export const CompactWeekSchema = z.object({
 });
 
 // ============================================================================
+// Assessment (Optional)
+// ============================================================================
+
+export const CompactAssessmentEntrySchema = z.object({
+  sport: SportSchema,
+  evidence: z.string(),
+});
+
+export const CompactAssessmentSchema = z.object({
+  foundation: z
+    .object({
+      raceHistory: z.array(z.string()).optional(),
+      peakTrainingLoad: z.number().optional(),
+      foundationLevel: z.enum(["beginner", "intermediate", "advanced", "elite"]).optional(),
+      yearsInSport: z.number().optional(),
+    })
+    .optional(),
+  currentForm: z
+    .object({
+      weeklyVolume: z
+        .object({
+          total: z.number().optional(),
+          swim: z.number().optional(),
+          bike: z.number().optional(),
+          run: z.number().optional(),
+        })
+        .optional(),
+      longestSessions: z
+        .object({
+          swim: z.number().optional(),
+          bike: z.number().optional(),
+          run: z.number().optional(),
+        })
+        .optional(),
+      consistency: z.number().optional(),
+    })
+    .optional(),
+  strengths: z.array(CompactAssessmentEntrySchema).optional(),
+  limiters: z.array(CompactAssessmentEntrySchema).optional(),
+  constraints: z.array(z.string()).optional(),
+});
+
+// ============================================================================
 // Race Strategy
 // ============================================================================
 
@@ -183,6 +226,7 @@ export const CompactPlanSchema = z
   .object({
     version: z.literal("2.0"),
     athlete: CompactAthleteSchema,
+    assessment: CompactAssessmentSchema.optional(),
     phases: z.array(CompactPhaseSchema).min(1),
     weeks: z.array(CompactWeekSchema).min(1),
     raceStrategy: CompactRaceStrategySchema.optional(),
@@ -281,6 +325,8 @@ export type CompactPhase = z.infer<typeof CompactPhaseSchema>;
 export type CompactWeek = z.infer<typeof CompactWeekSchema>;
 export type CompactWeekSchedule = z.infer<typeof CompactWeekScheduleSchema>;
 export type CompactRaceStrategy = z.infer<typeof CompactRaceStrategySchema>;
+export type CompactAssessment = z.infer<typeof CompactAssessmentSchema>;
+export type CompactAssessmentEntry = z.infer<typeof CompactAssessmentEntrySchema>;
 export type AthletePaces = z.infer<typeof AthletePacesSchema>;
 export type AthleteZones = z.infer<typeof AthleteZonesSchema>;
 export type HRZoneConfig = z.infer<typeof HRZoneConfigSchema>;

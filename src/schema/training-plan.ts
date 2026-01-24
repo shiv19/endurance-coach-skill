@@ -345,6 +345,46 @@ export interface RaceStrategy {
 // Complete Training Plan
 // ============================================================================
 
+/**
+ * Athlete notes from constraints configuration.
+ */
+export interface AthleteNotes {
+  daysPerWeek?: number | string;
+  preferredDays?: string[];
+  maxLongRunHours?: number;
+  maxLongBikeHours?: number;
+  notes?: string[];
+}
+
+/**
+ * Athlete training paces for reference display.
+ */
+export interface AthletePacesDisplay {
+  // Running paces
+  easy?: string;
+  long?: string;
+  tempo?: string;
+  threshold?: string;
+  marathon?: string;
+  halfMarathon?: string;
+  interval?: string;
+  // Interval-specific
+  r200?: string;
+  r400?: string;
+  r800?: string;
+  r1k?: string;
+  rMile?: string;
+  // Cycling
+  bikeFtp?: number;
+  bikeEasy?: string;
+  bikeTempo?: string;
+  bikeThreshold?: string;
+  // Swimming
+  swimCss?: string;
+  swimEasy?: string;
+  swimTempo?: string;
+}
+
 export interface TrainingPlan {
   version: "1.0";
   meta: {
@@ -360,11 +400,13 @@ export interface TrainingPlan {
     generatedBy: string; // "Endurance Coach"
   };
   preferences: UnitPreferences;
-  assessment: AthleteAssessment;
+  assessment?: AthleteAssessment;
   zones: AthleteZones;
   phases: TrainingPhase[];
   weeks: TrainingWeek[];
-  raceStrategy: RaceStrategy;
+  raceStrategy?: RaceStrategy;
+  athleteNotes?: AthleteNotes;
+  athletePaces?: AthletePacesDisplay;
 }
 
 // ============================================================================
