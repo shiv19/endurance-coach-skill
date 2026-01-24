@@ -28,6 +28,17 @@ import type {
 // ============================================================================
 
 /**
+ * Parse an ISO date string (YYYY-MM-DD) as a local date, avoiding timezone issues.
+ * When you use `new Date("2025-02-16")`, it creates a UTC date which can shift
+ * to the previous day in timezones behind UTC. This function creates a date in
+ * local timezone.
+ */
+function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
  * Get the day of week name from a Date.
  */
 function getDayOfWeekName(date: Date): string {
@@ -39,7 +50,10 @@ function getDayOfWeekName(date: Date): string {
  * Format a Date as ISO date string (YYYY-MM-DD).
  */
 function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -59,7 +73,7 @@ function calculateStartDate(
   totalWeeks: number,
   firstDayOfWeek: "monday" | "sunday"
 ): Date {
-  const event = new Date(eventDate);
+  const event = parseLocalDate(eventDate);
   // Go back totalWeeks * 7 days from event date
   const start = addDays(event, -(totalWeeks * 7));
 

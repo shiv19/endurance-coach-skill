@@ -13,14 +13,28 @@ function getActualDayOfWeek(dateStr: string): string {
   return dayNames[date.getDay()];
 }
 
+/**
+ * Extract plan data from HTML file
+ */
+function extractPlanFromHtml(htmlContent: string): any {
+  const match = htmlContent.match(
+    /<script type="application\/json" id="plan-data">\s*([\s\S]*?)\s*<\/script>/
+  );
+  if (!match) {
+    throw new Error("Could not find plan-data script tag in HTML");
+  }
+  return JSON.parse(match[1]);
+}
+
 describe("Demo Plan Validation", () => {
   const demosDir = join(__dirname, "../../docs/demos");
-  const planFiles = readdirSync(demosDir).filter((f) => f.endsWith("-plan.json"));
+  const planFiles = readdirSync(demosDir).filter((f) => f.endsWith(".html"));
 
   for (const planFile of planFiles) {
     describe(planFile, () => {
       const planPath = join(demosDir, planFile);
-      const plan = JSON.parse(readFileSync(planPath, "utf-8"));
+      const htmlContent = readFileSync(planPath, "utf-8");
+      const plan = extractPlanFromHtml(htmlContent);
 
       it("has all weeks with 7 days", () => {
         for (const week of plan.weeks || []) {
