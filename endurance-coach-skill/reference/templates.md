@@ -232,7 +232,7 @@ To add a custom template:
 2. Follow the structure above
 3. Define params with types, defaults, and constraints
 4. Use `${variable}` interpolation for dynamic values
-5. Test with `npx endurance-coach templates show your-template`
+5. Test with `npx -y endurance-coach@latest templates show your-template`
 
 **Available interpolation variables:**
 
@@ -247,17 +247,17 @@ To add a custom template:
 
 ```bash
 # List all templates
-npx endurance-coach templates
+npx -y endurance-coach@latest templates
 
 # Filter by sport
-npx endurance-coach templates --sport run
-npx endurance-coach templates --sport swim
-npx endurance-coach templates --sport bike
+npx -y endurance-coach@latest templates --sport run
+npx -y endurance-coach@latest templates --sport swim
+npx -y endurance-coach@latest templates --sport bike
 
 # Show template details
-npx endurance-coach templates show intervals.400
-npx endurance-coach templates show swim.threshold
+npx -y endurance-coach@latest templates show intervals.400
+npx -y endurance-coach@latest templates show swim.threshold
 
 # Expand a plan to see full workouts
-npx endurance-coach expand plan.yaml --verbose
+npx -y endurance-coach@latest expand plan.yaml --verbose
 ```

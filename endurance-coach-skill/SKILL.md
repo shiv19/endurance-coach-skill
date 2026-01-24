@@ -81,7 +81,7 @@ questions:
 Run the auth command to generate the OAuth URL:
 
 ```bash
-npx endurance-coach auth --client-id=CLIENT_ID --client-secret=CLIENT_SECRET
+npx -y endurance-coach@latest auth --client-id=CLIENT_ID --client-secret=CLIENT_SECRET
 ```
 
 This outputs an authorization URL. **Show this URL to the user** and tell them:
@@ -109,8 +109,8 @@ questions:
 Run these commands to complete authentication and sync (the CLI extracts the code from the URL automatically):
 
 ```bash
-npx endurance-coach auth --code="FULL_REDIRECT_URL"
-npx endurance-coach sync --days=730
+npx -y endurance-coach@latest auth --code="FULL_REDIRECT_URL"
+npx -y endurance-coach@latest sync --days=730
 ```
 
 This will:
@@ -131,7 +131,7 @@ The sync command stores data in a SQLite database. The tool automatically uses t
 To get latest activities before creating a new plan:
 
 ```bash
-npx endurance-coach sync
+npx -y endurance-coach@latest sync
 ```
 
 This uses cached tokens and only fetches new activities.
@@ -217,7 +217,7 @@ assessment:
 The athlete's training data is stored in SQLite at `~/.endurance-coach/coach.db`. Query it using the built-in query command:
 
 ```bash
-npx endurance-coach query "YOUR_QUERY" --json
+npx -y endurance-coach@latest query "YOUR_QUERY" --json
 ```
 
 This works on any Node.js version (uses built-in SQLite on Node 22.5+, falls back to CLI otherwise).
@@ -297,7 +297,7 @@ Read these files as needed during plan creation:
 
 The v2.0 format uses compact **template references** like `easy(40)` or `swim.threshold(10)` that expand to full workouts. This is significantly more concise than writing verbose workout objects manually.
 
-> **Quick Start:** Run `npx endurance-coach schema` to see a minimal working example you can copy and modify.
+> **Quick Start:** Run `npx -y endurance-coach@latest schema` to see a minimal working example you can copy and modify.
 
 ### Required Fields Quick Reference
 
@@ -381,19 +381,19 @@ The v2.0 format uses compact **template references** like `easy(40)` or `swim.th
 
 ```bash
 # List all available workout templates
-npx endurance-coach templates
-npx endurance-coach templates --sport run
-npx endurance-coach templates --sport swim
-npx endurance-coach templates show intervals.400
+npx -y endurance-coach@latest templates
+npx -y endurance-coach@latest templates --sport run
+npx -y endurance-coach@latest templates --sport swim
+npx -y endurance-coach@latest templates show intervals.400
 
 # Validate a compact plan
-npx endurance-coach validate plan.yaml
+npx -y endurance-coach@latest validate plan.yaml
 
 # Expand to see full format (debugging)
-npx endurance-coach expand plan.yaml --verbose
+npx -y endurance-coach@latest expand plan.yaml --verbose
 
 # Render to HTML
-npx endurance-coach render plan.yaml -o plan.html
+npx -y endurance-coach@latest render plan.yaml -o plan.html
 ```
 
 ### Template Reference
@@ -716,7 +716,7 @@ raceStrategy:
 Validate the YAML before rendering:
 
 ```bash
-npx endurance-coach validate plan.yaml
+npx -y endurance-coach@latest validate plan.yaml
 ```
 
 This checks schema compliance and template validity. Fix any errors before proceeding.
@@ -726,7 +726,7 @@ This checks schema compliance and template validity. Fix any errors before proce
 Render the plan to an interactive HTML viewer:
 
 ```bash
-npx endurance-coach render plan.yaml -o plan.html
+npx -y endurance-coach@latest render plan.yaml -o plan.html
 ```
 
 The render command:
@@ -773,9 +773,9 @@ After files are created, tell the user:
 - **Never skip athlete validation** - Present your assessment and get confirmation before writing the plan
 - **Distinguish foundation from form** - An Ironman finisher who took 3 months off is NOT the same as a beginner
 - **Zones must be established** before prescribing specific workouts
-- **Output YAML, then render HTML** - Write the plan as `.yaml` using the v2.0 format, then use `npx endurance-coach render` to create the HTML viewer
+- **Output YAML, then render HTML** - Write the plan as `.yaml` using the v2.0 format, then use `npx -y endurance-coach@latest render` to create the HTML viewer
 - **Define paces for templates you use** - If using `intervals.400()`, you MUST define `paces.r400`. Check the Pace → Template Requirements table.
-- **Use `npx endurance-coach schema`** - When unsure about YAML structure, run this command to see a minimal working example
+- **Use `npx -y endurance-coach@latest schema`** - When unsure about YAML structure, run this command to see a minimal working example
 - **Explain the "why"** - Athletes trust and follow plans they understand
 - **Be conservative with manual data** - When working without Strava, err on the side of caution with volume and intensity
 - **Recommend field tests** - For manual data athletes, include zone validation workouts in the first 1-2 weeks

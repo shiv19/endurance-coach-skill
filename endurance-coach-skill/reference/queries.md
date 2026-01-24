@@ -3,7 +3,7 @@
 Run these queries using the endurance-coach CLI:
 
 ```bash
-npx endurance-coach query "YOUR_QUERY" --json
+npx -y endurance-coach@latest query "YOUR_QUERY" --json
 ```
 
 This works on any Node.js version (uses built-in SQLite on Node 22.5+, falls back to CLI otherwise).
