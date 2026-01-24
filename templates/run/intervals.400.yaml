@@ -1,0 +1,63 @@
+id: intervals.400
+name: 400m Repeats
+sport: run
+type: intervals
+category: speed
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 6
+    min: 4
+    max: 16
+    description: Number of 400m repeats
+  recovery:
+    type: duration
+    default: "90s"
+    description: Recovery jog duration between repeats
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 10min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: 400m repeat
+        distance: 400m
+        pace: "${paces.r400}"
+        intensity: Zone 5
+      recovery:
+        type: recovery
+        name: Recovery jog
+        duration: "${recovery}"
+        intensity: Zone 1-2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 10min
+      pace: "${paces.easy}"
+
+humanReadable: |
+  400m REPEATS
+
+  WARM-UP: 10 min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${reps} × 400m @ ${paces.r400}
+  ${recovery} easy jog recovery between each
+
+  Run each 400m at a consistent effort.
+  Focus on quick turnover and relaxed form.
+
+  COOL-DOWN: 10 min easy
+
+estimatedDuration: "${10 + (reps * 3) + 10}"
+targetZone: Z5
+rpe: "8-9"
+notes: Develops speed and VO2max

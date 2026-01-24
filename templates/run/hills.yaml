@@ -1,0 +1,36 @@
+id: hills
+name: Hill Repeats
+sport: run
+type: hills
+category: hills
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 6
+    min: 4
+    max: 12
+    description: Number of hill repeats
+
+humanReadable: |
+  HILL REPEATS
+
+  WARM-UP: 10 min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${reps} × hill repeats (60-90 seconds uphill)
+  - Run uphill at hard effort (RPE 8)
+  - Jog/walk back down for recovery
+  - Focus on driving knees and pumping arms
+  - Stay tall, don't lean too far forward
+
+  Find a hill with moderate grade (4-8%).
+  Each rep should feel challenging but sustainable.
+
+  COOL-DOWN: 10 min easy on flat terrain
+
+estimatedDuration: "${10 + (reps * 4) + 10}"
+targetZone: Z4-Z5
+rpe: "7-8"
+notes: Builds leg strength, power, and running economy

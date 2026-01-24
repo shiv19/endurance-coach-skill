@@ -1,0 +1,194 @@
+version: "2.0"
+
+athlete:
+  name: "Intermediate Runner"
+  event: "Spring Half Marathon"
+  eventDate: "2025-05-18"
+  paces:
+    easy: "9:30/mi"
+    long: "9:45/mi"
+    tempo: "8:15/mi"
+    threshold: "7:45/mi"
+    marathon: "8:30/mi"
+    halfMarathon: "8:00/mi"
+    r400: "1:40"
+    r800: "3:30"
+    r1k: "4:30"
+    rMile: "7:15"
+  zones:
+    hr:
+      lthr: 172
+      maxHR: 188
+  constraints:
+    daysPerWeek: 5
+    maxLongRunHours: 2.5
+    notes:
+      - "No doubles"
+      - "Rest days on Fridays"
+  unit: mi
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-4"
+    focus: "Build aerobic foundation and running economy"
+    keyWorkouts:
+      - "Easy runs"
+      - "Long runs"
+      - "Strides"
+  - name: "Build 1"
+    weeks: "5-7"
+    focus: "Introduce threshold work"
+    keyWorkouts:
+      - "Tempo runs"
+      - "Progression runs"
+  - name: "Build 2"
+    weeks: "8-10"
+    focus: "Race-specific preparation"
+    keyWorkouts:
+      - "Half marathon pace runs"
+      - "Long tempo runs"
+  - name: "Taper"
+    weeks: "11-12"
+    focus: "Recover and sharpen"
+    keyWorkouts:
+      - "Short tempo"
+      - "Strides"
+
+weeks:
+  # Base Phase
+  - week: 1
+    phase: Base
+    focus: "Establish baseline"
+    workouts:
+      Mon: easy(40)
+      Tue: easy(35)
+      Wed: strides(40, 4)
+      Sat: long(60)
+      Sun: recovery(30)
+
+  - week: 2
+    phase: Base
+    focus: "Build volume"
+    workouts:
+      Mon: easy(45)
+      Tue: easy(35)
+      Wed: strides(40, 6)
+      Sat: long(70)
+      Sun: recovery(30)
+
+  - week: 3
+    phase: Base
+    focus: "Continue building"
+    workouts:
+      Mon: easy(45)
+      Tue: easy(40)
+      Wed: fartlek(45)
+      Sat: long(75)
+      Sun: recovery(30)
+
+  - week: 4
+    phase: Base
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: easy(35)
+      Wed: strides(35, 4)
+      Sat: long(60)
+      Sun: recovery(25)
+
+  # Build 1 Phase
+  - week: 5
+    phase: Build 1
+    focus: "Introduce tempo"
+    workouts:
+      Mon: easy(45)
+      Tue: tempo(20)
+      Wed: easy(40)
+      Sat: long(80)
+      Sun: recovery(30)
+
+  - week: 6
+    phase: Build 1
+    focus: "Increase tempo duration"
+    workouts:
+      Mon: easy(45)
+      Tue: tempo(25)
+      Wed: easy(40)
+      Sat: long(85)
+      Sun: recovery(30)
+
+  - week: 7
+    phase: Build 1
+    focus: "Build endurance"
+    workouts:
+      Mon: easy(45)
+      Tue: threshold(20)
+      Wed: easy(40)
+      Sat: long(90)
+      Sun: recovery(30)
+
+  # Build 2 Phase
+  - week: 8
+    phase: Build 2
+    focus: "Race-specific work"
+    workouts:
+      Mon: easy(45)
+      Tue: intervals.1k(4)
+      Wed: easy(40)
+      Sat: long(100)
+      Sun: recovery(30)
+
+  - week: 9
+    phase: Build 2
+    focus: "Peak volume"
+    workouts:
+      Mon: easy(50)
+      Tue: tempo(30)
+      Wed: easy(45)
+      Sat: long(110)
+      Sun: recovery(35)
+
+  - week: 10
+    phase: Build 2
+    focus: "Race simulation"
+    workouts:
+      Mon: easy(45)
+      Tue: intervals.mile(3)
+      Wed: easy(40)
+      Sat: progression(90)
+      Sun: recovery(30)
+
+  # Taper Phase
+  - week: 11
+    phase: Taper
+    focus: "Begin taper"
+    isRecoveryWeek: true
+    workouts:
+      Mon: easy(40)
+      Tue: tempo(20)
+      Wed: easy(35)
+      Sat: long(70)
+      Sun: recovery(25)
+
+  - week: 12
+    phase: Taper
+    focus: "Race week!"
+    isRecoveryWeek: true
+    workouts:
+      Mon: easy(30)
+      Wed: strides(25, 6)
+      Thu: recovery(20)
+      Sun: rest
+
+raceStrategy:
+  goalTime: "1:45:00"
+  pacing:
+    run: "Even splits at 8:00/mi, slight negative split if feeling good"
+  nutrition: "Gel at miles 5 and 10"
+  notes:
+    - "Don't go out too fast - first 5K should feel easy"
+    - "Settle into rhythm miles 4-8"
+    - "Pick up the pace slightly miles 9-11 if feeling good"
+    - "Leave everything on the course in the final 2 miles"
+    - "Caffeine gel at mile 10 for the finish"

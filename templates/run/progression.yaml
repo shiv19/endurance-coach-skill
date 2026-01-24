@@ -1,0 +1,49 @@
+id: progression
+name: Progression Run
+sport: run
+type: tempo
+category: tempo
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 30
+    max: 90
+    description: Total duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Easy start
+      duration: "${duration * 0.4}min"
+      pace: "${paces.easy}"
+      intensity: Zone 2
+    - type: work
+      name: Moderate middle
+      duration: "${duration * 0.3}min"
+      pace: "${paces.tempo}"
+      intensity: Zone 3
+    - type: work
+      name: Fast finish
+      duration: "${duration * 0.3}min"
+      pace: "${paces.threshold}"
+      intensity: Zone 4
+
+humanReadable: |
+  PROGRESSION RUN - ${duration} minutes
+
+  Start easy, finish fast. Negative split the run.
+
+  Phase 1 (~40%): Easy pace @ ${paces.easy}
+  Phase 2 (~30%): Tempo pace @ ${paces.tempo}
+  Phase 3 (~30%): Threshold pace @ ${paces.threshold}
+
+  Let the pace come naturally. Don't force
+  the progression - finish feeling strong.
+
+estimatedDuration: "${duration}"
+targetZone: Z2-Z4
+rpe: "5-8"
+notes: Develops ability to run fast when tired

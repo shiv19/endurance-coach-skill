@@ -1,0 +1,49 @@
+id: strides
+name: Easy Run + Strides
+sport: run
+type: endurance
+category: speed
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 30
+    min: 20
+    max: 60
+    description: Duration of easy run in minutes
+  strides:
+    type: int
+    default: 6
+    min: 4
+    max: 10
+    description: Number of strides
+
+structure:
+  main:
+    - type: work
+      name: Easy Run
+      duration: "${duration}min"
+      pace: "${paces.easy}"
+      intensity: Zone 2
+
+humanReadable: |
+  EASY RUN + STRIDES - ${duration} minutes
+
+  MAIN RUN:
+  ${duration} min easy @ ${paces.easy}
+
+  STRIDES (after the run):
+  ${strides} × 20-30 second accelerations
+  - Start easy, build to ~90% effort
+  - Focus on quick, light feet
+  - Full recovery walk (60-90s) between each
+  - Should feel smooth, not strained
+
+  Strides maintain leg speed without adding fatigue.
+  Keep them relaxed and controlled.
+
+estimatedDuration: "${duration + 10}"
+targetZone: Z2
+rpe: "4-5 (run), 6-7 (strides)"
+notes: Maintains speed and running economy during easy weeks

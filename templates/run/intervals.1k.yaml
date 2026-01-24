@@ -1,0 +1,63 @@
+id: intervals.1k
+name: 1K Repeats
+sport: run
+type: intervals
+category: threshold
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 4
+    min: 3
+    max: 8
+    description: Number of 1K repeats
+  recovery:
+    type: duration
+    default: "2min"
+    description: Recovery jog duration between repeats
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 10min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: 1K repeat
+        distance: 1000m
+        pace: "${paces.r1k}"
+        intensity: Zone 4
+      recovery:
+        type: recovery
+        name: Recovery jog
+        duration: "${recovery}"
+        intensity: Zone 1-2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 10min
+      pace: "${paces.easy}"
+
+humanReadable: |
+  1K REPEATS
+
+  WARM-UP: 10 min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${reps} × 1K @ ${paces.r1k}
+  ${recovery} easy jog recovery between each
+
+  Target effort: 5K-10K race pace
+  Stay controlled - the goal is consistency.
+
+  COOL-DOWN: 10 min easy
+
+estimatedDuration: "${10 + (reps * 6) + 10}"
+targetZone: Z4
+rpe: "7-8"
+notes: Develops threshold and race-specific fitness

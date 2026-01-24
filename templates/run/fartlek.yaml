@@ -1,0 +1,40 @@
+id: fartlek
+name: Fartlek
+sport: run
+type: intervals
+category: speed
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 40
+    min: 25
+    max: 60
+    description: Total duration in minutes
+
+humanReadable: |
+  FARTLEK - ${duration} minutes
+
+  "Speed play" - unstructured intervals based on feel.
+
+  WARM-UP: 10 min easy @ ${paces.easy}
+
+  MAIN SET (~${duration - 20} min):
+  Alternate between fast bursts (30s-3min) and
+  easy recovery jogs. Use landmarks, music, or
+  feel to dictate when to push and when to recover.
+
+  Suggested structure:
+  - 6-10 fast efforts of varying lengths
+  - Recovery should be at least equal to effort time
+  - Fast efforts range from 5K to mile pace
+
+  COOL-DOWN: 10 min easy
+
+  This is meant to be fun! Don't overthink it.
+
+estimatedDuration: "${duration}"
+targetZone: Z2-Z5
+rpe: "5-8"
+notes: Develops speed and race awareness without rigid structure

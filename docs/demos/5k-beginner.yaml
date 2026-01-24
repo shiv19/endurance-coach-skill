@@ -1,0 +1,130 @@
+version: "2.0"
+
+athlete:
+  name: "Beginner Runner"
+  event: "First 5K"
+  eventDate: "2025-04-20"
+  paces:
+    easy: "11:00/mi"
+    long: "11:30/mi"
+    tempo: "9:45/mi"
+    threshold: "9:15/mi"
+    r400: "2:00"
+    r800: "4:15"
+  zones:
+    hr:
+      lthr: 165
+  constraints:
+    daysPerWeek: 4
+    notes:
+      - "Morning runs preferred"
+      - "No running on Fridays"
+  unit: mi
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-3"
+    focus: "Build aerobic foundation and running habit"
+    keyWorkouts:
+      - "Easy runs"
+      - "Long run"
+  - name: "Build"
+    weeks: "4-6"
+    focus: "Introduce tempo work and build endurance"
+    keyWorkouts:
+      - "Tempo runs"
+      - "Strides"
+  - name: "Peak"
+    weeks: "7-8"
+    focus: "Race preparation and confidence building"
+    keyWorkouts:
+      - "Race pace work"
+      - "Short intervals"
+
+weeks:
+  # Base Phase - Weeks 1-3
+  - week: 1
+    phase: Base
+    focus: "Establish routine"
+    workouts:
+      Mon: easy(25)
+      Wed: easy(30)
+      Sat: long(40)
+
+  - week: 2
+    phase: Base
+    focus: "Build consistency"
+    workouts:
+      Mon: easy(30)
+      Wed: easy(30)
+      Thu: easy(25)
+      Sat: long(45)
+
+  - week: 3
+    phase: Base
+    focus: "Increase volume slightly"
+    workouts:
+      Mon: easy(30)
+      Wed: strides(30, 4)
+      Thu: easy(25)
+      Sat: long(50)
+
+  # Build Phase - Weeks 4-6
+  - week: 4
+    phase: Build
+    focus: "Introduce tempo"
+    workouts:
+      Mon: easy(30)
+      Wed: tempo(15)
+      Thu: recovery(20)
+      Sat: long(55)
+
+  - week: 5
+    phase: Build
+    focus: "Build tempo duration"
+    workouts:
+      Mon: easy(30)
+      Wed: tempo(20)
+      Thu: easy(25)
+      Sat: long(60)
+
+  - week: 6
+    phase: Build
+    focus: "Add speed work"
+    isRecoveryWeek: false
+    workouts:
+      Mon: easy(30)
+      Wed: intervals.400(4)
+      Thu: recovery(20)
+      Sat: long(50)
+
+  # Peak Phase - Weeks 7-8
+  - week: 7
+    phase: Peak
+    focus: "Race simulation"
+    workouts:
+      Mon: easy(30)
+      Wed: tempo(15)
+      Thu: strides(25, 6)
+      Sat: long(45)
+
+  - week: 8
+    phase: Peak
+    focus: "Taper and race!"
+    isRecoveryWeek: true
+    workouts:
+      Mon: easy(25)
+      Wed: strides(20, 4)
+      Thu: recovery(15)
+      Sun: race.5k
+
+raceStrategy:
+  goalTime: "30:00"
+  pacing:
+    run: "Start at 10:00/mi, build to 9:30/mi by finish"
+  notes:
+    - "Start conservatively - first mile slightly slower than goal pace"
+    - "Pick up pace gradually in mile 2"
+    - "Give everything you have in the final kilometer"
+    - "Stay hydrated the day before"

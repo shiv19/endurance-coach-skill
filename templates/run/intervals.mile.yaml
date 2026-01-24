@@ -1,0 +1,64 @@
+id: intervals.mile
+name: Mile Repeats
+sport: run
+type: intervals
+category: threshold
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 3
+    min: 2
+    max: 6
+    description: Number of mile repeats
+  recovery:
+    type: duration
+    default: "3min"
+    description: Recovery jog duration between repeats
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 15min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: Mile repeat
+        distance: 1609m
+        pace: "${paces.rMile}"
+        intensity: Zone 4
+      recovery:
+        type: recovery
+        name: Recovery jog
+        duration: "${recovery}"
+        intensity: Zone 1-2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 10min
+      pace: "${paces.easy}"
+
+humanReadable: |
+  MILE REPEATS
+
+  WARM-UP: 15 min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${reps} × 1 mile @ ${paces.rMile}
+  ${recovery} easy jog recovery between each
+
+  Target effort: 10K-half marathon race pace
+  These are challenging - pace yourself to finish
+  the last rep as fast as the first.
+
+  COOL-DOWN: 10 min easy
+
+estimatedDuration: "${15 + (reps * 10) + 10}"
+targetZone: Z4
+rpe: "7-8"
+notes: Builds race-pace endurance and mental toughness

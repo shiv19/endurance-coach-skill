@@ -1,0 +1,56 @@
+id: threshold
+name: Threshold Run
+sport: run
+type: threshold
+category: threshold
+
+params:
+  threshold_mins:
+    type: int
+    required: true
+    default: 20
+    min: 10
+    max: 40
+    description: Duration of threshold section in minutes
+  warmup_mins:
+    type: int
+    default: 15
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 10
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: "${warmup_mins}min"
+      pace: "${paces.easy}"
+  main:
+    - type: work
+      name: Threshold
+      duration: "${threshold_mins}min"
+      pace: "${paces.threshold}"
+      intensity: Zone 4
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: "${cooldown_mins}min"
+      pace: "${paces.easy}"
+
+humanReadable: |
+  THRESHOLD RUN
+
+  WARM-UP: ${warmup_mins} min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${threshold_mins} min @ threshold pace (${paces.threshold})
+  This is your ~1 hour race pace. Hard but sustainable.
+
+  COOL-DOWN: ${cooldown_mins} min easy
+
+estimatedDuration: "${warmup_mins + threshold_mins + cooldown_mins}"
+targetZone: Z4
+rpe: "7-8"
+notes: Improves lactate threshold

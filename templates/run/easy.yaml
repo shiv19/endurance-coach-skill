@@ -1,0 +1,36 @@
+id: easy
+name: Easy Run
+sport: run
+type: endurance
+category: endurance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 30
+    min: 15
+    max: 90
+    description: Duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Easy Run
+      duration: "${duration}min"
+      pace: "${paces.easy}"
+      intensity: Zone 2
+
+humanReadable: |
+  EASY RUN - ${duration} minutes
+
+  Run at a comfortable, conversational pace.
+  Pace: ${paces.easy}
+
+  Keep heart rate in Zone 2. You should be able to
+  hold a conversation throughout.
+
+estimatedDuration: "${duration}"
+targetZone: Z2
+rpe: "4-5"
+notes: Foundation aerobic work

@@ -21,6 +21,12 @@ import { fileURLToPath } from "url";
 import { ProxyAgent, setGlobalDispatcher } from "undici";
 import { validatePlan, formatValidationErrors } from "./schema/training-plan.schema.js";
 import type { TrainingPlan, TrainingDay, Workout } from "./schema/training-plan.js";
+import {
+  validateCompactPlan,
+  formatCompactValidationErrors,
+} from "./schema/compact-plan.schema.js";
+import { loadTemplates, parseYaml, stringifyYaml } from "./templates/index.js";
+import { expandPlan, validateWorkoutRefs } from "./expander/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -77,6 +83,21 @@ interface HelpArgs {
 interface ValidateArgs {
   command: "validate";
   inputFile: string;
+  compact?: boolean;
+}
+
+interface ExpandArgs {
+  command: "expand";
+  inputFile: string;
+  outputFile?: string;
+  format?: "json" | "yaml";
+  verbose?: boolean;
+}
+
+interface TemplatesArgs {
+  command: "templates";
+  sport?: string;
+  show?: string;
 }
 
 interface SchemaArgs {
@@ -98,7 +119,9 @@ type CliArgs =
   | HelpArgs
   | ModifyArgs
   | ValidateArgs
-  | SchemaArgs;
+  | SchemaArgs
+  | ExpandArgs
+  | TemplatesArgs;
 
 function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
@@ -141,6 +164,9 @@ function parseArgs(): CliArgs {
         i++;
       } else if (args[i].startsWith("--output=")) {
         renderArgs.outputFile = args[i].split("=")[1];
+      } else if (!args[i].startsWith("-") && !renderArgs.outputFile) {
+        // Accept positional output argument (helps when npm consumes -o)
+        renderArgs.outputFile = args[i];
       }
     }
 
@@ -184,10 +210,63 @@ function parseArgs(): CliArgs {
       process.exit(1);
     }
 
-    return {
+    const validateArgs: ValidateArgs = {
       command: "validate",
       inputFile: args[1],
+      compact: args.includes("--compact") || args[1].endsWith(".yaml") || args[1].endsWith(".yml"),
     };
+
+    return validateArgs;
+  }
+
+  if (args[0] === "expand") {
+    if (!args[1]) {
+      log.error("expand command requires an input file");
+      process.exit(1);
+    }
+
+    const expandArgs: ExpandArgs = {
+      command: "expand",
+      inputFile: args[1],
+    };
+
+    for (let i = 2; i < args.length; i++) {
+      if (args[i] === "--output" || args[i] === "-o") {
+        expandArgs.outputFile = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--output=")) {
+        expandArgs.outputFile = args[i].split("=")[1];
+      } else if (args[i] === "--format") {
+        expandArgs.format = args[i + 1] as "json" | "yaml";
+        i++;
+      } else if (args[i].startsWith("--format=")) {
+        expandArgs.format = args[i].split("=")[1] as "json" | "yaml";
+      } else if (args[i] === "--verbose" || args[i] === "-v") {
+        expandArgs.verbose = true;
+      }
+    }
+
+    return expandArgs;
+  }
+
+  if (args[0] === "templates") {
+    const templatesArgs: TemplatesArgs = {
+      command: "templates",
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--sport") {
+        templatesArgs.sport = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--sport=")) {
+        templatesArgs.sport = args[i].split("=")[1];
+      } else if (args[i] === "show") {
+        templatesArgs.show = args[i + 1];
+        i++;
+      }
+    }
+
+    return templatesArgs;
   }
 
   if (args[0] === "schema") {
@@ -250,8 +329,10 @@ Commands:
   sync              Sync activities from Strava
   auth              Get Strava authorization URL or exchange code for tokens
   schema            Print the training plan JSON schema reference
-  validate <file>   Validate a training plan JSON against the schema
-  render <file>     Render a training plan JSON to HTML
+  validate <file>   Validate a training plan against the schema
+  expand <file>     Expand a compact YAML plan to full JSON format
+  render <file>     Render a training plan to HTML
+  templates         List available workout templates
   query <sql>       Run a SQL query against the database
   modify            Apply backup changes to a training plan
   help              Show this help message
@@ -270,6 +351,18 @@ Sync Options:
   --client-id=ID        Strava API client ID (for OAuth flow)
   --client-secret=SEC   Strava API client secret (for OAuth flow)
   --days=N              Days of history to sync (default: 730)
+
+Validate Options:
+  --compact             Force compact plan validation (auto-detected for .yaml files)
+
+Expand Options:
+  --output, -o FILE     Output file (default: stdout)
+  --format json|yaml    Output format (default: json)
+  --verbose, -v         Show template resolution details
+
+Templates Options:
+  --sport SPORT         Filter by sport (run, bike, swim)
+  show <template-id>    Show details of a specific template
 
 Render Options:
   --output, -o FILE     Output HTML file (default: <input>.html)
@@ -637,32 +730,66 @@ function getTemplatePath(): string {
 function runRender(args: RenderArgs): void {
   log.start("Rendering training plan...");
 
-  // Read the plan JSON
-  let planJson: string;
+  const isCompact = args.inputFile.endsWith(".yaml") || args.inputFile.endsWith(".yml");
+
+  // Read the plan file
+  let planContent: string;
   try {
-    planJson = readFileSync(args.inputFile, "utf-8");
-  } catch (err) {
+    planContent = readFileSync(args.inputFile, "utf-8");
+  } catch {
     log.error(`Could not read input file: ${args.inputFile}`);
     process.exit(1);
   }
 
-  // Parse JSON
-  let planData: unknown;
-  try {
-    planData = JSON.parse(planJson);
-  } catch (err) {
-    log.error("Input file is not valid JSON");
-    process.exit(1);
-  }
+  let planJson: string;
 
-  // Validate against schema
-  const validation = validatePlan(planData);
-  if (!validation.success) {
-    log.error("Training plan validation failed:");
-    console.error(formatValidationErrors(validation.errors));
-    process.exit(1);
+  if (isCompact) {
+    // Handle compact YAML plan
+    log.info("Detected compact YAML plan, expanding...");
+
+    // Parse YAML
+    let compactData: unknown;
+    try {
+      compactData = parseYaml(planContent);
+    } catch {
+      log.error("Input file is not valid YAML");
+      process.exit(1);
+    }
+
+    // Validate compact plan
+    const compactValidation = validateCompactPlan(compactData);
+    if (!compactValidation.success) {
+      log.error("Compact plan validation failed:");
+      console.error(formatCompactValidationErrors(compactValidation.errors));
+      process.exit(1);
+    }
+
+    // Load templates and expand
+    const templates = loadTemplates();
+    const expanded = expandPlan(compactValidation.data, templates);
+
+    log.success("Plan expanded successfully");
+    planJson = JSON.stringify(expanded, null, 2);
+  } else {
+    // Handle full JSON plan
+    let planData: unknown;
+    try {
+      planData = JSON.parse(planContent);
+    } catch {
+      log.error("Input file is not valid JSON");
+      process.exit(1);
+    }
+
+    // Validate against schema
+    const validation = validatePlan(planData);
+    if (!validation.success) {
+      log.error("Training plan validation failed:");
+      console.error(formatValidationErrors(validation.errors));
+      process.exit(1);
+    }
+    log.success("Plan schema validated successfully");
+    planJson = planContent;
   }
-  log.success("Plan schema validated successfully");
 
   // Read the template
   const templatePath = getTemplatePath();
@@ -704,35 +831,228 @@ async function runQuery(args: QueryArgs): Promise<void> {
 // ============================================================================
 
 function runValidate(args: ValidateArgs): void {
-  log.start("Validating training plan...");
+  const isCompact = args.compact;
+  log.start(`Validating ${isCompact ? "compact" : "full"} training plan...`);
 
-  // Read the plan JSON
-  let planJson: string;
+  // Read the plan file
+  let planContent: string;
   try {
-    planJson = readFileSync(args.inputFile, "utf-8");
-  } catch (err) {
+    planContent = readFileSync(args.inputFile, "utf-8");
+  } catch {
     log.error(`Could not read input file: ${args.inputFile}`);
     process.exit(1);
   }
 
-  // Parse JSON
+  // Parse content (YAML or JSON)
   let planData: unknown;
   try {
-    planData = JSON.parse(planJson);
+    if (args.inputFile.endsWith(".yaml") || args.inputFile.endsWith(".yml")) {
+      planData = parseYaml(planContent);
+    } else {
+      planData = JSON.parse(planContent);
+    }
   } catch (err) {
-    log.error("Input file is not valid JSON");
+    log.error(`Input file is not valid ${isCompact ? "YAML" : "JSON"}`);
     process.exit(1);
   }
 
-  // Validate against schema
-  const validation = validatePlan(planData);
+  if (isCompact) {
+    // Validate against compact schema
+    const validation = validateCompactPlan(planData);
+    if (!validation.success) {
+      log.error("Compact plan validation failed:");
+      console.error(formatCompactValidationErrors(validation.errors));
+      process.exit(1);
+    }
+
+    // Also validate template references
+    const templates = loadTemplates();
+    const templateErrors = validateWorkoutRefs(validation.data, templates);
+    if (templateErrors.length > 0) {
+      log.warn("Template reference warnings:");
+      templateErrors.forEach((e) => console.error(`  - ${e}`));
+    }
+
+    log.success("Compact plan is valid!");
+  } else {
+    // Validate against full schema
+    const validation = validatePlan(planData);
+    if (!validation.success) {
+      log.error("Validation failed:");
+      console.error(formatValidationErrors(validation.errors));
+      process.exit(1);
+    }
+
+    log.success("Plan is valid!");
+  }
+}
+
+// ============================================================================
+// Expand Command
+// ============================================================================
+
+function runExpand(args: ExpandArgs): void {
+  log.start("Expanding compact plan...");
+
+  // Read the compact plan
+  let planContent: string;
+  try {
+    planContent = readFileSync(args.inputFile, "utf-8");
+  } catch {
+    log.error(`Could not read input file: ${args.inputFile}`);
+    process.exit(1);
+  }
+
+  // Parse YAML
+  let planData: unknown;
+  try {
+    planData = parseYaml(planContent);
+  } catch {
+    log.error("Input file is not valid YAML");
+    process.exit(1);
+  }
+
+  // Validate compact plan
+  const validation = validateCompactPlan(planData);
   if (!validation.success) {
-    log.error("Validation failed:");
-    console.error(formatValidationErrors(validation.errors));
+    log.error("Compact plan validation failed:");
+    console.error(formatCompactValidationErrors(validation.errors));
     process.exit(1);
   }
 
-  log.success("Plan is valid!");
+  // Load templates
+  const templates = loadTemplates();
+  if (args.verbose) {
+    log.info(`Loaded ${templates.ids().length} templates`);
+  }
+
+  // Validate template references
+  const templateErrors = validateWorkoutRefs(validation.data, templates);
+  if (templateErrors.length > 0) {
+    log.warn("Template reference warnings:");
+    templateErrors.forEach((e) => console.error(`  - ${e}`));
+  }
+
+  // Expand the plan
+  const expanded = expandPlan(validation.data, templates);
+
+  if (args.verbose) {
+    log.info(`Expanded ${expanded.weeks.length} weeks`);
+  }
+
+  // Format output
+  let output: string;
+  if (args.format === "yaml") {
+    output = stringifyYaml(expanded);
+  } else {
+    output = JSON.stringify(expanded, null, 2);
+  }
+
+  // Write output
+  if (args.outputFile) {
+    writeFileSync(args.outputFile, output);
+    log.success(`Expanded plan written to: ${args.outputFile}`);
+  } else {
+    console.log(output);
+  }
+}
+
+// ============================================================================
+// Templates Command
+// ============================================================================
+
+function runTemplates(args: TemplatesArgs): void {
+  const templates = loadTemplates();
+
+  if (args.show) {
+    // Show details of a specific template
+    const template = templates.get(args.show);
+    if (!template) {
+      log.error(`Template not found: ${args.show}`);
+      console.log("\nAvailable templates:");
+      templates.ids().forEach((id) => console.log(`  - ${id}`));
+      process.exit(1);
+    }
+
+    console.log(`\n${template.name} (${template.id})`);
+    console.log(`${"=".repeat(template.name.length + template.id.length + 3)}`);
+    console.log(`\nSport: ${template.sport}`);
+    console.log(`Category: ${template.category}`);
+    console.log(`Type: ${template.type}`);
+
+    if (template.targetZone) {
+      console.log(`Target Zone: ${template.targetZone}`);
+    }
+    if (template.rpe) {
+      console.log(`RPE: ${template.rpe}`);
+    }
+    if (template.estimatedDuration) {
+      console.log(`Estimated Duration: ${template.estimatedDuration} min`);
+    }
+
+    if (template.params && Object.keys(template.params).length > 0) {
+      console.log("\nParameters:");
+      for (const [name, param] of Object.entries(template.params)) {
+        const required = param.required ? " (required)" : "";
+        const defaultVal = param.default !== undefined ? ` [default: ${param.default}]` : "";
+        console.log(`  - ${name}: ${param.type}${required}${defaultVal}`);
+        if (param.description) {
+          console.log(`    ${param.description}`);
+        }
+      }
+    }
+
+    console.log("\nUsage examples:");
+    const paramNames = template.params ? Object.keys(template.params) : [];
+    if (paramNames.length === 0) {
+      console.log(`  ${template.id}`);
+    } else {
+      const defaults = paramNames
+        .filter((p) => template.params![p].default !== undefined)
+        .map((p) => template.params![p].default);
+      if (defaults.length > 0) {
+        console.log(`  ${template.id}(${defaults.join(", ")})`);
+      }
+      console.log(`  ${template.id}(${paramNames.join(", ")})`);
+    }
+
+    console.log("\nWorkout description:");
+    console.log(template.humanReadable);
+  } else {
+    // List all templates
+    const sport = args.sport as "run" | "bike" | "swim" | undefined;
+    const list = templates.list(sport);
+
+    if (list.length === 0) {
+      console.log("No templates found.");
+      return;
+    }
+
+    console.log(`\nAvailable Templates${sport ? ` (${sport})` : ""}:`);
+    console.log("=".repeat(40));
+
+    // Group by category
+    const byCategory = new Map<string, typeof list>();
+    for (const t of list) {
+      const cat = t.category;
+      if (!byCategory.has(cat)) {
+        byCategory.set(cat, []);
+      }
+      byCategory.get(cat)!.push(t);
+    }
+
+    for (const [category, categoryTemplates] of byCategory) {
+      console.log(`\n${category.toUpperCase()}:`);
+      for (const t of categoryTemplates) {
+        const params = t.params ? Object.keys(t.params) : [];
+        const paramStr = params.length > 0 ? `(${params.join(", ")})` : "";
+        console.log(`  ${t.id}${paramStr} - ${t.name}`);
+      }
+    }
+
+    console.log(`\nTotal: ${list.length} templates`);
+    console.log("\nUse 'endurance-coach templates show <id>' to see template details.");
+  }
 }
 
 // ============================================================================
@@ -1269,6 +1589,12 @@ async function main() {
       break;
     case "validate":
       runValidate(args);
+      break;
+    case "expand":
+      runExpand(args);
+      break;
+    case "templates":
+      runTemplates(args);
       break;
     case "render":
       runRender(args);

@@ -1,0 +1,56 @@
+id: tempo
+name: Tempo Run
+sport: run
+type: tempo
+category: tempo
+
+params:
+  tempo_mins:
+    type: int
+    required: true
+    default: 20
+    min: 10
+    max: 45
+    description: Duration of tempo section in minutes
+  warmup_mins:
+    type: int
+    default: 10
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 10
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: "${warmup_mins}min"
+      pace: "${paces.easy}"
+  main:
+    - type: work
+      name: Tempo
+      duration: "${tempo_mins}min"
+      pace: "${paces.tempo}"
+      intensity: Zone 3-4
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: "${cooldown_mins}min"
+      pace: "${paces.easy}"
+
+humanReadable: |
+  TEMPO RUN
+
+  WARM-UP: ${warmup_mins} min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${tempo_mins} min @ tempo pace (${paces.tempo})
+  "Comfortably hard" - you can speak in short phrases
+
+  COOL-DOWN: ${cooldown_mins} min easy
+
+estimatedDuration: "${warmup_mins + tempo_mins + cooldown_mins}"
+targetZone: Z3-Z4
+rpe: "6-7"
+notes: Builds lactate threshold and race-pace feel

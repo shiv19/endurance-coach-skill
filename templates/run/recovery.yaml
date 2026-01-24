@@ -1,0 +1,36 @@
+id: recovery
+name: Recovery Run
+sport: run
+type: recovery
+category: recovery
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 20
+    min: 15
+    max: 40
+    description: Duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Recovery Jog
+      duration: "${duration}min"
+      pace: "${paces.easy}"
+      intensity: Zone 1-2
+
+humanReadable: |
+  RECOVERY RUN - ${duration} minutes
+
+  Very easy pace, slower than your normal easy runs.
+  Pace: Slower than ${paces.easy}
+
+  This is active recovery. If in doubt, go slower.
+  Walk breaks are fine if needed.
+
+estimatedDuration: "${duration}"
+targetZone: Z1-Z2
+rpe: "2-3"
+notes: Active recovery, promotes blood flow

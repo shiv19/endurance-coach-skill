@@ -1,0 +1,41 @@
+id: long
+name: Long Run
+sport: run
+type: long
+category: endurance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 90
+    min: 45
+    max: 240
+    description: Duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Long Run
+      duration: "${duration}min"
+      pace: "${paces.long}"
+      intensity: Zone 2
+
+humanReadable: |
+  LONG RUN - ${duration} minutes
+
+  Steady, comfortable pace throughout.
+  Pace: ${paces.long}
+
+  Stay in Zone 2. Practice your race nutrition
+  if running over 90 minutes.
+
+  Focus on:
+  - Consistent effort
+  - Good form even when tired
+  - Hydration and fueling
+
+estimatedDuration: "${duration}"
+targetZone: Z2
+rpe: "5-6"
+notes: Build aerobic endurance and mental toughness

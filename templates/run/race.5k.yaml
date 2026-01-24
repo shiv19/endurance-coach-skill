@@ -1,0 +1,36 @@
+id: race.5k
+name: 5K Race
+sport: race
+type: race
+category: race
+
+humanReadable: |
+  5K RACE DAY
+
+  PRE-RACE:
+  - Light meal 2-3 hours before
+  - Arrive early for registration/warm-up
+  - 10-15 min easy jog + dynamic stretches
+  - 3-4 strides to prime the legs
+
+  RACE STRATEGY:
+  - First mile: Start controlled, find your rhythm
+  - Mile 2: Settle into goal pace
+  - Final 1.1 miles: Push harder, empty the tank
+
+  Target pace: ${paces.threshold} or faster
+
+  POST-RACE:
+  - 10 min easy cool-down jog
+  - Hydrate and refuel
+  - Celebrate!
+
+  Key reminders:
+  - Don't go out too fast in the first 800m
+  - Stay mentally engaged through the middle
+  - Dig deep in the final kilometer
+
+estimatedDuration: 30
+targetZone: Z4-Z5
+rpe: "9-10"
+notes: 5K race day - give it everything!

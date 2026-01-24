@@ -1,0 +1,63 @@
+id: intervals.800
+name: 800m Repeats
+sport: run
+type: intervals
+category: speed
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 5
+    min: 3
+    max: 10
+    description: Number of 800m repeats
+  recovery:
+    type: duration
+    default: "2min"
+    description: Recovery jog duration between repeats
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 10min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: 800m repeat
+        distance: 800m
+        pace: "${paces.r800}"
+        intensity: Zone 4-5
+      recovery:
+        type: recovery
+        name: Recovery jog
+        duration: "${recovery}"
+        intensity: Zone 1-2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 10min
+      pace: "${paces.easy}"
+
+humanReadable: |
+  800m REPEATS
+
+  WARM-UP: 10 min easy @ ${paces.easy}
+
+  MAIN SET:
+  ${reps} × 800m @ ${paces.r800}
+  ${recovery} easy jog recovery between each
+
+  These should feel "comfortably hard" - faster than
+  tempo but not all-out. Stay relaxed and efficient.
+
+  COOL-DOWN: 10 min easy
+
+estimatedDuration: "${10 + (reps * 5) + 10}"
+targetZone: Z4-Z5
+rpe: "7-8"
+notes: Develops VO2max and race-pace endurance
