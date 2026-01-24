@@ -1,0 +1,84 @@
+id: bike.vo2max
+name: VO2max Intervals
+sport: bike
+type: vo2max
+category: speed
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 5
+    min: 3
+    max: 8
+    description: Number of VO2max intervals
+  interval_mins:
+    type: int
+    default: 5
+    min: 3
+    max: 6
+    description: Duration of each VO2max interval
+  rest_mins:
+    type: int
+    default: 5
+    description: Recovery between intervals in minutes
+  warmup_mins:
+    type: int
+    default: 20
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 15
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Progressive warmup
+      description: "Progressive to Zone 3"
+      duration: "${warmup_mins}min"
+      intensity: Zone 1-3
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: VO2max interval
+        duration: "${interval_mins}min"
+        power: "106-120% FTP"
+        intensity: Zone 5
+      recovery:
+        type: recovery
+        name: Easy spin
+        duration: "${rest_mins}min"
+        power: "50% FTP"
+        intensity: Zone 1
+  cooldown:
+    - type: cooldown
+      name: Easy spin
+      duration: "${cooldown_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1
+
+humanReadable: |
+  VO2MAX INTERVALS
+
+  WARM-UP: ${warmup_mins} min progressive to Zone 3
+
+  MAIN SET:
+  ${reps} x ${interval_mins} min @ 106-120% FTP
+  ${rest_mins} min @ 50% FTP recovery between each
+
+  Power: 106-120% FTP
+  This is HARD. Breathing will be labored.
+  Maintain consistent power across all intervals.
+
+  COOL-DOWN: ${cooldown_mins} min easy spin
+
+  Total: ~${warmup_mins + (reps * interval_mins) + ((reps - 1) * rest_mins) + cooldown_mins} min
+  TSS: ~90
+
+estimatedDuration: "${warmup_mins + (reps * interval_mins) + ((reps - 1) * rest_mins) + cooldown_mins}"
+targetZone: Z5
+rpe: "8-9"
+notes: Peak phase - VO2max development

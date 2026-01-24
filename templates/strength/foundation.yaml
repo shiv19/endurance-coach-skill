@@ -1,0 +1,65 @@
+id: strength.foundation
+name: Foundation Strength
+sport: strength
+type: strength
+category: strength
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 30
+    min: 20
+    max: 45
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Light cardio + dynamic stretches
+      duration: 5min
+      description: "Jump rope, high knees, arm circles"
+  main:
+    - type: work
+      name: Bodyweight circuit
+      duration: "${duration - 10}min"
+      description: "2-3 sets x 12-15 reps"
+      exercises:
+        - "Squats x 15"
+        - "Push-ups x 12"
+        - "Lunges x 10 each leg"
+        - "Plank x 45s"
+        - "Glute bridges x 15"
+        - "Bird dogs x 10 each side"
+  cooldown:
+    - type: cooldown
+      name: Stretching
+      duration: 5min
+
+humanReadable: |
+  FOUNDATION STRENGTH - ${duration} minutes
+
+  WARM-UP: 5 min light cardio + dynamic stretches
+  - Jump rope or jumping jacks
+  - High knees, butt kicks
+  - Arm circles, leg swings
+
+  MAIN CIRCUIT (2-3 rounds):
+  - Squats x 15
+  - Push-ups x 12 (modify as needed)
+  - Lunges x 10 each leg
+  - Plank x 45 seconds
+  - Glute bridges x 15
+  - Bird dogs x 10 each side
+
+  Rest 30-60s between rounds.
+
+  COOL-DOWN: 5 min static stretching
+
+  Focus on movement quality over speed.
+  Perfect for beginners or base phase training.
+
+estimatedDuration: "${duration}"
+targetZone: "-"
+rpe: "4-5"
+notes: Base phase - bodyweight, movement patterns

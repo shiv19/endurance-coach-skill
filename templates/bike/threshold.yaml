@@ -1,0 +1,83 @@
+id: bike.threshold
+name: Threshold Intervals
+sport: bike
+type: threshold
+category: threshold
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 3
+    min: 2
+    max: 5
+    description: Number of threshold intervals
+  interval_mins:
+    type: int
+    default: 10
+    min: 8
+    max: 20
+    description: Duration of each threshold interval
+  rest_mins:
+    type: int
+    default: 5
+    description: Recovery between intervals in minutes
+  warmup_mins:
+    type: int
+    default: 20
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 15
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Progressive warmup
+      description: "Zone 1 to Zone 3"
+      duration: "${warmup_mins}min"
+      intensity: Zone 1-3
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: Threshold interval
+        duration: "${interval_mins}min"
+        power: "95-105% FTP"
+        intensity: Zone 4
+      recovery:
+        type: recovery
+        name: Easy spin
+        duration: "${rest_mins}min"
+        power: "< 55% FTP"
+        intensity: Zone 1
+  cooldown:
+    - type: cooldown
+      name: Easy spin
+      duration: "${cooldown_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1
+
+humanReadable: |
+  THRESHOLD INTERVALS
+
+  WARM-UP: ${warmup_mins} min progressive (Zone 1 → Zone 3)
+
+  MAIN SET:
+  ${reps} x ${interval_mins} min @ 95-105% FTP
+  ${rest_mins} min easy spin recovery between each
+
+  Power: 95-105% FTP
+  This is hard, sustained effort at lactate threshold.
+  You should be able to complete all reps at target power.
+
+  COOL-DOWN: ${cooldown_mins} min Zone 1
+
+  Total: ~${warmup_mins + (reps * interval_mins) + ((reps - 1) * rest_mins) + cooldown_mins} min
+
+estimatedDuration: "${warmup_mins + (reps * interval_mins) + ((reps - 1) * rest_mins) + cooldown_mins}"
+targetZone: Z4
+rpe: "7-8"
+notes: Lactate threshold development

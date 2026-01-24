@@ -1,0 +1,51 @@
+id: swim.easy
+name: Easy Swim
+sport: swim
+type: endurance
+category: endurance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 30
+    min: 15
+    max: 90
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy freestyle
+      duration: 5min
+      pace: Easy
+      intensity: Zone 1
+  main:
+    - type: work
+      name: Continuous swim
+      duration: "${duration - 10}min"
+      pace: "${paces.swim_easy}"
+      intensity: Zone 2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 5min
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  EASY SWIM - ${duration} minutes
+
+  WARM-UP: 5 min easy freestyle
+
+  MAIN SET:
+  ${duration - 10} min continuous swimming @ Zone 2
+  Pace: ${paces.swim_easy}
+  Focus on smooth, relaxed technique.
+
+  COOL-DOWN: 5 min very easy
+
+estimatedDuration: "${duration}"
+targetZone: Z2
+rpe: "3-4"
+notes: Aerobic base building, technique focus

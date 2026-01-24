@@ -1,0 +1,16 @@
+id: bike.rest
+name: Rest Day
+sport: bike
+type: rest
+category: rest
+
+humanReadable: |
+  REST DAY
+
+  Take the day off from cycling. Focus on recovery, sleep, and nutrition.
+  Light stretching or foam rolling optional.
+
+estimatedDuration: 0
+targetZone: "-"
+rpe: "1"
+notes: Complete rest from structured training

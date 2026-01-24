@@ -1,0 +1,79 @@
+id: bike.tempo
+name: Tempo Ride
+sport: bike
+type: tempo
+category: tempo
+
+params:
+  tempo_mins:
+    type: int
+    required: true
+    default: 40
+    min: 15
+    max: 90
+    description: Total tempo duration in minutes
+  sets:
+    type: int
+    default: 2
+    min: 1
+    max: 4
+    description: Number of tempo intervals
+  warmup_mins:
+    type: int
+    default: 15
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 10
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy spin
+      duration: "${warmup_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1-2
+  main:
+    - type: intervals
+      repeats: "${sets}"
+      work:
+        type: work
+        name: Tempo interval
+        duration: "${tempo_mins / sets}min"
+        power: "76-90% FTP"
+        intensity: Zone 3
+      recovery:
+        type: recovery
+        name: Easy spin
+        duration: 5min
+        power: "< 55% FTP"
+        intensity: Zone 1
+  cooldown:
+    - type: cooldown
+      name: Easy spin
+      duration: "${cooldown_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1
+
+humanReadable: |
+  TEMPO RIDE
+
+  WARM-UP: ${warmup_mins} min easy Zone 1-2
+
+  MAIN SET:
+  ${sets} x ${tempo_mins / sets} min @ Tempo (76-90% FTP)
+  5 min easy spin between intervals
+
+  Power: 76-90% FTP
+  Cadence: 85-95 rpm
+  This is "comfortably hard" - sustainable but focused.
+
+  COOL-DOWN: ${cooldown_mins} min easy
+
+  Total: ~${warmup_mins + tempo_mins + (sets * 5) + cooldown_mins} min
+
+estimatedDuration: "${warmup_mins + tempo_mins + (sets * 5) + cooldown_mins}"
+targetZone: Z3
+rpe: "6"
+notes: Muscular endurance development

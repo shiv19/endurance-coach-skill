@@ -1,0 +1,88 @@
+id: swim.vo2max
+name: VO2max Swim
+sport: swim
+type: vo2max
+category: speed
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 8
+    min: 4
+    max: 12
+    description: Number of 100m repeats at CSS-5s pace
+  rest_secs:
+    type: int
+    default: 30
+    description: Rest between 100m repeats in seconds
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy swim
+      distance: 300m
+      duration: 6min
+      pace: Easy
+      intensity: Zone 1
+    - type: warmup
+      name: Drill set
+      description: "6x50m drill/swim"
+      duration: 8min
+      intensity: Zone 1-2
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: 100m @ CSS-5s
+        distance: 100m
+        pace: "${paces.css} - 5s/100m"
+        intensity: Zone 5
+      recovery:
+        type: recovery
+        name: Rest
+        duration: "${rest_secs}s"
+    - type: intervals
+      repeats: "4"
+      work:
+        type: work
+        name: 50m FAST
+        distance: 50m
+        pace: Sprint
+        intensity: Zone 5+
+      recovery:
+        type: recovery
+        name: Rest
+        duration: 30s
+  cooldown:
+    - type: cooldown
+      name: Easy swim
+      distance: 300m
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  VO2MAX SWIM
+
+  WARM-UP:
+  - 300m easy
+  - 6 x 50m drill/swim alternating
+
+  MAIN SET:
+  ${reps} x 100m @ CSS-5s/100m
+  Pace: ${paces.css} minus 5 seconds per 100m
+  Rest: ${rest_secs}s between each
+
+  Then:
+  4 x 50m FAST (near max effort)
+  Rest: 30s between each
+
+  COOL-DOWN: 300m easy
+
+  Total: ~${300 + 300 + (reps * 100) + 200 + 300}m
+
+estimatedDuration: "${14 + (reps * 2) + 6 + 6}"
+targetZone: Z5
+rpe: "8-9"
+notes: High-intensity session for VO2max development

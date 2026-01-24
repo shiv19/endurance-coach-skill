@@ -1,0 +1,81 @@
+id: bike.overunders
+name: Over-Under Intervals
+sport: bike
+type: threshold
+category: threshold
+
+params:
+  sets:
+    type: int
+    required: true
+    default: 3
+    min: 2
+    max: 5
+    description: Number of over-under sets
+  cycles_per_set:
+    type: int
+    default: 3
+    description: Number of over-under cycles per set
+  warmup_mins:
+    type: int
+    default: 20
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 15
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Progressive with accelerations
+      description: "20min with 3x30s accelerations"
+      duration: "${warmup_mins}min"
+      intensity: Zone 1-3
+  main:
+    - type: intervals
+      repeats: "${sets}"
+      work:
+        type: work
+        name: Over-under set
+        description: "(2min @ 95% FTP + 1min @ 108% FTP) x ${cycles_per_set}"
+        duration: "${cycles_per_set * 3}min"
+        intensity: Zone 4-5a
+      recovery:
+        type: recovery
+        name: Easy spin
+        duration: 5min
+        power: "< 55% FTP"
+        intensity: Zone 1
+  cooldown:
+    - type: cooldown
+      name: Easy spin
+      duration: "${cooldown_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1
+
+humanReadable: |
+  OVER-UNDER INTERVALS
+
+  WARM-UP: ${warmup_mins} min with 3x30s accelerations
+
+  MAIN SET:
+  ${sets} sets of:
+    (2 min @ 95% FTP + 1 min @ 108% FTP) x ${cycles_per_set}
+  5 min easy recovery between sets
+
+  Each ${cycles_per_set * 3} min set alternates:
+  - "Under": 2 min just below threshold (95% FTP)
+  - "Over": 1 min above threshold (108% FTP)
+
+  This teaches your body to clear lactate while riding.
+
+  COOL-DOWN: ${cooldown_mins} min Zone 1
+
+  Total: ~${warmup_mins + (sets * cycles_per_set * 3) + ((sets - 1) * 5) + cooldown_mins} min
+  TSS: ~85
+
+estimatedDuration: "${warmup_mins + (sets * cycles_per_set * 3) + ((sets - 1) * 5) + cooldown_mins}"
+targetZone: Z4-Z5a
+rpe: "7-8"
+notes: Threshold extension - lactate clearance training

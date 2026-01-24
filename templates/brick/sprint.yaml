@@ -1,0 +1,70 @@
+id: brick.sprint
+name: Sprint Brick
+sport: brick
+type: brick
+category: race
+
+params:
+  bike_mins:
+    type: int
+    required: true
+    default: 45
+    min: 30
+    max: 60
+    description: Bike duration in minutes
+  run_mins:
+    type: int
+    required: true
+    default: 15
+    min: 10
+    max: 25
+    description: Run duration in minutes
+  race_effort_mins:
+    type: int
+    default: 10
+    description: Minutes at race effort on bike
+
+structure:
+  main:
+    - type: work
+      name: Bike - Warmup
+      duration: "${bike_mins - race_effort_mins}min"
+      power: "56-75% FTP"
+      intensity: Zone 2
+    - type: work
+      name: Bike - Race effort
+      duration: "${race_effort_mins}min"
+      power: "Race pace"
+      intensity: Zone 4
+    - type: rest
+      name: T2
+      duration: 2min
+      description: "Quick transition practice"
+    - type: work
+      name: Run - Race pace
+      duration: "${run_mins}min"
+      pace: "${paces.threshold}"
+      intensity: Zone 4
+
+humanReadable: |
+  SPRINT BRICK
+
+  BIKE: ${bike_mins} min total
+  - ${bike_mins - race_effort_mins} min Zone 2
+  - ${race_effort_mins} min @ race effort (Zone 4)
+
+  T2: Quick transition - practice speed!
+
+  RUN: ${run_mins} min @ race pace
+  Pace: ${paces.threshold}
+
+  Purpose: Practice running off the bike at race pace.
+  Legs will feel heavy initially - that's normal.
+  Focus on quick cadence to find your run legs.
+
+  Total: ~${bike_mins + run_mins + 2} min
+
+estimatedDuration: "${bike_mins + run_mins + 2}"
+targetZone: Z4
+rpe: "7"
+notes: Sprint triathlon race simulation

@@ -1,0 +1,72 @@
+id: brick.halfironman
+name: Half Ironman Brick
+sport: brick
+type: brick
+category: race
+
+params:
+  bike_hrs:
+    type: number
+    required: true
+    default: 3
+    min: 2
+    max: 4
+    description: Bike duration in hours
+  run_mins:
+    type: int
+    required: true
+    default: 45
+    min: 30
+    max: 60
+    description: Run duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Bike - Endurance
+      duration: "${(bike_hrs - 1) * 60}min"
+      power: "56-75% FTP"
+      intensity: Zone 2
+    - type: work
+      name: Bike - Race simulation
+      duration: 60min
+      power: "68-76% FTP"
+      intensity: Zone 2-3
+      description: "Final hour at race effort"
+    - type: rest
+      name: T2
+      duration: 3min
+      description: "Transition practice"
+    - type: work
+      name: Run - Easy/Moderate
+      duration: "${run_mins}min"
+      pace: "${paces.easy}"
+      intensity: Zone 2
+
+humanReadable: |
+  HALF IRONMAN BRICK
+
+  BIKE: ${bike_hrs} hours total
+  - ${bike_hrs - 1} hr Zone 2 endurance
+  - 1 hr @ race effort (68-76% FTP, Zone 2-3)
+
+  T2: Transition practice
+
+  RUN: ${run_mins} min easy
+  Pace: ${paces.easy}
+
+  Purpose: Fatigue adaptation for 70.3 racing.
+  The goal is to finish the bike on tired legs,
+  then practice running smoothly.
+
+  Nutrition practice:
+  - 60-80g carbs/hour on bike
+  - Start fueling early
+  - Practice race-day nutrition plan
+
+  Total: ~${bike_hrs * 60 + run_mins + 3} min
+
+estimatedDuration: "${bike_hrs * 60 + run_mins + 3}"
+targetZone: Z2-Z3
+rpe: "5-6"
+notes: 70.3 race preparation - fatigue adaptation

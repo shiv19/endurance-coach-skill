@@ -1,0 +1,38 @@
+id: bike.easy
+name: Easy Ride
+sport: bike
+type: endurance
+category: endurance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 60
+    min: 30
+    max: 120
+    description: Duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Easy Ride
+      duration: "${duration}min"
+      power: "< 55% FTP"
+      intensity: Zone 1-2
+
+humanReadable: |
+  EASY RIDE - ${duration} minutes
+
+  Ride at a comfortable pace throughout.
+  Power: Under 55% FTP (Recovery/Zone 1-2)
+  Heart Rate: Zone 1-2
+
+  Keep effort very light. This is active recovery.
+  Spin easy, keep cadence comfortable (85-95 rpm).
+  Stay in the small ring if needed.
+
+estimatedDuration: "${duration}"
+targetZone: Z1-Z2
+rpe: "2-3"
+notes: Active recovery, easy spinning

@@ -1,5 +1,8 @@
 # Endurance Coach
 
+Originally forked from Claude Coach.
+This project is now independently maintained and has evolved with a different architecture and goals, focusing on agent-first, schema-driven endurance planning.
+
 Endurance Coach allows you to use Claude (or any AI assistant) to create custom-tailored training programs for triathlons, marathons, and other endurance activities. Using a data-driven approach and principles from top training plans, the AI will create a training plan that's uniquely fit for you, your personal fitness, and the constraints you have in the next couple of weeks. Maybe you're recovering from an injury, maybe you're traveling and don't have access to a pool or track in a certain week - tell the AI about it and it'll create a plan that works for you.
 
 The output is a beautiful training plan app that allows you to add, edit, or move workouts, mark them as complete, and update key training data like heart rate zones, LTHR, threshold paces, FTP, and others. Your data is kept locally in your browser.

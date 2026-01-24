@@ -1,0 +1,67 @@
+id: swim.aerobic
+name: Aerobic Endurance Swim
+sport: swim
+type: endurance
+category: threshold
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 5
+    min: 3
+    max: 8
+    description: Number of 400m repeats
+  rest_secs:
+    type: int
+    default: 20
+    description: Rest between 400m repeats in seconds
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy swim with drills
+      description: "300m easy, 4x50m drills"
+      duration: 10min
+      intensity: Zone 1-2
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: 400m @ CSS+10s
+        distance: 400m
+        pace: "${paces.css} + 10s/100m"
+        intensity: Zone 2
+      recovery:
+        type: recovery
+        name: Rest
+        duration: "${rest_secs}s"
+  cooldown:
+    - type: cooldown
+      name: Easy pull
+      distance: 200m
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  AEROBIC ENDURANCE SWIM
+
+  WARM-UP: 300m easy, 4x50m drills (catch-up, fingertip drag)
+
+  MAIN SET:
+  ${reps} x 400m @ CSS+10s/100m
+  Pace: ${paces.css} + 10 seconds per 100m
+  Rest: ${rest_secs}s between each 400m
+
+  Hold a steady, sustainable pace.
+  Focus on stroke consistency and breathing rhythm.
+
+  COOL-DOWN: 200m easy pull
+
+  Total: ~${300 + (reps * 400) + 200}m
+
+estimatedDuration: "${10 + (reps * 8) + 5}"
+targetZone: Z2
+rpe: "5-6"
+notes: Builds aerobic capacity with longer intervals

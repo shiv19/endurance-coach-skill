@@ -1,0 +1,42 @@
+id: bike.endurance
+name: Endurance Ride
+sport: bike
+type: endurance
+category: endurance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 120
+    min: 60
+    max: 360
+    description: Duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Endurance Ride
+      duration: "${duration}min"
+      power: "56-75% FTP"
+      intensity: Zone 2
+
+humanReadable: |
+  ENDURANCE RIDE - ${duration} minutes
+
+  Steady aerobic riding at Zone 2.
+  Power: 56-75% FTP
+  Heart Rate: Zone 2
+
+  Maintain a consistent, sustainable effort.
+  Cadence: 80-95 rpm
+  You should be able to hold a conversation.
+
+  For rides over 2 hours:
+  - Fuel with 30-60g carbs/hour
+  - Stay hydrated (500-750ml/hour)
+
+estimatedDuration: "${duration}"
+targetZone: Z2
+rpe: "4-5"
+notes: Aerobic base building, long steady state

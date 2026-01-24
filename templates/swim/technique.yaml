@@ -1,0 +1,67 @@
+id: swim.technique
+name: Technique Swim
+sport: swim
+type: technique
+category: technique
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 30
+    max: 75
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy swim
+      duration: 5min
+      pace: Easy
+      intensity: Zone 1
+  main:
+    - type: work
+      name: Drill set
+      description: "6-8 x 50m drill/swim alternating, 15s rest"
+      duration: "${(duration - 15) / 2}min"
+      intensity: Zone 1-2
+    - type: work
+      name: Technique focus
+      description: "Focus on catch, pull, rotation"
+      duration: "${(duration - 15) / 2}min"
+      pace: "${paces.swim_easy}"
+      intensity: Zone 2
+  cooldown:
+    - type: cooldown
+      name: Easy swim
+      duration: 5min
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  TECHNIQUE SWIM - ${duration} minutes
+
+  WARM-UP: 5 min easy
+
+  MAIN SET:
+  Drill/Swim Alternating (6-8 x 50m, 15s rest):
+  - Catch-up drill
+  - Fingertip drag
+  - Single-arm freestyle
+  - Full stroke with focus
+
+  Focus on:
+  - High elbow catch
+  - Hip rotation
+  - Relaxed recovery
+
+  COOL-DOWN: 5 min easy
+
+  This is a quality-over-quantity session.
+  Keep effort low, focus on form improvements.
+
+estimatedDuration: "${duration}"
+targetZone: Z1-Z2
+rpe: "3-4"
+notes: Drill-focused session for form improvement

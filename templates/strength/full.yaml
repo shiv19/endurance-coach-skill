@@ -1,0 +1,73 @@
+id: strength.full
+name: Full Strength Session
+sport: strength
+type: strength
+category: strength
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 35
+    max: 60
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Light cardio + activation
+      duration: 5min
+      description: "Light cardio, dynamic stretches, band activation"
+  main:
+    - type: work
+      name: Strength circuit 1
+      duration: 15min
+      description: "3-4 sets x 6-8 reps, moderate load"
+      exercises:
+        - "Goblet squats x 10"
+        - "Push-ups x 12"
+        - "Single-leg Romanian deadlift x 8 each"
+    - type: work
+      name: Strength circuit 2
+      duration: 15min
+      exercises:
+        - "Lat pulldown x 10"
+        - "Step-ups x 10 each leg"
+        - "Plank x 45s"
+  cooldown:
+    - type: cooldown
+      name: Stretching
+      duration: 5min
+
+humanReadable: |
+  FULL STRENGTH SESSION - ${duration} minutes
+
+  WARM-UP: 5 min light cardio + activation
+  - 2 min easy cardio (bike, row, or skip)
+  - Dynamic stretches
+  - Band activation (glutes, shoulders)
+
+  CIRCUIT 1 (3 rounds):
+  - Goblet squats x 10
+  - Push-ups x 12
+  - Single-leg Romanian deadlift x 8 each
+
+  Rest 60s between rounds.
+
+  CIRCUIT 2 (3 rounds):
+  - Lat pulldown x 10 (or band pull-aparts x 15)
+  - Step-ups x 10 each leg
+  - Plank x 45s
+
+  Rest 60s between rounds.
+
+  COOL-DOWN: 5 min stretching
+
+  Use moderate weight - last 2 reps should be challenging
+  but form should remain solid.
+
+estimatedDuration: "${duration}"
+targetZone: "-"
+rpe: "6-7"
+notes: Build phase - moderate load, compound movements

@@ -1,6 +1,12 @@
 # Sport-Specific Workout Library
 
+> **Template Implementation:** The workouts documented here are implemented as reusable templates in the `templates/` directory. See `reference/templates.md` for the complete template reference and usage syntax.
+>
+> When creating plans with the v2.0 compact format, reference templates like `easy(40)`, `swim.threshold(10)`, or `bike.sweetspot(60)` instead of writing full workout specifications.
+
 ## Swimming
+
+**Templates:** `swim.easy()`, `swim.technique()`, `swim.aerobic()`, `swim.threshold()`, `swim.vo2max()`, `swim.openwater()`, `swim.rest`
 
 ### Workout Types
 
@@ -54,6 +60,8 @@ Cool-down: 300m easy
 
 ## Cycling
 
+**Templates:** `bike.easy()`, `bike.endurance()`, `bike.tempo()`, `bike.sweetspot()`, `bike.threshold()`, `bike.vo2max()`, `bike.overunders()`, `bike.hills()`, `bike.rest`
+
 ### Workout Types
 
 | Session Type | Structure                                    | Zone/Power   | When to Use                    |
@@ -97,6 +105,8 @@ Total: 1:45, ~85 TSS
 
 ### Brick Workouts (Triathlon-Specific)
 
+**Templates:** `brick.sprint()`, `brick.olympic()`, `brick.halfironman()`, `brick.ironman()`
+
 | Race         | Bike Portion                       | Run Portion          | Purpose                    |
 | ------------ | ---------------------------------- | -------------------- | -------------------------- |
 | Sprint prep  | 45min w/ 10min @ race effort       | 15min @ race pace    | Transition practice        |
@@ -107,6 +117,8 @@ Total: 1:45, ~85 TSS
 ---
 
 ## Running
+
+**Templates:** `easy()`, `recovery()`, `long()`, `tempo()`, `threshold()`, `intervals.400()`, `intervals.800()`, `intervals.1k()`, `intervals.mile()`, `fartlek()`, `progression()`, `strides()`, `hills()`, `rest`, `race.5k`
 
 ### Workout Types
 
@@ -178,6 +190,8 @@ Great for teaching pace discipline and finishing strong
 ---
 
 ## Strength Training
+
+**Templates:** `strength.foundation()`, `strength.full()`, `strength.maintenance()`, `strength.core()`
 
 Strength work is essential for injury prevention, power development, and late-race durability. Include 1-2 sessions per week.
 

@@ -1,0 +1,80 @@
+id: bike.hills
+name: Hill Repeats
+sport: bike
+type: hills
+category: strength
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 5
+    min: 3
+    max: 8
+    description: Number of hill repeats
+  climb_mins:
+    type: int
+    default: 6
+    min: 4
+    max: 10
+    description: Duration of each climb in minutes
+  warmup_mins:
+    type: int
+    default: 20
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 15
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy spin to climb
+      duration: "${warmup_mins}min"
+      power: "< 65% FTP"
+      intensity: Zone 1-2
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: Hill climb
+        duration: "${climb_mins}min"
+        power: "100-110% FTP"
+        intensity: Zone 4-5
+        description: "4-8% grade, seated or standing"
+      recovery:
+        type: recovery
+        name: Descent recovery
+        duration: "Descent"
+        intensity: Zone 1
+        description: "Easy spin down"
+  cooldown:
+    - type: cooldown
+      name: Easy spin home
+      duration: "${cooldown_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1
+
+humanReadable: |
+  HILL REPEATS
+
+  WARM-UP: ${warmup_mins} min easy spin to the climb
+
+  MAIN SET:
+  ${reps} x ${climb_mins} min climbs @ 100-110% FTP
+  Recover on the descent
+
+  Find a 4-8% grade climb that takes ~${climb_mins} min.
+  Alternate seated/standing as needed.
+  Focus on steady power output, not speed.
+
+  COOL-DOWN: ${cooldown_mins} min easy spin home
+
+  Total: ~${warmup_mins + (reps * climb_mins * 2) + cooldown_mins} min
+
+estimatedDuration: "${warmup_mins + (reps * climb_mins * 2) + cooldown_mins}"
+targetZone: Z4-Z5
+rpe: "7-8"
+notes: Climbing strength and power development

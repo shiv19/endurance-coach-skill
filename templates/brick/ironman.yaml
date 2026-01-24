@@ -1,0 +1,72 @@
+id: brick.ironman
+name: Ironman Brick
+sport: brick
+type: brick
+category: race
+
+params:
+  bike_hrs:
+    type: number
+    required: true
+    default: 5
+    min: 4
+    max: 6
+    description: Bike duration in hours
+  run_mins:
+    type: int
+    required: true
+    default: 60
+    min: 30
+    max: 75
+    description: Run duration in minutes
+
+structure:
+  main:
+    - type: work
+      name: Bike - Endurance
+      duration: "${(bike_hrs - 1.5) * 60}min"
+      power: "56-70% FTP"
+      intensity: Zone 2
+    - type: work
+      name: Bike - Race simulation
+      duration: 90min
+      power: "65-75% FTP"
+      intensity: Zone 2
+      description: "Final 90min at race effort"
+    - type: rest
+      name: T2
+      duration: 5min
+      description: "Transition - change clothes if needed"
+    - type: work
+      name: Run - Easy
+      duration: "${run_mins}min"
+      pace: "${paces.easy} or easier"
+      intensity: Zone 1-2
+
+humanReadable: |
+  IRONMAN BRICK
+
+  BIKE: ${bike_hrs} hours total
+  - ${bike_hrs - 1.5} hr Zone 2 endurance
+  - 90 min @ race effort (65-75% FTP)
+
+  T2: Full transition practice (may include clothes change)
+
+  RUN: ${run_mins} min easy
+  Pace: ${paces.easy} or easier
+
+  Purpose: Pacing and nutrition practice for Ironman.
+  This is NOT about going hard - it's about:
+  - Practicing race nutrition (80g carbs/hour)
+  - Learning your sustainable bike power
+  - Running on extremely fatigued legs
+
+  You should feel tired but controlled.
+  If you can't run after - bike was too hard.
+
+  Total: ~${bike_hrs * 60 + run_mins + 5} min
+
+estimatedDuration: "${bike_hrs * 60 + run_mins + 5}"
+targetZone: Z2
+rpe: "5"
+notes: Ironman race simulation - pacing and nutrition

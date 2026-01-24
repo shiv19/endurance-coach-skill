@@ -1,0 +1,80 @@
+id: bike.sweetspot
+name: Sweet Spot Ride
+sport: bike
+type: threshold
+category: threshold
+
+params:
+  ss_mins:
+    type: int
+    required: true
+    default: 60
+    min: 20
+    max: 90
+    description: Total sweet spot duration in minutes
+  sets:
+    type: int
+    default: 3
+    min: 2
+    max: 4
+    description: Number of sweet spot intervals
+  warmup_mins:
+    type: int
+    default: 20
+    description: Warmup duration in minutes
+  cooldown_mins:
+    type: int
+    default: 15
+    description: Cooldown duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy with openers
+      description: "Zone 2 with 2x1min high-cadence"
+      duration: "${warmup_mins}min"
+      intensity: Zone 2
+  main:
+    - type: intervals
+      repeats: "${sets}"
+      work:
+        type: work
+        name: Sweet spot interval
+        duration: "${ss_mins / sets}min"
+        power: "88-93% FTP"
+        intensity: Zone 3-4
+      recovery:
+        type: recovery
+        name: Easy spin
+        duration: 5min
+        power: "< 55% FTP"
+        intensity: Zone 1
+  cooldown:
+    - type: cooldown
+      name: Easy spin
+      duration: "${cooldown_mins}min"
+      power: "< 55% FTP"
+      intensity: Zone 1
+
+humanReadable: |
+  SWEET SPOT RIDE
+
+  WARM-UP: ${warmup_mins} min Zone 2, include 2x1min high-cadence
+
+  MAIN SET:
+  ${sets} x ${ss_mins / sets} min @ Sweet Spot (88-93% FTP)
+  5 min easy spin between intervals
+
+  Power: 88-93% FTP
+  This is the "sweet spot" - high training benefit, manageable fatigue.
+  Challenging but sustainable for the full interval.
+
+  COOL-DOWN: ${cooldown_mins} min Zone 1
+
+  Total: ~${warmup_mins + ss_mins + (sets * 5) + cooldown_mins} min
+  TSS: ~80
+
+estimatedDuration: "${warmup_mins + ss_mins + (sets * 5) + cooldown_mins}"
+targetZone: Z3-Z4
+rpe: "6-7"
+notes: Build phase staple - high benefit, moderate cost

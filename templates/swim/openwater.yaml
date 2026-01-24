@@ -1,0 +1,60 @@
+id: swim.openwater
+name: Open Water Swim
+sport: swim
+type: endurance
+category: endurance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 20
+    max: 120
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Pool warm-up
+      description: "If starting in pool: 200m easy with sighting drills"
+      duration: 5min
+      intensity: Zone 1
+  main:
+    - type: work
+      name: Continuous open water swim
+      duration: "${duration - 10}min"
+      pace: "${paces.swim_easy}"
+      intensity: Zone 2-3
+      description: "Include sighting every 8-10 strokes, bilateral breathing"
+  cooldown:
+    - type: cooldown
+      name: Easy finish
+      duration: 5min
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  OPEN WATER SWIM - ${duration} minutes
+
+  WARM-UP: 5 min easy (pool or gentle OW entry)
+
+  MAIN SET:
+  ${duration - 10} min continuous open water swimming
+  Pace: ${paces.swim_easy} (Zone 2-3)
+
+  Focus areas:
+  - Sight every 8-10 strokes (head up, quick look)
+  - Practice bilateral breathing
+  - Navigate to fixed landmarks
+  - Adjust for currents/conditions
+
+  COOL-DOWN: 5 min easy
+
+  Safety: Always swim with a buddy or in supervised areas.
+  Consider using a swim buoy for visibility.
+
+estimatedDuration: "${duration}"
+targetZone: Z2-Z3
+rpe: "5-6"
+notes: Open water skills - sighting, navigation, conditions

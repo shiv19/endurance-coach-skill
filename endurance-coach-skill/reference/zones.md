@@ -116,3 +116,69 @@ When power data is available, use power zones exclusively—they're more accurat
 | Threshold    | 5a               | 2-4 x 8-15 min       | 5-8 min  | 1x               |
 | VO2max       | 5b               | 4-6 x 3-5 min        | 3-5 min  | 1x               |
 | Anaerobic    | 5c               | 6-10 x 30sec-2min    | 2-4 min  | 0-1x             |
+
+---
+
+## Auto-Calculation in Compact Plans (v2.0)
+
+In the v2.0 compact plan format, you only need to specify threshold values. The plan expander automatically calculates all zone ranges using the standard percentages documented above.
+
+### Specifying Zones
+
+```yaml
+# In your compact plan YAML
+athlete:
+  zones:
+    hr:
+      lthr: 165 # Auto-calculates HR zones
+    power:
+      ftp: 250 # Auto-calculates power zones
+    swim:
+      css: "1:45" # Auto-calculates swim zones
+```
+
+### What Gets Calculated
+
+**From LTHR (165 bpm example):**
+
+- Zone 1 (Recovery): < 134 bpm (< 81%)
+- Zone 2 (Aerobic): 134-147 bpm (81-89%)
+- Zone 3 (Tempo): 148-154 bpm (90-93%)
+- Zone 4 (Sub-threshold): 155-163 bpm (94-99%)
+- Zone 5a (Threshold): 165-168 bpm (100-102%)
+- Zone 5b (VO2max): 170-175 bpm (103-106%)
+- Zone 5c (Anaerobic): > 175 bpm (> 106%)
+
+**From FTP (250W example):**
+
+- Zone 1: < 138W (< 55%)
+- Zone 2: 140-188W (56-75%)
+- Zone 3: 190-225W (76-90%)
+- Zone 4: 228-248W (91-99%)
+- Zone 5a: 250-263W (100-105%)
+- Zone 5b: 265-300W (106-120%)
+- Zone 5c: > 300W (> 120%)
+
+**From CSS (1:45/100m example):**
+
+- Zone 1: 2:00-2:05/100m (CSS + 15-20s)
+- Zone 2: 1:53-1:57/100m (CSS + 8-12s)
+- Zone 3: 1:48-1:51/100m (CSS + 3-6s)
+- Zone 4: 1:45/100m (CSS)
+- Zone 5: 1:40-1:42/100m (CSS - 3-5s)
+
+### Field Testing Still Required
+
+**Auto-calculation does NOT replace field testing.** The calculated zones are only as accurate as the threshold values you provide.
+
+Athletes should perform field tests (see protocols above) to establish accurate LTHR, FTP, and CSS values. Include validation workouts in the first 1-2 weeks of any plan when working with estimated or manual data.
+
+### Expanding to See Calculated Zones
+
+To see the expanded zones, use:
+
+```bash
+npx endurance-coach expand plan.yaml --verbose
+```
+
+This shows the full expanded plan including all calculated zone ranges

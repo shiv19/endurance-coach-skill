@@ -1,0 +1,70 @@
+id: brick.olympic
+name: Olympic Brick
+sport: brick
+type: brick
+category: race
+
+params:
+  bike_mins:
+    type: int
+    required: true
+    default: 90
+    min: 60
+    max: 120
+    description: Bike duration in minutes
+  run_mins:
+    type: int
+    required: true
+    default: 30
+    min: 15
+    max: 45
+    description: Run duration in minutes
+  race_effort_mins:
+    type: int
+    default: 30
+    description: Minutes at race effort on bike
+
+structure:
+  main:
+    - type: work
+      name: Bike - Warmup/Endurance
+      duration: "${bike_mins - race_effort_mins}min"
+      power: "56-75% FTP"
+      intensity: Zone 2
+    - type: work
+      name: Bike - Race effort
+      duration: "${race_effort_mins}min"
+      power: "76-90% FTP"
+      intensity: Zone 3-4
+    - type: rest
+      name: T2
+      duration: 2min
+      description: "Quick transition practice"
+    - type: work
+      name: Run - Race pace
+      duration: "${run_mins}min"
+      pace: "${paces.tempo} to ${paces.threshold}"
+      intensity: Zone 3-4
+
+humanReadable: |
+  OLYMPIC BRICK
+
+  BIKE: ${bike_mins} min total
+  - ${bike_mins - race_effort_mins} min Zone 2 warmup/endurance
+  - ${race_effort_mins} min @ race effort (76-90% FTP)
+
+  T2: Quick transition practice
+
+  RUN: ${run_mins} min @ race pace
+  Pace: ${paces.tempo} to ${paces.threshold}
+
+  Purpose: Pace calibration for Olympic distance.
+  Practice race nutrition during bike portion.
+  Run should feel "comfortably hard."
+
+  Total: ~${bike_mins + run_mins + 2} min
+
+estimatedDuration: "${bike_mins + run_mins + 2}"
+targetZone: Z3-Z4
+rpe: "6-7"
+notes: Olympic triathlon race simulation and pacing
