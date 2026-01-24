@@ -28,6 +28,7 @@
     onSettingsClick,
     onImportHelpClick,
     onWeekOffsetChange,
+    onExpandedChange,
   }: Props = $props();
 
   // Calculate adjusted dates based on week offset
@@ -552,12 +553,69 @@
         </div>
       {/if}
 
-      {#if athleteConstraints.length > 0}
+      {#if athleteConstraints().length > 0}
         <div class="info-group">
           <div class="info-subtitle">Training Constraints</div>
           <ul class="constraints-list">
-            {#each athleteConstraints as constraint}
+            {#each athleteConstraints() as constraint}
               <li>{constraint}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  {#if plan.raceStrategy}
+    <div class="race-strategy-section">
+      <h3>🏁 Race Strategy</h3>
+
+      {#if plan.raceStrategy.goalTime}
+        <div class="info-group">
+          <div class="info-row">
+            <span class="info-label">Goal Time</span>
+            <span class="info-value goal-time">{plan.raceStrategy.goalTime}</span>
+          </div>
+        </div>
+      {/if}
+
+      {#if plan.raceStrategy.pacing}
+        <div class="info-group">
+          <div class="info-subtitle">Pacing</div>
+          {#if plan.raceStrategy.pacing.swim}
+            <div class="pacing-entry">
+              <span class="pacing-sport swim">🏊 Swim</span>
+              <span class="pacing-detail">{plan.raceStrategy.pacing.swim}</span>
+            </div>
+          {/if}
+          {#if plan.raceStrategy.pacing.bike}
+            <div class="pacing-entry">
+              <span class="pacing-sport bike">🚴 Bike</span>
+              <span class="pacing-detail">{plan.raceStrategy.pacing.bike}</span>
+            </div>
+          {/if}
+          {#if plan.raceStrategy.pacing.run}
+            <div class="pacing-entry">
+              <span class="pacing-sport run">🏃 Run</span>
+              <span class="pacing-detail">{plan.raceStrategy.pacing.run}</span>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if plan.raceStrategy.nutrition}
+        <div class="info-group">
+          <div class="info-subtitle">Nutrition</div>
+          <p class="nutrition-detail">{plan.raceStrategy.nutrition}</p>
+        </div>
+      {/if}
+
+      {#if plan.raceStrategy.notes?.length}
+        <div class="info-group">
+          <div class="info-subtitle">Race Notes</div>
+          <ul class="race-notes-list">
+            {#each plan.raceStrategy.notes as note}
+              <li>{note}</li>
             {/each}
           </ul>
         </div>
@@ -581,6 +639,9 @@
     height: 100vh;
     overflow-y: auto;
     z-index: 100;
+    transition:
+      width 0.3s ease,
+      padding 0.3s ease;
   }
 
   .event-header {
@@ -1364,6 +1425,88 @@
   }
 
   .constraints-list li:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Race Strategy Section */
+  .race-strategy-section {
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .race-strategy-section h3 {
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .goal-time {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+
+  .pacing-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .pacing-entry:last-child {
+    border-bottom: none;
+  }
+
+  .pacing-sport {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pacing-sport.swim {
+    color: var(--swim);
+  }
+
+  .pacing-sport.bike {
+    color: var(--bike);
+  }
+
+  .pacing-sport.run {
+    color: var(--run);
+  }
+
+  .pacing-detail {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .nutrition-detail {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .race-notes-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style-type: "→ ";
+  }
+
+  .race-notes-list li {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 0.35rem;
+  }
+
+  .race-notes-list li:last-child {
     margin-bottom: 0;
   }
 
