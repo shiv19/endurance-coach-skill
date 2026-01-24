@@ -18,18 +18,21 @@ Syncing all your Strava activities and creating a tailored training plan takes c
 
 ### Installing the Skill
 
-First, [download the latest skill from GitHub Releases](https://github.com/shiv19/endurance-coach-skill/releases/latest/download/endurance-coach-skill.zip).
+Install the skill using the following command:
 
-**Claude.ai:**
+```bash
+npx skills add shiv19/endurance-coach-skill
+```
+
+This command works with any AI assistant that supports skills (Claude.ai, Claude Code, and others).
+
+**Additional Setup for Claude.ai:**
+
+If you're using Claude.ai, you'll also need to:
 
 1. Open [Claude.ai Settings](https://claude.ai/settings/capabilities)
 2. Enable "Code execution and file creation"
 3. In the allowed domains list, add `*.strava.com`
-4. Scroll down to "Skills" and click "Add skill", then upload the `endurance-coach-skill.zip` file
-
-**Claude Code:**
-
-1. Run `/install-skill` and provide the path to the `endurance-coach-skill.zip` file you downloaded.
 
 ### Creating a plan
 
