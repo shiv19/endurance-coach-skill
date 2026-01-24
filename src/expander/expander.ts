@@ -11,7 +11,7 @@ import type {
   WorkoutTemplate,
   InterpolationContext,
 } from "../templates/index.js";
-import { interpolate, evaluateExpression, createContext } from "../templates/index.js";
+import { interpolate, createContext } from "../templates/index.js";
 import { calculateAthleteZones } from "./zones.js";
 import type {
   ExpandedPlan,
@@ -152,14 +152,11 @@ export function expandWorkout(
     if (typeof template.estimatedDuration === "number") {
       durationMinutes = template.estimatedDuration;
     } else {
-      const result = evaluateExpression(template.estimatedDuration, fullContext);
-      if (typeof result === "number") {
-        durationMinutes = result;
-      } else {
-        const parsed = parseFloat(result);
-        if (!isNaN(parsed)) {
-          durationMinutes = parsed;
-        }
+      // Use interpolate to handle ${...} expressions in templates
+      const result = interpolate(template.estimatedDuration, fullContext);
+      const parsed = parseFloat(result);
+      if (!isNaN(parsed)) {
+        durationMinutes = parsed;
       }
     }
   }
