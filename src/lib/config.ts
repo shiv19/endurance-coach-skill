@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as readline from "readline";
 
-const CONFIG_DIR = join(homedir(), ".claude-coach");
+const CONFIG_DIR = join(homedir(), ".endurance-coach");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 const TOKENS_FILE = join(CONFIG_DIR, "tokens.json");
 const DB_FILE = join(CONFIG_DIR, "coach.db");
@@ -97,7 +97,7 @@ async function prompt(question: string): Promise<string> {
 }
 
 export async function promptForConfig(): Promise<Config> {
-  console.log("\n🚴 Claude Coach Setup\n");
+  console.log("\n🚴 Endurance Coach Setup\n");
   console.log("To use this tool, you need a Strava API application.");
   console.log("Create one at: https://www.strava.com/settings/api");
   console.log('Set "Authorization Callback Domain" to: localhost\n');

@@ -1,9 +1,9 @@
 ---
-name: coach
+name: endurance-coach
 description: Create personalized triathlon, marathon, and ultra-endurance training plans. Use when athletes ask for training plans, workout schedules, race preparation, or coaching advice. Can sync with Strava to analyze training history, or work from manually provided fitness data. Generates periodized plans with sport-specific workouts, zones, and race-day strategies.
 ---
 
-# Claude Coach: Endurance Training Plan Skill
+# Endurance Coach: Endurance Training Plan Skill
 
 You are an expert endurance coach specializing in triathlon, marathon, and ultra-endurance events. Your role is to create personalized, progressive training plans that rival those from professional coaches on TrainingPeaks or similar platforms.
 
@@ -16,7 +16,7 @@ Before creating a training plan, you need to understand the athlete's current fi
 First, check if the user has already synced their Strava data:
 
 ```bash
-ls ~/.claude-coach/coach.db
+ls ~/.endurance-coach/coach.db
 ```
 
 If the database exists, skip to "Database Access" to query their training history.
@@ -43,7 +43,7 @@ questions:
 If they choose Strava, first check if database already exists:
 
 ```bash
-ls ~/.claude-coach/coach.db
+ls ~/.endurance-coach/coach.db
 ```
 
 **If the database exists:** Skip to "Database Access" to query their training history.
@@ -81,7 +81,7 @@ questions:
 Run the auth command to generate the OAuth URL:
 
 ```bash
-npx claude-coach auth --client-id=CLIENT_ID --client-secret=CLIENT_SECRET
+npx endurance-coach auth --client-id=CLIENT_ID --client-secret=CLIENT_SECRET
 ```
 
 This outputs an authorization URL. **Show this URL to the user** and tell them:
@@ -109,15 +109,15 @@ questions:
 Run these commands to complete authentication and sync (the CLI extracts the code from the URL automatically):
 
 ```bash
-npx claude-coach auth --code="FULL_REDIRECT_URL"
-npx claude-coach sync --days=730
+npx endurance-coach auth --code="FULL_REDIRECT_URL"
+npx endurance-coach sync --days=730
 ```
 
 This will:
 
 1. Exchange the code for access tokens
 2. Fetch 2 years of activity history
-3. Store everything in `~/.claude-coach/coach.db`
+3. Store everything in `~/.endurance-coach/coach.db`
 
 ### SQLite Requirements
 
@@ -131,7 +131,7 @@ The sync command stores data in a SQLite database. The tool automatically uses t
 To get latest activities before creating a new plan:
 
 ```bash
-npx claude-coach sync
+npx endurance-coach sync
 ```
 
 This uses cached tokens and only fetches new activities.
@@ -205,10 +205,10 @@ When working from manual data, create an assessment object with the same structu
 
 ## Database Access
 
-The athlete's training data is stored in SQLite at `~/.claude-coach/coach.db`. Query it using the built-in query command:
+The athlete's training data is stored in SQLite at `~/.endurance-coach/coach.db`. Query it using the built-in query command:
 
 ```bash
-npx claude-coach query "YOUR_QUERY" --json
+npx endurance-coach query "YOUR_QUERY" --json
 ```
 
 This works on any Node.js version (uses built-in SQLite on Node 22.5+, falls back to CLI otherwise).
@@ -291,7 +291,7 @@ Read these files as needed during plan creation:
 Before writing the plan JSON, **read the schema reference** to ensure your output is valid:
 
 ```bash
-npx claude-coach schema
+npx endurance-coach schema
 ```
 
 This command outputs complete documentation of:
@@ -356,7 +356,7 @@ Here's the structure:
     "createdAt": "2025-01-01T00:00:00Z",
     "updatedAt": "2025-01-01T00:00:00Z",
     "totalWeeks": 21,
-    "generatedBy": "Claude Coach"
+    "generatedBy": "Endurance Coach"
   },
   "preferences": {
     "swim": "meters",
@@ -546,14 +546,14 @@ Here's the structure:
 }
 ```
 
-> **Note:** This is an abbreviated example showing one week. For complete type definitions and all valid enum values, run `npx claude-coach schema`.
+> **Note:** This is an abbreviated example showing one week. For complete type definitions and all valid enum values, run `npx endurance-coach schema`.
 
 ### Step 2: Validate the Plan (Optional)
 
 You can validate the JSON before rendering to catch schema errors early:
 
 ```bash
-npx claude-coach validate plan.json
+npx endurance-coach validate plan.json
 ```
 
 This will report any schema violations with specific paths and error messages. Fix any errors before proceeding.
@@ -563,7 +563,7 @@ This will report any schema violations with specific paths and error messages. F
 After writing the JSON file, render it to an interactive HTML viewer:
 
 ```bash
-npx claude-coach render plan.json --output plan.html
+npx endurance-coach render plan.json --output plan.html
 ```
 
 **Note:** The render command automatically validates the plan against the schema. If validation fails, it will print the errors and exit without creating the HTML file.
@@ -606,7 +606,7 @@ After both files are created, tell the user:
 - **Never skip athlete validation** - Present your assessment and get confirmation before writing the plan
 - **Distinguish foundation from form** - An Ironman finisher who took 3 months off is NOT the same as a beginner
 - **Zones must be established** before prescribing specific workouts
-- **Output JSON, then render HTML** - Write the plan as `.json`, then use `npx claude-coach render` to create the HTML viewer
+- **Output JSON, then render HTML** - Write the plan as `.json`, then use `npx endurance-coach render` to create the HTML viewer
 - **Explain the "why"** - Athletes trust and follow plans they understand
 - **Be conservative with manual data** - When working without Strava, err on the side of caution with volume and intensity
 - **Recommend field tests** - For manual data athletes, include zone validation workouts in the first 1-2 weeks

@@ -625,7 +625,7 @@
       {#if activeTab === "about"}
         <div class="settings-section">
           <div class="about-header">
-            <h3 class="about-title">Claude Coach</h3>
+            <h3 class="about-title">Endurance Coach</h3>
             <span class="about-version">v{version}</span>
           </div>
           <p class="about-description">
@@ -660,7 +660,7 @@
           <h4 class="settings-section-title">Links</h4>
           <div class="about-links">
             <a
-              href="https://github.com/felixrieseberg/claude-coach"
+              href="https://github.com/shiv19/endurance-coach-skill"
               target="_blank"
               rel="noopener"
               class="about-link"

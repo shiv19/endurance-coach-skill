@@ -271,7 +271,7 @@ export function generateZwo(workout: Workout, _settings: Settings): string {
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <workout_file>
-  <author>Claude Coach</author>
+  <author>Endurance Coach</author>
   <name>${escapeXml(workout.name)}</name>
   <description>${description}</description>
   <sportType>${sportType}</sportType>

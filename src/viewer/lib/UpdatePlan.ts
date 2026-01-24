@@ -193,7 +193,7 @@ function countChanges(changes: PlanChanges, completed: Record<string, boolean>):
  * Main function: Update plan and generate downloadable JSON
  *
  * This applies changes from localStorage and downloads the updated plan JSON.
- * To get the HTML, use: claude-coach render updated.json -o updated.html
+ * To get the HTML, use: endurance-coach render updated.json -o updated.html
  */
 export function updatePlanAndRegenerate(
   plan: TrainingPlan,

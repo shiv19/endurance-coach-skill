@@ -5,7 +5,7 @@ import { tmpdir } from "os";
 
 // We'll test the config functions by mocking the config directory
 describe("Config", () => {
-  const testDir = join(tmpdir(), "claude-coach-test-" + Date.now());
+  const testDir = join(tmpdir(), "endurance-coach-test-" + Date.now());
   const configFile = join(testDir, "config.json");
   const tokensFile = join(testDir, "tokens.json");
 

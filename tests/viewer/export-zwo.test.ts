@@ -122,7 +122,7 @@ describe("ZWO Export", () => {
       expect(xml).toContain("</workout_file>");
 
       // Check metadata
-      expect(xml).toContain("<author>Claude Coach</author>");
+      expect(xml).toContain("<author>Endurance Coach</author>");
       expect(xml).toContain("<name>Endurance Ride</name>");
       expect(xml).toContain("<description>Easy aerobic ride</description>");
       expect(xml).toContain("<sportType>bike</sportType>");

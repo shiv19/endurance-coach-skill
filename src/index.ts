@@ -1,5 +1,5 @@
 /**
- * Claude Coach - Training Plan Generator
+ * Endurance Coach - Training Plan Generator
  *
  * Public API for validating and working with training plans.
  */

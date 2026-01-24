@@ -5,7 +5,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 
 describe("Database", () => {
-  const testDir = join(tmpdir(), "claude-coach-db-test-" + Date.now());
+  const testDir = join(tmpdir(), "endurance-coach-db-test-" + Date.now());
   const dbPath = join(testDir, "test.db");
 
   beforeEach(() => {

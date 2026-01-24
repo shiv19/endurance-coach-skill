@@ -478,7 +478,7 @@ export function getJsonSchema(): object {
   return {
     $schema: "http://json-schema.org/draft-07/schema#",
     title: "TrainingPlan",
-    description: "Claude Coach training plan schema v1.0",
+    description: "Endurance Coach training plan schema v1.0",
     type: "object",
     required: [
       "version",

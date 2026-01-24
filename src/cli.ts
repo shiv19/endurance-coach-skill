@@ -90,7 +90,15 @@ interface ModifyArgs {
   output?: string;
 }
 
-type CliArgs = SyncArgs | RenderArgs | QueryArgs | AuthArgs | HelpArgs | ModifyArgs | ValidateArgs | SchemaArgs;
+type CliArgs =
+  | SyncArgs
+  | RenderArgs
+  | QueryArgs
+  | AuthArgs
+  | HelpArgs
+  | ModifyArgs
+  | ValidateArgs
+  | SchemaArgs;
 
 function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
@@ -234,9 +242,9 @@ function parseArgs(): CliArgs {
 
 function printHelp(): void {
   console.log(`
-Claude Coach - Training Plan Tools
+Endurance Coach - Training Plan Tools
 
-Usage: npx claude-coach <command> [options]
+Usage: npx endurance-coach <command> [options]
 
 Commands:
   sync              Sync activities from Strava
@@ -276,31 +284,31 @@ Modify Options:
 
 Examples:
   # Headless auth flow (for Claude/automated environments)
-  npx claude-coach auth --client-id=12345 --client-secret=abc123
+  npx endurance-coach auth --client-id=12345 --client-secret=abc123
   # User clicks URL, copies code from failed redirect
-  npx claude-coach auth --code=AUTHORIZATION_CODE
-  npx claude-coach sync
+  npx endurance-coach auth --code=AUTHORIZATION_CODE
+  npx endurance-coach sync
 
   # Interactive auth flow (opens browser)
-  npx claude-coach sync --client-id=12345 --client-secret=abc123
+  npx endurance-coach sync --client-id=12345 --client-secret=abc123
 
   # Get the schema reference for plan JSON
-  npx claude-coach schema
+  npx endurance-coach schema
 
   # Validate a training plan JSON
-  npx claude-coach validate plan.json
+  npx endurance-coach validate plan.json
 
   # Render a training plan to HTML (includes validation)
-  npx claude-coach render plan.json --output my-plan.html
+  npx endurance-coach render plan.json --output my-plan.html
 
   # Query the database
-  npx claude-coach query "SELECT * FROM weekly_volume LIMIT 5"
+  npx endurance-coach query "SELECT * FROM weekly_volume LIMIT 5"
   
   # Apply backup changes to a training plan
-  npx claude-coach modify --backup backup.json --plan plan.json
+  npx endurance-coach modify --backup backup.json --plan plan.json
 
   # Save modified plan to a new file
-  npx claude-coach modify -b backup.json -p plan.json -o modified_plan.json
+  npx endurance-coach modify -b backup.json -p plan.json -o modified_plan.json
 `);
 }
 
@@ -369,7 +377,7 @@ async function runAuth(args: AuthArgs): Promise<void> {
 
     saveTokens(tokens);
     log.success(`Authenticated as ${data.athlete.firstname} ${data.athlete.lastname}`);
-    log.ready("Now run: npx claude-coach sync");
+    log.ready("Now run: npx endurance-coach sync");
     return;
   }
 
@@ -472,7 +480,7 @@ function insertAthlete(athlete: {
 }
 
 async function runSync(args: SyncArgs): Promise<void> {
-  log.box("Claude Coach - Strava Sync");
+  log.box("Endurance Coach - Strava Sync");
 
   // Step 0: Initialize SQLite backend
   await initDatabase();
@@ -783,7 +791,7 @@ This document describes the required structure for training plan JSON files.
   createdAt: string,                 // ISO datetime
   updatedAt: string,                 // ISO datetime
   totalWeeks: number,                // Total weeks in plan
-  generatedBy: string                // "Claude Coach"
+  generatedBy: string                // "Endurance Coach"
 }
 \`\`\`
 
@@ -945,12 +953,14 @@ Use these commands to validate your plan:
 
 \`\`\`bash
 # Validate only
-npx claude-coach validate plan.json
+npx endurance-coach validate plan.json
 
 # Render (includes validation)
-npx claude-coach render plan.json --output plan.html
+npx endurance-coach render plan.json --output plan.html
 \`\`\`
 `);
+}
+
 // Modify Command
 // ============================================================================
 
@@ -1266,7 +1276,6 @@ async function main() {
     case "query":
       await runQuery(args);
       break;
-    // ADD THIS CASE:
     case "modify":
       modifyCommand(args);
       break;

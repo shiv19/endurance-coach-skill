@@ -357,7 +357,7 @@ export interface TrainingPlan {
     createdAt: string;
     updatedAt: string;
     totalWeeks: number;
-    generatedBy: string; // "Claude Coach"
+    generatedBy: string; // "Endurance Coach"
   };
   preferences: UnitPreferences;
   assessment: AthleteAssessment;

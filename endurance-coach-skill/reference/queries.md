@@ -1,9 +1,9 @@
 # SQL Queries for Athlete Assessment
 
-Run these queries using the claude-coach CLI:
+Run these queries using the endurance-coach CLI:
 
 ```bash
-npx claude-coach query "YOUR_QUERY" --json
+npx endurance-coach query "YOUR_QUERY" --json
 ```
 
 This works on any Node.js version (uses built-in SQLite on Node 22.5+, falls back to CLI otherwise).

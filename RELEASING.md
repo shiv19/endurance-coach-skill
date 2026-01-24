@@ -1,10 +1,10 @@
-# Releasing Claude Coach
+# Releasing Endurance Coach
 
-This document describes how to release a new version of Claude Coach.
+This document describes how to release a new version of Endurance Coach.
 
 ## Prerequisites
 
-- npm account with publish access to `claude-coach`
+- npm account with publish access to `endurance-coach`
 - GitHub account with push access to the repository
 - GitHub CLI (`gh`) installed and authenticated
 
@@ -32,7 +32,7 @@ The About tab automatically reads the version from package.json at build time.
 # Build the viewer (creates templates/plan-viewer.html)
 npm run build:viewer
 
-# Build the skill zip (creates dist/coach-skill.zip)
+# Build the skill zip (creates dist/endurance-coach-skill.zip)
 npm run build:skill
 ```
 
@@ -42,7 +42,7 @@ npm run build:skill
 npm publish
 ```
 
-This publishes the package to npm, making it available via `npx claude-coach`.
+This publishes the package to npm, making it available via `npx endurance-coach`.
 
 ### 4. Push to GitHub
 
@@ -62,16 +62,16 @@ VERSION=$(node -p "require('./package.json').version")
 gh release create "v$VERSION" \
   --title "v$VERSION" \
   --notes "See [CHANGELOG.md](CHANGELOG.md) for details." \
-  dist/coach-skill.zip
+  dist/endurance-coach-skill.zip
 ```
 
 Or manually:
 
-1. Go to https://github.com/felixrieseberg/claude-coach/releases/new
+1. Go to https://github.com/shiv19/endurance-coach-skill/releases/new
 2. Choose the tag you just pushed (e.g., `v0.1.0`)
 3. Set the release title (e.g., `v0.1.0`)
 4. Add release notes
-5. Attach `dist/coach-skill.zip` as a binary
+5. Attach `dist/endurance-coach-skill.zip` as a binary
 6. Click "Publish release"
 
 ## Quick Release Script
@@ -84,19 +84,19 @@ npm run build:skill && \
 npm publish && \
 git push origin main --tags && \
 VERSION=$(node -p "require('./package.json').version") && \
-gh release create "v$VERSION" --title "v$VERSION" --generate-notes dist/coach-skill.zip
+gh release create "v$VERSION" --title "v$VERSION" --generate-notes dist/endurance-coach-skill.zip
 ```
 
 ## What Gets Released
 
-| Artifact    | Destination                    | Contents                         |
-| ----------- | ------------------------------ | -------------------------------- |
-| npm package | npmjs.com/package/claude-coach | CLI tool, viewer builder         |
-| Skill zip   | GitHub Releases                | `skill/` directory for Claude.ai |
+| Artifact    | Destination                       | Contents                                             |
+| ----------- | --------------------------------- | ---------------------------------------------------- |
+| npm package | npmjs.com/package/endurance-coach | CLI tool, viewer builder                             |
+| Skill zip   | GitHub Releases                   | `endurance-coach-skill/` directory for AI assistants |
 
 ## Verification
 
 After releasing:
 
-1. **npm**: Run `npx claude-coach --help` to verify the CLI works
+1. **npm**: Run `npx endurance-coach --help` to verify the CLI works
 2. **Skill**: Download the zip from GitHub releases, install in Claude.ai, and test

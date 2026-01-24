@@ -59,7 +59,7 @@ function foldLine(line: string): string {
  * Generate a unique identifier for an event
  */
 function generateUid(workoutId: string, date: string): string {
-  return `${workoutId}-${date}@claude-coach`;
+  return `${workoutId}-${date}@endurance-coach`;
 }
 
 /**
@@ -122,7 +122,7 @@ export function generateIcs(plan: TrainingPlan): string {
   const header = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Claude Coach//Training Plan//EN",
+    "PRODID:-//Endurance Coach//Training Plan//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escapeIcsText(eventName)} Training`,
@@ -148,7 +148,7 @@ export function generateIcs(plan: TrainingPlan): string {
   if (eventDate) {
     const raceDayEvent = [
       "BEGIN:VEVENT",
-      `UID:race-day@claude-coach`,
+      `UID:race-day@endurance-coach`,
       `DTSTAMP:${now}`,
       `DTSTART;VALUE=DATE:${formatIcsDate(eventDate)}`,
       `DTEND;VALUE=DATE:${formatIcsDate(eventDate)}`,

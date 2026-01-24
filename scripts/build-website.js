@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Build script for the Claude Coach marketing docs.
+ * Build script for the Endurance Coach marketing docs.
  *
  * This script:
  * 1. Renders demo training plan JSON files to HTML
@@ -23,7 +23,7 @@ const demosDir = join(rootDir, "docs", "demos");
 
 // Script to inject into demo HTML files
 // This pre-populates localStorage with completed workouts from the plan data
-const COMPLETION_SCRIPT = `<script>(function(){var p=document.getElementById("plan-data");if(!p)return;var plan=JSON.parse(p.textContent);var c={};plan.weeks.forEach(function(w){w.days.forEach(function(d){d.workouts.forEach(function(x){if(x.completed)c[x.id]=true});})});localStorage.setItem("claude-coach-completed",JSON.stringify(c))})();</script>`;
+const COMPLETION_SCRIPT = `<script>(function(){var p=document.getElementById("plan-data");if(!p)return;var plan=JSON.parse(p.textContent);var c={};plan.weeks.forEach(function(w){w.days.forEach(function(d){d.workouts.forEach(function(x){if(x.completed)c[x.id]=true});})});localStorage.setItem("endurance-coach-completed",JSON.stringify(c))})();</script>`;
 
 function renderDemos() {
   console.log("Rendering demo training plans...\n");
@@ -54,7 +54,7 @@ function renderDemos() {
 }
 
 function main() {
-  console.log("Building Claude Coach docs...\n");
+  console.log("Building Endurance Coach docs...\n");
 
   try {
     renderDemos();
