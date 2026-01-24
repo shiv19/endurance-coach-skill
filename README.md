@@ -89,6 +89,17 @@ In the next step, the AI will ask you about yourself, the event you're training 
 
 The AI will use this information to create a plan tailored to your current fitness level. The more detail you provide, the better your plan will be.
 
+## Contributing
+
+We welcome contributions from the community! Whether you want to add workout templates, improve the UI, fix bugs, or enhance documentation, your help is appreciated.
+
+Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
+- Development setup instructions
+- Coding standards and guidelines
+- How to submit pull requests
+- Areas where we need help
+
 # About
 
 ## Lineage & Architectural Evolution
