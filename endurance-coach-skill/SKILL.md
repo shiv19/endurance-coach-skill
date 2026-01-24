@@ -173,25 +173,34 @@ If they choose manual entry, gather the following through conversation. Ask natu
 
 When working from manual data, create an assessment object with the same structure as you would from Strava data:
 
-```json
-{
-  "assessment": {
-    "foundation": {
-      "raceHistory": ["Based on athlete's stated history"],
-      "peakTrainingLoad": "Estimated from reported weekly hours",
-      "foundationLevel": "beginner|intermediate|advanced",
-      "yearsInSport": 3
-    },
-    "currentForm": {
-      "weeklyVolume": { "total": 8, "swim": 1.5, "bike": 4, "run": 2.5 },
-      "longestSessions": { "swim": 2500, "bike": 60, "run": 15 },
-      "consistency": "weeks of consistent training"
-    },
-    "strengths": [{ "sport": "bike", "evidence": "Athlete's self-assessment or race history" }],
-    "limiters": [{ "sport": "swim", "evidence": "Lowest volume or newest to sport" }],
-    "constraints": ["Work travel", "Pool only on weekdays"]
-  }
-}
+```yaml
+assessment:
+  foundation:
+    raceHistory:
+      - "Based on athlete's stated history"
+    peakTrainingLoad: 8 # Estimated from reported weekly hours
+    foundationLevel: beginner # beginner|intermediate|advanced
+    yearsInSport: 3
+  currentForm:
+    weeklyVolume:
+      total: 8
+      swim: 1.5
+      bike: 4
+      run: 2.5
+    longestSessions:
+      swim: 2500
+      bike: 60
+      run: 15
+    consistency: 5 # weeks of consistent training
+  strengths:
+    - sport: bike
+      evidence: "Athlete's self-assessment or race history"
+  limiters:
+    - sport: swim
+      evidence: "Lowest volume or newest to sport"
+  constraints:
+    - "Work travel"
+    - "Pool only on weekdays"
 ```
 
 **Important:** When working from manual data:
@@ -278,7 +287,7 @@ Read these files as needed during plan creation:
 ### Phase 5: Plan Delivery
 
 11. Read `skill/reference/race-day.md` for race execution section
-12. Write the plan as JSON, then render to HTML (see output format below)
+12. Write the plan as YAML v2.0, then render to HTML (see output format below)
 
 ---
 
@@ -286,7 +295,87 @@ Read these files as needed during plan creation:
 
 **IMPORTANT: Output training plans in the compact YAML v2.0 format, then render to HTML.**
 
-The v2.0 format is significantly more concise than the previous JSON format. Instead of verbose workout objects, you use **template references** like `easy(40)` or `swim.threshold(10)` that expand to full workouts.
+The v2.0 format uses compact **template references** like `easy(40)` or `swim.threshold(10)` that expand to full workouts. This is significantly more concise than writing verbose workout objects manually.
+
+> **Quick Start:** Run `npx endurance-coach schema` to see a minimal working example you can copy and modify.
+
+### Required Fields Quick Reference
+
+**Top-level sections** (all required):
+
+| Section        | Purpose                     |
+| -------------- | --------------------------- |
+| `version`      | Must be `"2.0"`             |
+| `athlete`      | Name, event, paces, zones   |
+| `assessment`   | Current fitness & history   |
+| `phases`       | Training phase definitions  |
+| `weeks`        | Weekly workout schedules    |
+| `raceStrategy` | Race day pacing & nutrition |
+
+**athlete fields:**
+
+| Field            | Required | Type   | Example                               |
+| ---------------- | -------- | ------ | ------------------------------------- |
+| `name`           | Yes      | string | `"John Smith"`                        |
+| `event`          | Yes      | string | `"Half Marathon"`                     |
+| `eventDate`      | Yes      | date   | `"2026-05-15"`                        |
+| `paces`          | Yes      | object | See Pace Requirements                 |
+| `zones`          | Yes      | object | `hr.lthr`, `power.ftp`, or `swim.css` |
+| `unit`           | Yes      | enum   | `km` or `mi`                          |
+| `firstDayOfWeek` | Yes      | enum   | `monday` or `sunday`                  |
+| `constraints`    | No       | object | `daysPerWeek`, `notes[]`              |
+
+**weeks[] fields:**
+
+| Field            | Required | Type    | Example                             |
+| ---------------- | -------- | ------- | ----------------------------------- |
+| `week`           | Yes      | number  | `1`                                 |
+| `phase`          | Yes      | string  | `"Base"` (must match phases[].name) |
+| `focus`          | Yes      | string  | `"Build aerobic base"`              |
+| `workouts`       | Yes      | object  | `Mon: easy(40)`, `Tue: rest`, etc.  |
+| `isRecoveryWeek` | No       | boolean | `true`                              |
+
+**raceStrategy fields:**
+
+| Field                   | Required | Type     | Example                        |
+| ----------------------- | -------- | -------- | ------------------------------ |
+| `goalTime`              | Yes      | string   | `"1:45:00"`                    |
+| `pacing`                | Yes      | object   | `swim`, `bike`, `run` targets  |
+| `pacing.swim`           | No       | string   | `"1:50/100m"`                  |
+| `pacing.bike`           | No       | string   | `"180-190W (72% FTP)"`         |
+| `pacing.run`            | Yes      | string   | `"8:00/mi"`                    |
+| `nutrition.preRace`     | Yes      | string   | `"3 hours before: 100g carbs"` |
+| `nutrition.during`      | Yes      | string   | `"60g carbs/hour"`             |
+| `nutrition.products`    | No       | string[] | `["Maurten 320", "Gel 100"]`   |
+| `taper.startWeek`       | Yes      | number   | `17`                           |
+| `taper.volumeReduction` | Yes      | string   | `"50%"`                        |
+| `taper.notes`           | No       | string   | `"Maintain intensity"`         |
+
+**assessment fields:**
+
+| Field                            | Required | Type     | Example                                         |
+| -------------------------------- | -------- | -------- | ----------------------------------------------- |
+| `foundation.foundationLevel`     | Yes      | enum     | `beginner`, `intermediate`, `advanced`, `elite` |
+| `foundation.yearsInSport`        | Yes      | number   | `3`                                             |
+| `foundation.raceHistory`         | No       | string[] | `["Marathon 2024"]`                             |
+| `foundation.peakTrainingLoad`    | No       | number   | `12` (peak hours/week)                          |
+| `currentForm.weeklyVolume.total` | Yes      | number   | `8` (hours/week)                                |
+| `currentForm.weeklyVolume.run`   | No       | number   | `4`                                             |
+| `currentForm.weeklyVolume.bike`  | No       | number   | `3`                                             |
+| `currentForm.weeklyVolume.swim`  | No       | number   | `1`                                             |
+| `currentForm.consistency`        | Yes      | number   | `4` (weeks consistent)                          |
+| `strengths[]`                    | No       | array    | `[{sport: "bike", evidence: "..."}]`            |
+| `limiters[]`                     | No       | array    | `[{sport: "swim", evidence: "..."}]`            |
+| `constraints[]`                  | No       | string[] | `["Pool only weekdays"]`                        |
+
+**phases[] fields:**
+
+| Field         | Required | Type     | Example                                  |
+| ------------- | -------- | -------- | ---------------------------------------- |
+| `name`        | Yes      | string   | `"Base"`, `"Build"`, `"Peak"`, `"Taper"` |
+| `weeks`       | Yes      | string   | `"1-6"` (week range)                     |
+| `focus`       | Yes      | string   | `"Aerobic foundation"`                   |
+| `keyWorkouts` | No       | string[] | `["Long run", "Tempo"]`                  |
 
 ### CLI Commands Reference
 
@@ -400,17 +489,33 @@ The expander calculates zone ranges using standard percentages:
 
 ### Athlete Paces
 
-Specify paces that templates will use:
+**IMPORTANT:** Templates require specific paces to be defined. If you use a template without its required pace, validation will fail.
+
+**Pace → Template Requirements:**
+
+| If you use these templates...       | You MUST define this pace |
+| ----------------------------------- | ------------------------- |
+| `easy()`, `recovery()`, `strides()` | `easy`                    |
+| `long()`                            | `long`                    |
+| `tempo()`                           | `tempo`                   |
+| `threshold()`, `progression()`      | `threshold`               |
+| `intervals.400()`                   | `r400`                    |
+| `intervals.800()`                   | `r800`                    |
+| `intervals.1k()`                    | `r1k`                     |
+| `intervals.mile()`                  | `rMile`                   |
+| `swim.*` templates                  | `css`, `swim_easy`        |
+
+**Example paces block:**
 
 ```yaml
 paces:
   # Required for basic run templates
-  easy: "9:30/mi" # easy(), recovery(), long()
-  tempo: "8:15/mi" # tempo()
-  threshold: "7:45/mi" # threshold()
+  easy: "9:30/mi" # easy(), recovery(), strides()
   long: "9:45/mi" # long()
+  tempo: "8:15/mi" # tempo()
+  threshold: "7:45/mi" # threshold(), progression()
 
-  # Required for interval templates
+  # Required for interval templates (if used)
   r400: "1:40" # intervals.400()
   r800: "3:30" # intervals.800()
   r1k: "4:30" # intervals.1k()
@@ -420,9 +525,9 @@ paces:
   marathon: "8:30/mi"
   halfMarathon: "8:00/mi"
 
-  # Swimming (for swim.* templates)
+  # Swimming (required if using swim.* templates)
   css: "1:45/100m" # Critical Swim Speed
-  swim_easy: "2:00/100m" # Easy swim pace
+  swim_easy: "2:00/100m"
 ```
 
 ### Step 1: Write YAML Plan
@@ -668,7 +773,9 @@ After files are created, tell the user:
 - **Never skip athlete validation** - Present your assessment and get confirmation before writing the plan
 - **Distinguish foundation from form** - An Ironman finisher who took 3 months off is NOT the same as a beginner
 - **Zones must be established** before prescribing specific workouts
-- **Output JSON, then render HTML** - Write the plan as `.json`, then use `npx endurance-coach render` to create the HTML viewer
+- **Output YAML, then render HTML** - Write the plan as `.yaml` using the v2.0 format, then use `npx endurance-coach render` to create the HTML viewer
+- **Define paces for templates you use** - If using `intervals.400()`, you MUST define `paces.r400`. Check the Pace → Template Requirements table.
+- **Use `npx endurance-coach schema`** - When unsure about YAML structure, run this command to see a minimal working example
 - **Explain the "why"** - Athletes trust and follow plans they understand
 - **Be conservative with manual data** - When working without Strava, err on the side of caution with volume and intensity
 - **Recommend field tests** - For manual data athletes, include zone validation workouts in the first 1-2 weeks

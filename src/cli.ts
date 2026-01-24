@@ -328,7 +328,7 @@ Usage: npx endurance-coach <command> [options]
 Commands:
   sync              Sync activities from Strava
   auth              Get Strava authorization URL or exchange code for tokens
-  schema            Print the training plan JSON schema reference
+  schema            Print the YAML v2.0 plan format reference
   validate <file>   Validate a training plan against the schema
   expand <file>     Expand a compact YAML plan to full JSON format
   render <file>     Render a training plan to HTML
@@ -385,7 +385,7 @@ Examples:
   # Interactive auth flow (opens browser)
   npx endurance-coach sync --client-id=12345 --client-secret=abc123
 
-  # Get the schema reference for plan JSON
+  # Get the YAML v2.0 format reference
   npx endurance-coach schema
 
   # Validate a training plan JSON
@@ -1061,222 +1061,87 @@ function runTemplates(args: TemplatesArgs): void {
 
 function runSchema(): void {
   console.log(`
-# Training Plan JSON Schema Reference
+# YAML v2.0 Training Plan Format
 
-This document describes the required structure for training plan JSON files.
+## Complete Example
 
-## Root Structure
+\`\`\`yaml
+version: "2.0"
 
-\`\`\`typescript
-{
-  version: "1.0",                    // Required: Must be exactly "1.0"
-  meta: PlanMeta,                    // Required: Plan metadata
-  preferences: UnitPreferences,      // Required: Unit system preferences
-  assessment: AthleteAssessment,     // Required: Athlete fitness assessment
-  zones: AthleteZones,               // Required: Training zones
-  phases: TrainingPhase[],           // Required: Macro training phases
-  weeks: TrainingWeek[],             // Required: Weekly training schedule
-  raceStrategy: RaceStrategy         // Required: Race day strategy
-}
+athlete:
+  name: "Athlete Name"
+  event: "Half Marathon"
+  eventDate: "2026-05-15"
+  paces:
+    easy: "5:45/km"
+    long: "6:00/km"
+    tempo: "5:00/km"
+    threshold: "4:30/km"
+    r400: "1:35"           # For intervals.400()
+    r800: "3:20"           # For intervals.800()
+  zones:
+    hr:
+      lthr: 170            # Auto-calculates Z1-Z5
+  unit: km                 # km or mi
+  firstDayOfWeek: monday
+
+assessment:
+  foundation:
+    foundationLevel: intermediate  # beginner|intermediate|advanced|elite
+    yearsInSport: 2
+  currentForm:
+    weeklyVolume: { total: 4, run: 4 }
+    consistency: 4
+
+phases:
+  - name: "Base"
+    weeks: "1-4"
+    focus: "Aerobic foundation"
+
+weeks:
+  - week: 1
+    phase: Base
+    focus: "Build consistency"
+    workouts:
+      Mon: tempo(20)
+      Tue: rest
+      Wed: easy(35)
+      Thu: strides(40, 6)
+      Fri: rest
+      Sat: long(60)
+      Sun: rest
 \`\`\`
 
-## Enums (Valid Values)
+## Workout Templates
 
-### Sport
-\`"swim" | "bike" | "run" | "strength" | "brick" | "race" | "rest"\`
+**Run** (default): easy(mins), recovery(mins), long(mins), tempo(mins),
+threshold(mins), progression(mins), fartlek(mins), strides(mins, count),
+intervals.400(reps), intervals.800(reps), intervals.1k(reps), hills(reps), rest
 
-### WorkoutType
-\`"rest" | "recovery" | "endurance" | "tempo" | "threshold" | "intervals" | "vo2max" | "sprint" | "race" | "brick" | "technique" | "openwater" | "hills" | "long"\`
+**Swim**: swim.easy(mins), swim.technique(mins), swim.aerobic(reps),
+swim.threshold(reps), swim.vo2max(reps), swim.openwater(mins), swim.rest
 
-### FoundationLevel
-\`"beginner" | "intermediate" | "advanced" | "elite"\`
+**Bike**: bike.easy(mins), bike.endurance(mins), bike.tempo(mins),
+bike.sweetspot(mins), bike.threshold(reps), bike.vo2max(reps), bike.rest
 
-### Unit Preferences
-- swim: \`"meters" | "yards"\`
-- bike: \`"kilometers" | "miles"\`
-- run: \`"kilometers" | "miles"\`
-- firstDayOfWeek: \`"monday" | "sunday"\`
+**Brick**: brick.sprint(bike_mins, run_mins), brick.olympic(bike_mins, run_mins)
 
-## Key Objects
+**Strength**: strength.foundation(mins), strength.full(mins), strength.core(mins)
 
-### PlanMeta
-\`\`\`typescript
-{
-  id: string,                        // Unique plan identifier
-  athlete: string,                   // Athlete's name
-  event: string,                     // Target event name
-  eventDate: "YYYY-MM-DD",           // Event date (ISO format)
-  planStartDate: "YYYY-MM-DD",       // Plan start date
-  planEndDate: "YYYY-MM-DD",         // Plan end date
-  createdAt: string,                 // ISO datetime
-  updatedAt: string,                 // ISO datetime
-  totalWeeks: number,                // Total weeks in plan
-  generatedBy: string                // "Endurance Coach"
-}
-\`\`\`
+## Zone Auto-Calculation
 
-### Workout
-\`\`\`typescript
-{
-  id: string,                        // Required: Unique workout ID
-  sport: Sport,                      // Required: See Sport enum
-  type: WorkoutType,                 // Required: See WorkoutType enum
-  name: string,                      // Required: Workout name
-  description: string,               // Required: Workout description
-  durationMinutes?: number,          // Optional: Duration in minutes
-  distanceMeters?: number,           // Optional: Distance in meters
-  primaryZone?: string,              // Optional: Target zone ("Zone 2", etc.)
-  targetHR?: { low: number, high: number },
-  targetPower?: { low: number, high: number },
-  targetPace?: { low: string, high: string },
-  rpe?: number,                      // Optional: 1-10 RPE scale
-  structure?: StructuredWorkout,     // Optional: For device export
-  humanReadable?: string,            // Optional: Workout text
-  completed: boolean                 // Required: Always false for new plans
-}
-\`\`\`
+Specify only threshold values - zones are calculated automatically:
+- \`zones.hr.lthr: 170\` → HR zones derived from LTHR
+- \`zones.power.ftp: 250\` → Power zones derived from FTP
+- \`zones.swim.css: "1:45"\` → Swim zones derived from CSS
 
-### TrainingDay
-\`\`\`typescript
-{
-  date: "YYYY-MM-DD",                // Required: ISO date format
-  dayOfWeek: string,                 // Required: "Monday", "Tuesday", etc.
-  workouts: Workout[]                // Required: Array of workouts
-}
-\`\`\`
-
-### TrainingWeek
-\`\`\`typescript
-{
-  weekNumber: number,                // Required: 1-based week number
-  startDate: "YYYY-MM-DD",           // Required: Week start date
-  endDate: "YYYY-MM-DD",             // Required: Week end date
-  phase: string,                     // Required: Phase name
-  focus: string,                     // Required: Week focus
-  targetHours: number,               // Required: Target hours
-  days: TrainingDay[],               // Required: 7 days
-  summary: WeekSummary,              // Required: Week totals
-  isRecoveryWeek: boolean            // Required: Recovery week flag
-}
-\`\`\`
-
-### WeekSummary
-\`\`\`typescript
-{
-  totalHours: number,                // Required: Total hours
-  totalTSS?: number,                 // Optional: Training stress score
-  bySport?: {                        // Optional: Breakdown by sport
-    [sport]: { sessions: number, hours: number, km?: number }
-  }
-}
-\`\`\`
-
-### AthleteAssessment
-\`\`\`typescript
-{
-  foundation: {
-    raceHistory: string[],           // Past race names
-    peakTrainingLoad: number,        // Peak hours/week
-    foundationLevel: FoundationLevel,
-    yearsInSport: number
-  },
-  currentForm: {
-    weeklyVolume: { total: number, swim?: number, bike?: number, run?: number },
-    longestSessions: { swim?: number, bike?: number, run?: number },
-    consistency: number              // Sessions/week
-  },
-  strengths: [{ sport: Sport, evidence: string }],
-  limiters: [{ sport: Sport, evidence: string }],
-  constraints: string[]              // Schedule/injury constraints
-}
-\`\`\`
-
-### TrainingPhase
-\`\`\`typescript
-{
-  name: string,                      // "Base", "Build", "Peak", "Taper"
-  startWeek: number,                 // Starting week number
-  endWeek: number,                   // Ending week number
-  focus: string,                     // Phase focus
-  weeklyHoursRange: { low: number, high: number },
-  keyWorkouts: string[],             // Key session types
-  physiologicalGoals: string[]       // Training adaptations
-}
-\`\`\`
-
-### AthleteZones
-\`\`\`typescript
-{
-  run?: {
-    hr?: { lthr: number, zones: HRZone[] },
-    pace?: { thresholdPace: string, thresholdPaceSeconds: number, zones: PaceZone[] }
-  },
-  bike?: {
-    hr?: { lthr: number, zones: HRZone[] },
-    power?: { ftp: number, zones: PowerZone[] }
-  },
-  swim?: {
-    css: string,                     // "1:45/100m"
-    cssSeconds: number,              // Per 100m
-    zones: SwimZone[]
-  },
-  maxHR?: number,
-  restingHR?: number,
-  weight?: number                    // kg
-}
-\`\`\`
-
-### RaceStrategy
-\`\`\`typescript
-{
-  event: {
-    name: string,
-    date: string,
-    type: string,
-    distances?: { swim?: number, bike?: number, run?: number }
-  },
-  pacing: {
-    swim?: { target: string, notes: string },
-    bike?: { targetPower: string, targetHR: string, notes: string },
-    run?: { targetPace: string, targetHR: string, notes: string }
-  },
-  nutrition: {
-    preRace: string,
-    during: { carbsPerHour: number, fluidPerHour: string, products: string[] },
-    notes: string
-  },
-  taper: {
-    startDate: string,
-    volumeReduction: number,         // Percentage
-    notes: string
-  },
-  raceDay?: {
-    wakeUpTime?: string,
-    preRaceMeal?: string,
-    warmUp?: string,
-    mentalCues?: string[]
-  }
-}
-\`\`\`
-
-## Common Validation Errors
-
-1. **Date format**: All dates must be "YYYY-MM-DD" (e.g., "2025-11-03")
-2. **Missing completed**: Every workout must have \`completed: false\`
-3. **Invalid sport**: Must use exact enum values, case-sensitive
-4. **Missing required fields**: Check all required fields are present
-5. **Invalid version**: Must be exactly "1.0"
-
-## Validation
-
-Use these commands to validate your plan:
+## Commands
 
 \`\`\`bash
-# Validate only
-npx endurance-coach validate plan.json
-
-# Render (includes validation)
-npx endurance-coach render plan.json --output plan.html
+npx endurance-coach templates              # List all templates
+npx endurance-coach templates show tempo   # Show template details
+npx endurance-coach validate plan.yaml     # Validate plan
+npx endurance-coach render plan.yaml -o plan.html  # Render to HTML
 \`\`\`
 `);
 }
