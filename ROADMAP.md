@@ -1,34 +1,163 @@
-## Roadmap
+## Endurance Coach – Roadmap
 
-### Bugs
+This roadmap is organized to make **coaching correctness and judgment** the spine of the system, with tooling and UI serving that goal—not competing with it.
 
-- Fix incorrect training start dates. The Athlete part of the yaml has a eventDate but no trainingStartDate, check what is determining the training start date and fix it.
+---
+
+## Phase 0: Coaching Correctness (Foundation)
+
+### Bugs / Invariants
+
+- **Fix incorrect training start dates**
+  - Current issue: `Athlete` YAML contains `eventDate` but no explicit `trainingStartDate`.
+  - Investigate and document what currently determines the training start date.
+  - Make the inference rule explicit and deterministic.
+  - Add regression tests covering:
+    - Event-based plans
+    - Non-event-based plans
+    - Edge cases (late config edits, timezone boundaries)
+
+---
+
+## Phase 1: Workout Template System (Expression Layer)
 
 ### Epic: Workout Template Enhancements
 
-- The CLI expander should throw an error if an unknown workout template name is used, and suggest that the agent can create a custom workout template or use a known template.
-- Custom workout templates go in ~/.endurance-coach/workout-templates/ the render function should look there for templates first before looking in the built-in templates.
-- The CLI expander should have a --list-templates option to list all known workout templates, both built-in and custom.
-- The CLI expander should have a --show-template TEMPLATE_NAME option to display the contents of a specific workout template, whether built-in or custom.
-- There are still certain template variables that are not being used in the Viewer project.
+Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend artifacts**.
+
+- **Fail fast on unknown templates**
+  - CLI expander throws a clear error if an unknown template name is used.
+  - Error message should:
+    - List closest matching known templates
+    - Suggest creating a custom template if needed
+
+- **Custom template precedence & discovery**
+  - Custom templates live in:
+    - `~/.endurance-coach/workout-templates/`
+
+  - Template resolution order:
+    1. User templates
+    2. Built-in templates
+
+- **Template inspectability & ergonomics**
+  - Improve `templates` CLI command to clearly explain:
+    - Template `id`
+    - Template source (built-in vs user)
+
+  - Add:
+    - `templates list`
+    - `templates show <template-id>`
+
+- **Template validation**
+  - Add command:
+    - `templates validate --template <template-id>`
+
+  - Validation behavior:
+    - Checks user templates first, then built-ins
+    - Validates schema, required variables, and unsupported fields
+
+- **Template variable hygiene**
+  - Audit all template variables
+  - Identify variables not consumed by the Viewer project
+  - Either:
+    - Wire them through properly, or
+    - Deprecate them explicitly
+
+---
+
+## Phase 2: Reflection as Data (Core Coaching Differentiator)
 
 ### Epic: Post-Workout Interview with Agent
 
-- Skill enhancement: User can ask the agent to conduct a post-workout interview, agent starts by syncing workout (if strava enabled), else asks naturally for workout details.
-- Agent asks a series of questions about the workout, including:
+Goal: Turn subjective athlete feedback into **structured coaching signal**, not just notes.
+
+- **Post-workout interview entry point**
+  - User can explicitly ask the agent to conduct a post-workout interview
+  - Agent behavior:
+    - Sync workout automatically if Strava is enabled
+    - Otherwise, naturally prompt for workout details
+
+- **Interview flow (baseline questions)**
   - How did the workout feel overall?
-  - Were there any specific challenges or highlights during the workout?
-  - Did you stick to the planned workout structure?
-  - How was your energy and hydration levels?
-  - Any areas for improvement or adjustments for future workouts?
-- If something is inferrable from the workout data (e.g., pace, heart rate), the agent should incorporate that into the questions or feedback.
-- After the interview, the agent summarizes the key points, and saves them to the coach.db ~/.endurance-coach/coach.db associated with that workout.
-- ^ this actually requires a db schema update to the coach.db, we should handle it with db increments for backwards compatibility.
-- Store interview data in a separate table with a foreign key to the workout id, enabling support for multiple interviews per workout.
-- Optionally, the web UI can remind the user to do a post-workout interview when they mark a workout as completed.
-- **Stretch Goal**: Enable in-app interview chat within the web UI by having the CLI launch a local web server for the interview session, allowing the user to conduct the interview using the same agent framework they're configured with. This could potentially spin off into a separate epic to avoid scope creep.
+  - What were the key challenges or highlights?
+  - Did you stick to the planned structure?
+  - How were energy, hydration, and mental focus?
+  - What would you change or improve next time?
+
+- **Data-aware questioning**
+  - Agent incorporates inferred signals from workout data:
+    - Pace vs plan
+    - Heart rate trends
+    - Duration and completion fidelity
+
+  - Questions and follow-ups should adapt based on these signals
+
+- **Coaching judgment (not just summarization)**
+  - Persist two distinct outputs:
+    1. **Athlete Reflection Summary** (what the user said)
+    2. **Coach Notes** (agent’s opinionated assessment)
+
+  - Coach Notes may:
+    - Challenge perceived effort vs objective data
+    - Flag fatigue, overreaching, or execution issues
+
+- **Persistence & schema evolution**
+  - Store interviews in a dedicated table
+    - Foreign key → workout ID
+    - Support multiple interviews per workout
+
+  - Introduce explicit DB schema versioning
+    - Forward-only, idempotent migrations
+    - Backwards compatibility guaranteed
+
+- **Optional UX support**
+  - Web UI reminder when a workout is marked complete
+  - Reminder should be non-blocking and skippable
+
+- **Stretch Goal (intentionally scoped)**
+  - In-app interview chat via local web server
+  - CLI launches a temporary local UI for the interview
+  - Uses the same agent framework and configuration
+  - If complexity grows, split into a separate epic
+
+---
+
+## Phase 3: Intelligence Compounding (Future-Facing)
+
+_(Not implementation-heavy yet, but directionally important)_
+
+- Cross-workout pattern detection:
+  - Repeated perception vs data mismatches
+  - Accumulating fatigue signals
+
+- Agent-generated flags:
+  - “Effort trending higher than expected”
+  - “Execution consistency improving / degrading”
+
+- Use interview insights to influence future workout recommendations
+
+---
+
+## Phase 4: Web UI Enhancements (Amplify Insight, Not Distract)
 
 ### Epic: Web UI Enhancements
 
-- When user opens a workout card, show floating arrow buttons to the left and right of the card to navigate to previous/next workout without going back to the calendar view.
-- Expanded Side bar to view the side bar content without needing to scroll.
+Goal: Reduce friction **only where it surfaces coaching insight**.
+
+- **Workout navigation ergonomics**
+  - Floating left/right arrows on workout card
+  - Navigate to previous/next workout without returning to calendar
+
+- **Sidebar usability**
+  - Expand sidebar to view full content without scrolling
+
+> UI work should not precede coaching intelligence. It should surface and reinforce it.
+
+---
+
+## Guiding Principles
+
+- Correctness before cleverness
+- Judgment before conversation
+- Data + perception > either alone
+- UI exists to amplify insight, not replace it
