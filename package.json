@@ -9,6 +9,10 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shiv19/endurance-coach-skill"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
