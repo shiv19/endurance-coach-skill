@@ -1,0 +1,187 @@
+version: "2.0"
+
+athlete:
+  name: "Demo Runner"
+  event: "Boston Marathon"
+  eventDate: "2025-04-21"
+  paces:
+    easy: "9:30/mi"
+    long: "9:45/mi"
+    tempo: "8:00/mi"
+    threshold: "7:45/mi"
+    marathon: "8:55/mi"
+    recovery: "10:30/mi"
+    r400: "1:45"
+    r800: "3:45"
+    r1k: "4:45"
+  zones:
+    hr:
+      lthr: 168
+      maxHR: 185
+  constraints:
+    daysPerWeek: 5
+    notes:
+      - "Work Mon-Fri"
+      - "Prefer morning runs"
+      - "Long runs on weekends"
+  unit: mi
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-4"
+    focus: "Build aerobic foundation"
+    keyWorkouts:
+      - "Long run"
+      - "Easy runs"
+      - "Strides"
+  - name: "Build"
+    weeks: "5-8"
+    focus: "Increase volume and intensity"
+    keyWorkouts:
+      - "Tempo runs"
+      - "Long runs with MP"
+      - "Progression runs"
+  - name: "Peak"
+    weeks: "9-10"
+    focus: "Race-specific preparation"
+    keyWorkouts:
+      - "Race simulation"
+      - "Marathon pace work"
+
+weeks:
+  # Base Phase - Weeks 1-4
+  - week: 1
+    phase: Base
+    focus: "Establish routine"
+    workouts:
+      Mon: rest
+      Tue: easy(45)
+      Wed: strength.runner(30)
+      Thu: strides(40, 4)
+      Fri: rest
+      Sat: easy(30)
+      Sun: long(75)
+
+  - week: 2
+    phase: Base
+    focus: "Build consistency"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: strength.runner(35)
+      Thu: strides(45, 5)
+      Fri: rest
+      Sat: easy(35)
+      Sun: long(85)
+
+  - week: 3
+    phase: Base
+    focus: "Introduce fartlek"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: fartlek(45)
+      Thu: strength.runner(35)
+      Fri: recovery(30)
+      Sat: strides(35, 4)
+      Sun: long(100)
+
+  - week: 4
+    phase: Base
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: easy(40)
+      Wed: strength.light(25)
+      Thu: easy(35)
+      Fri: rest
+      Sat: easy(30)
+      Sun: long(70)
+
+  # Build Phase - Weeks 5-8
+  - week: 5
+    phase: Build
+    focus: "Introduce tempo"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: tempo(50)
+      Thu: strength.runner(35)
+      Fri: recovery(30)
+      Sat: easy(40)
+      Sun: long(105)
+
+  - week: 6
+    phase: Build
+    focus: "Marathon pace work"
+    workouts:
+      Mon: rest
+      Tue: easy(55)
+      Wed: progression(55)
+      Thu: strength.runner(35)
+      Fri: recovery(35)
+      Sat: easy(40)
+      Sun: long(120)
+
+  - week: 7
+    phase: Build
+    focus: "Peak mileage week"
+    workouts:
+      Mon: rest
+      Tue: easy(55)
+      Wed: tempo(55)
+      Thu: easy(40)
+      Fri: strength.light(30)
+      Sat: easy(40)
+      Sun: long(140)
+
+  - week: 8
+    phase: Build
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: easy(40)
+      Wed: fartlek(40)
+      Thu: rest
+      Fri: easy(30)
+      Sat: strength.light(25)
+      Sun: long(80)
+
+  # Peak Phase - Weeks 9-10
+  - week: 9
+    phase: Peak
+    focus: "Dress rehearsal"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: progression(60)
+      Thu: easy(40)
+      Fri: rest
+      Sat: strides(35, 5)
+      Sun: long(135)
+
+  - week: 10
+    phase: Peak
+    focus: "Final big week"
+    workouts:
+      Mon: rest
+      Tue: easy(45)
+      Wed: tempo(50)
+      Thu: easy(40)
+      Fri: rest
+      Sat: strides(35, 4)
+      Sun: long(120)
+
+raceStrategy:
+  goalTime: "3:55:00"
+  pacing:
+    run: "8:55-9:05/mi even splits. Start conservative. Respect the Newton Hills (miles 16-21)."
+  nutrition: "60g carbs/hour. Gel every 45 min starting at mile 5."
+  notes:
+    - "Pre-race: 3 hours before - Bagel with PB, banana"
+    - "Don't go out too fast in the first 5K"
+    - "Save energy for Heartbreak Hill"
+    - "Negative split the second half if possible"

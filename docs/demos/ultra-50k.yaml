@@ -1,0 +1,170 @@
+version: "2.0"
+
+athlete:
+  name: "Demo Ultra Runner"
+  event: "North Face 50K"
+  eventDate: "2025-05-17"
+  paces:
+    easy: "9:45/mi"
+    tempo: "8:15/mi"
+    threshold: "7:45/mi"
+    recovery: "11:00/mi"
+    trail: "10:00-11:30/mi (effort-based)"
+  zones:
+    hr:
+      lthr: 162
+      maxHR: 180
+  constraints:
+    daysPerWeek: 5
+    notes:
+      - "Work during week"
+      - "Long runs Saturday or Sunday"
+      - "Access to trails on weekends"
+  unit: mi
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-3"
+    focus: "Build aerobic base and trail skills"
+    keyWorkouts:
+      - "Long trail run"
+      - "Hill repeats"
+      - "Strength work"
+  - name: "Recovery"
+    weeks: "4-4"
+    focus: "Active recovery and adaptation"
+    keyWorkouts:
+      - "Easy runs"
+      - "Light strength"
+      - "Mobility"
+  - name: "Build"
+    weeks: "5-7"
+    focus: "Increase volume and intensity"
+    keyWorkouts:
+      - "Back-to-back long runs"
+      - "Hill repeats"
+      - "Tempo runs"
+  - name: "Peak"
+    weeks: "8-8"
+    focus: "Race simulation and peak fitness"
+    keyWorkouts:
+      - "Race simulation"
+      - "Long trail run"
+      - "Back-to-back runs"
+
+weeks:
+  # Base Phase - Weeks 1-3
+  - week: 1
+    phase: Base
+    focus: "Establish ultra training routine"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: strength.trail(40)
+      Thu: hills(55)
+      Fri: rest
+      Sat: long(75)
+      Sun: long(105)
+
+  - week: 2
+    phase: Base
+    focus: "Increase volume and introduce tempo"
+    workouts:
+      Mon: rest
+      Tue: easy(45)
+      Wed: strength.trail(45)
+      Thu: tempo(55)
+      Fri: recovery(30)
+      Sat: long(90)
+      Sun: long(120)
+
+  - week: 3
+    phase: Base
+    focus: "Peak base volume week"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: strength.trail(50)
+      Thu: hills(65)
+      Fri: recovery(35)
+      Sat: long(105)
+      Sun: long(135)
+
+  # Recovery Phase - Week 4
+  - week: 4
+    phase: Recovery
+    focus: "Active recovery and adaptation"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: recovery(40)
+      Wed: strength.light(30)
+      Thu: strides(45, 4)
+      Fri: rest
+      Sat: long(60)
+      Sun: long(75)
+
+  # Build Phase - Weeks 5-7
+  - week: 5
+    phase: Build
+    focus: "Introduce back-to-back long runs"
+    workouts:
+      Mon: rest
+      Tue: easy(50)
+      Wed: strength.power(45)
+      Thu: hills(60)
+      Fri: recovery(30)
+      Sat: long(120)
+      Sun: long(90)
+
+  - week: 6
+    phase: Build
+    focus: "Tempo and extended back-to-back"
+    workouts:
+      Mon: rest
+      Tue: recovery(40)
+      Wed: strength.eccentric(50)
+      Thu: tempo(65)
+      Fri: easy(35)
+      Sat: long(150)
+      Sun: long(105)
+
+  - week: 7
+    phase: Build
+    focus: "Peak build volume"
+    workouts:
+      Mon: rest
+      Tue: easy(45)
+      Wed: strength.trail(50)
+      Thu: progression(70)
+      Fri: recovery(30)
+      Sat: long(165)
+      Sun: long(120)
+
+  # Peak Phase - Week 8
+  - week: 8
+    phase: Peak
+    focus: "Race simulation and confidence building"
+    workouts:
+      Mon: rest
+      Tue: recovery(40)
+      Wed: strength.light(40)
+      Thu: tempo(55)
+      Fri: strides(35, 4)
+      Sat: long(180)
+      Sun: long(105)
+
+raceStrategy:
+  goalTime: "6:00:00 - 7:00:00"
+  pacing:
+    run: "Effort-based, not pace. Start conservative - first 10K should feel too easy."
+  nutrition: "250 cal/hour. Eat early and often. Set timer for every 20 min."
+  notes:
+    - "Walk all steep uphills from the start"
+    - "Save your quads for the second half"
+    - "Stomach issues are common - practice nutrition in training"
+    - "Have backup food options"
+    - "Power hike the steeps - run the flats and downs"
+    - "Nothing new on race day"
+    - "Ultra tapers are longer - stay off feet when possible"

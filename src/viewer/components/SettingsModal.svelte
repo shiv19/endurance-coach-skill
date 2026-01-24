@@ -635,7 +635,26 @@
         </div>
 
         <div class="settings-section">
-          <h4 class="settings-section-title">Created By</h4>
+          <h4 class="settings-section-title">Maintained By</h4>
+          <div class="about-author">
+            <span class="author-name">Shiva Prasad</span>
+            <div class="author-links">
+              <a href="https://shiv19.com" target="_blank" rel="noopener" class="author-link"
+                >shiv19.com</a
+              >
+              <span class="author-separator">·</span>
+              <a
+                href="https://twitter.com/multishiv19"
+                target="_blank"
+                rel="noopener"
+                class="author-link">@multishiv19</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4 class="settings-section-title">Original Author</h4>
           <div class="about-author">
             <span class="author-name">Felix Rieseberg</span>
             <div class="author-links">

@@ -1,0 +1,81 @@
+id: strength.power
+name: Power Strength
+sport: strength
+type: strength
+category: power
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 35
+    max: 55
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Dynamic warm-up + activation
+      duration: 8min
+      description: "Progressive movement, explosive prep"
+  main:
+    - type: work
+      name: Explosive power
+      duration: 15min
+      description: "3-4 sets x 4-6 reps, explosive movement"
+      exercises:
+        - "Box jumps x 6"
+        - "Jump squats x 6"
+        - "Medicine ball slams x 8"
+        - "Broad jumps x 5"
+    - type: work
+      name: Strength foundation
+      duration: 15min
+      description: "Heavy compound movements"
+      exercises:
+        - "Squats x 6 (heavy)"
+        - "Deadlifts x 6"
+        - "Single-leg press x 8 each"
+    - type: work
+      name: Core power
+      duration: 5min
+      exercises:
+        - "Plank x 45s"
+        - "Russian twists x 20"
+  cooldown:
+    - type: cooldown
+      name: Cool-down and stretching
+      duration: 5min
+
+humanReadable: |
+  POWER STRENGTH - ${duration} minutes
+
+  WARM-UP: 8 min
+  - Progressive jogging
+  - Dynamic stretches
+  - Activation drills
+  - 3-4 practice jumps
+
+  EXPLOSIVE POWER (15 min):
+  - Box jumps x 6 (3 sets)
+  - Jump squats x 6
+  - Medicine ball slams x 8
+  - Broad jumps x 5
+
+  STRENGTH (15 min):
+  - Back squats x 6 (heavy, 3 sets)
+  - Deadlifts x 6
+  - Single-leg press x 8 each
+
+  CORE POWER (5 min):
+  - Plank x 45s
+  - Russian twists x 20
+
+  COOL-DOWN: 5 min stretching
+
+  NOTES:
+  - Peak phase workout, 1x/week max
+  - Focus on speed of movement
+  - Full recovery between explosive sets
+  - Not for fatigued athletes

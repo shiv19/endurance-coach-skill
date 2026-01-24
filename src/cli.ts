@@ -329,8 +329,8 @@ Commands:
   sync              Sync activities from Strava
   auth              Get Strava authorization URL or exchange code for tokens
   schema            Print the YAML v2.0 plan format reference
-  validate <file>   Validate a training plan against the schema
-  expand <file>     Expand a compact YAML plan to full JSON format
+  validate <file>   Validate a training plan (YAML recommended)
+  expand <file>     Expand a compact YAML plan to full format
   render <file>     Render a training plan to HTML
   templates         List available workout templates
   query <sql>       Run a SQL query against the database
@@ -352,9 +352,6 @@ Sync Options:
   --client-secret=SEC   Strava API client secret (for OAuth flow)
   --days=N              Days of history to sync (default: 730)
 
-Validate Options:
-  --compact             Force compact plan validation (auto-detected for .yaml files)
-
 Expand Options:
   --output, -o FILE     Output file (default: stdout)
   --format json|yaml    Output format (default: json)
@@ -372,7 +369,7 @@ Query Options:
 
 Modify Options:
   --backup, -b FILE     Backup JSON file (exported from Settings)
-  --plan, -p FILE       Training plan JSON file to modify
+  --plan, -p FILE       Expanded plan JSON file to modify
   --output, -o FILE     Output file (default: overwrites plan file)
 
 Examples:
@@ -388,20 +385,20 @@ Examples:
   # Get the YAML v2.0 format reference
   npx endurance-coach schema
 
-  # Validate a training plan JSON
-  npx endurance-coach validate plan.json
+  # Validate a compact YAML plan
+  npx endurance-coach validate plan.yaml
 
-  # Render a training plan to HTML (includes validation)
-  npx endurance-coach render plan.json --output my-plan.html
+  # Render a training plan to HTML
+  npx endurance-coach render plan.yaml --output my-plan.html
 
   # Query the database
   npx endurance-coach query "SELECT * FROM weekly_volume LIMIT 5"
-  
-  # Apply backup changes to a training plan
-  npx endurance-coach modify --backup backup.json --plan plan.json
+
+  # Apply backup changes to an expanded plan
+  npx endurance-coach modify --backup backup.json --plan expanded.json
 
   # Save modified plan to a new file
-  npx endurance-coach modify -b backup.json -p plan.json -o modified_plan.json
+  npx endurance-coach modify -b backup.json -p expanded.json -o modified.json
 `);
 }
 

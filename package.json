@@ -1,9 +1,9 @@
 {
   "name": "endurance-coach",
   "version": "1.0.2",
-  "author": "Felix Rieseberg",
+  "author": "Shiva Prasad <sp@shiv19.com> (https://shiv19.com)",
   "contributors": [
-    "Shiva Prasad <sp@shiv19.com> (https://shiv19.com)"
+    "Felix Rieseberg (https://felixrieseberg.com)"
   ],
   "license": "MIT",
   "type": "module",

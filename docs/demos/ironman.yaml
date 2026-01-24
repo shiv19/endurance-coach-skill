@@ -1,0 +1,335 @@
+version: "2.0"
+
+athlete:
+  name: "Advanced Triathlete"
+  event: "Ironman"
+  eventDate: "2025-06-15"
+  paces:
+    easy: "4:50/km"
+    tempo: "4:30/km"
+    threshold: "4:10/km"
+    recovery: "5:10/km"
+    swimCSS: "1:40/100m"
+    ironmanPace: "5:00/km"
+  zones:
+    hr:
+      lthr: 165
+    power:
+      ftp: 260
+    swim:
+      css: "1:40/100m"
+  constraints:
+    daysPerWeek: 6
+    notes:
+      - "Can train doubles 2-3x/week"
+      - "Long sessions on weekends only"
+  unit: km
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base 1"
+    weeks: "1-4"
+    focus: "Rebuild volume, aerobic foundation"
+    keyWorkouts:
+      - "Long ride"
+      - "Long run"
+      - "Swim endurance"
+  - name: "Base 2"
+    weeks: "5-8"
+    focus: "Peak volume, introduce intensity"
+    keyWorkouts:
+      - "Extended long ride"
+      - "Progressive runs"
+      - "Threshold swims"
+  - name: "Build 1"
+    weeks: "9-12"
+    focus: "Race-specific work, long bricks"
+    keyWorkouts:
+      - "Race-pace bricks"
+      - "IM pace bike"
+      - "Marathon-pace runs"
+  - name: "Build 2"
+    weeks: "13-16"
+    focus: "Peak fitness, race simulation"
+    keyWorkouts:
+      - "Full race simulations"
+      - "Peak long ride"
+      - "Peak long run"
+  - name: "Peak"
+    weeks: "17-19"
+    focus: "Maintain intensity, reduce volume"
+    keyWorkouts:
+      - "Sharp intervals"
+      - "Race openers"
+      - "Confidence sessions"
+  - name: "Race"
+    weeks: "20-20"
+    focus: "Final taper and race execution"
+    keyWorkouts:
+      - "Openers"
+      - "Easy movement"
+      - "Race day"
+
+weeks:
+  # Base 1 Phase - Weeks 1-4
+  - week: 1
+    phase: Base 1
+    focus: "Establish rhythm"
+    workouts:
+      Mon: swim.technique(45)
+      Tue: [bike.endurance(75), easy(35)]
+      Wed: swim.endurance(50)
+      Thu: strides(50, 6)
+      Fri: rest
+      Sat: bike.endurance(180)
+      Sun: long(90)
+
+  - week: 2
+    phase: Base 1
+    focus: "Build consistency"
+    workouts:
+      Mon: swim.technique(50)
+      Tue: [bike.endurance(80), easy(40)]
+      Wed: swim.endurance(55)
+      Thu: easy(55)
+      Fri: strength.core(35)
+      Sat: bike.endurance(195)
+      Sun: brick.ironman
+
+  - week: 3
+    phase: Base 1
+    focus: "Volume increase"
+    workouts:
+      Mon: swim.technique(55)
+      Tue: [bike.tempo(90), easy(40)]
+      Wed: swim.endurance(55)
+      Thu: hills(60)
+      Fri: recovery(35)
+      Sat: bike.endurance(210)
+      Sun: long(100)
+
+  - week: 4
+    phase: Base 1
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(40)
+      Wed: bike.easy(60)
+      Thu: easy(40)
+      Fri: rest
+      Sat: bike.endurance(120)
+      Sun: long(75)
+
+  # Base 2 Phase - Weeks 5-8
+  - week: 5
+    phase: Base 2
+    focus: "Resume building"
+    workouts:
+      Mon: swim.threshold(55)
+      Tue: [bike.tempo(90), easy(45)]
+      Wed: swim.endurance(55)
+      Thu: tempo(55)
+      Fri: strength.triathlon(40)
+      Sat: bike.endurance(225)
+      Sun: long(105)
+
+  - week: 6
+    phase: Base 2
+    focus: "Increase intensity"
+    workouts:
+      Mon: swim.threshold(60)
+      Tue: [bike.sweetspot(90), easy(40)]
+      Wed: swim.endurance(55)
+      Thu: threshold(55)
+      Fri: recovery(35)
+      Sat: bike.endurance(240)
+      Sun: brick.ironman
+
+  - week: 7
+    phase: Base 2
+    focus: "Peak base volume"
+    workouts:
+      Mon: swim.threshold(60)
+      Tue: [bike.sweetspot(100), easy(45)]
+      Wed: swim.endurance(60)
+      Thu: progression(60)
+      Fri: strength.core(35)
+      Sat: bike.endurance(270)
+      Sun: long(120)
+
+  - week: 8
+    phase: Base 2
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(45)
+      Wed: bike.easy(60)
+      Thu: easy(45)
+      Fri: rest
+      Sat: bike.endurance(150)
+      Sun: long(90)
+
+  # Build 1 Phase - Weeks 9-12
+  - week: 9
+    phase: Build 1
+    focus: "Race-specific work begins"
+    workouts:
+      Mon: swim.threshold(60)
+      Tue: [bike.sweetspot(100), tempo(45)]
+      Wed: swim.threshold(55)
+      Thu: intervals.1k(5)
+      Fri: recovery(35)
+      Sat: brick.ironman
+      Sun: long(135)
+
+  - week: 10
+    phase: Build 1
+    focus: "Long brick week"
+    workouts:
+      Mon: swim.threshold(60)
+      Tue: [bike.threshold(100), easy(45)]
+      Wed: swim.endurance(55)
+      Thu: tempo(60)
+      Fri: strength.triathlon(35)
+      Sat: bike.endurance(300)
+      Sun: long(120)
+
+  - week: 11
+    phase: Build 1
+    focus: "Continue building"
+    workouts:
+      Mon: swim.threshold(60)
+      Tue: [bike.sweetspot(100), tempo(50)]
+      Wed: swim.threshold(55)
+      Thu: threshold(55)
+      Fri: recovery(35)
+      Sat: brick.ironman
+      Sun: long(150)
+
+  - week: 12
+    phase: Build 1
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(45)
+      Wed: bike.easy(75)
+      Thu: easy(45)
+      Fri: rest
+      Sat: bike.endurance(180)
+      Sun: long(90)
+
+  # Build 2 Phase - Weeks 13-16
+  - week: 13
+    phase: Build 2
+    focus: "Peak fitness phase"
+    workouts:
+      Mon: swim.threshold(60)
+      Tue: [bike.threshold(105), tempo(50)]
+      Wed: swim.threshold(55)
+      Thu: intervals.mile(4)
+      Fri: recovery(35)
+      Sat: bike.endurance(330)
+      Sun: long(150)
+
+  - week: 14
+    phase: Build 2
+    focus: "Race simulation"
+    workouts:
+      Mon: swim.threshold(65)
+      Tue: [bike.sweetspot(100), easy(45)]
+      Wed: swim.endurance(55)
+      Thu: progression(65)
+      Fri: strength.core(30)
+      Sat: brick.ironman
+      Sun: long(165)
+
+  - week: 15
+    phase: Build 2
+    focus: "Peak volume week"
+    workouts:
+      Mon: swim.threshold(65)
+      Tue: [bike.threshold(105), tempo(50)]
+      Wed: swim.threshold(60)
+      Thu: tempo(60)
+      Fri: recovery(35)
+      Sat: bike.endurance(360)
+      Sun: long(180)
+
+  - week: 16
+    phase: Build 2
+    focus: "Recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(45)
+      Wed: bike.easy(75)
+      Thu: easy(45)
+      Fri: rest
+      Sat: bike.endurance(180)
+      Sun: long(105)
+
+  # Peak Phase - Weeks 17-19
+  - week: 17
+    phase: Peak
+    focus: "Begin taper"
+    workouts:
+      Mon: swim.threshold(55)
+      Tue: [bike.sweetspot(90), easy(40)]
+      Wed: swim.threshold(50)
+      Thu: threshold(50)
+      Fri: recovery(30)
+      Sat: bike.endurance(240)
+      Sun: long(120)
+
+  - week: 18
+    phase: Peak
+    focus: "Reduce volume, maintain intensity"
+    workouts:
+      Mon: swim.threshold(50)
+      Tue: ["bike.tempo(75)", "strides(35, 6)"]
+      Wed: swim.speed(45)
+      Thu: intervals.800(6)
+      Fri: rest
+      Sat: brick.ironman
+      Sun: long(90)
+
+  - week: 19
+    phase: Peak
+    focus: "Final sharpening"
+    workouts:
+      Mon: swim.easy(40)
+      Tue: [bike.tempo(60), easy(30)]
+      Wed: swim.threshold(45)
+      Thu: strides(40, 8)
+      Fri: rest
+      Sat: bike.endurance(120)
+      Sun: long(60)
+
+  # Race Week - Week 20
+  - week: 20
+    phase: Race
+    focus: "Race week!"
+    isRecoveryWeek: true
+    workouts:
+      Mon: swim.easy(35)
+      Tue: [bike.easy(45), easy(25)]
+      Wed: swim.easy(30)
+      Thu: strides(25, 4)
+      Fri: rest
+      Sat: bike.easy(30)
+      Sun: rest
+
+raceStrategy:
+  goalTime: "11:00:00"
+  pacing:
+    swim: "1:45-1:50/100m. Start wide, find clear water. Draft when possible."
+    bike: "155-170W target (65-70% FTP). Even pacing. Aero position. Eat early and often."
+    run: "5:15-5:30/km start, negative split if possible. Walk aid stations early."
+  nutrition: "60-90g carbs/hour on bike. Gels, bars, and liquids. Stay ahead of hunger."
+  notes:
+    - "Nothing new on race day"
+    - "Start conservative - it's a long day"
+    - "Trust your training"

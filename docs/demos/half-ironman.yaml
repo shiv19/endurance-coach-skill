@@ -1,0 +1,169 @@
+version: "2.0"
+
+athlete:
+  name: "Demo Triathlete"
+  event: "Ironman 70.3 Oceanside"
+  eventDate: "2025-04-05"
+  paces:
+    easy: "9:30/mi"
+    tempo: "8:30/mi"
+    threshold: "8:00/mi"
+    swimCSS: "1:48/100m"
+    swimRace: "1:55/100m"
+  zones:
+    hr:
+      lthr: 165
+    power:
+      ftp: 230
+    swim:
+      css: "1:48/100m"
+  constraints:
+    daysPerWeek: 6
+    notes:
+      - "Pool only available weekday mornings"
+      - "Long workouts on weekends only"
+  unit: mi
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-3"
+    focus: "Build aerobic foundation across all three sports"
+    keyWorkouts:
+      - "Long ride"
+      - "Long run"
+      - "Swim technique"
+  - name: "Recovery"
+    weeks: "4-4"
+    focus: "Active recovery and adaptation"
+    keyWorkouts:
+      - "Easy swims"
+      - "Recovery rides"
+      - "Short runs"
+  - name: "Build"
+    weeks: "5-7"
+    focus: "Increase intensity and race-specific preparation"
+    keyWorkouts:
+      - "Brick workouts"
+      - "Tempo runs"
+      - "Threshold bike"
+  - name: "Peak"
+    weeks: "8-8"
+    focus: "Race simulation and peak fitness"
+    keyWorkouts:
+      - "Race simulation brick"
+      - "Open water swim"
+      - "Long ride with race nutrition"
+
+weeks:
+  # Base Phase - Weeks 1-3
+  - week: 1
+    phase: Base
+    focus: "Establish training rhythm"
+    workouts:
+      Mon: rest
+      Tue: swim.technique(45)
+      Wed: bike.endurance(60)
+      Thu: easy(40)
+      Fri: swim.endurance(45)
+      Sat: bike.endurance(120)
+      Sun: long(70)
+
+  - week: 2
+    phase: Base
+    focus: "Building consistency"
+    workouts:
+      Mon: strength.core(30)
+      Tue: swim.technique(50)
+      Wed: bike.endurance(75)
+      Thu: strides(45, 5)
+      Fri: swim.endurance(45)
+      Sat: bike.endurance(135)
+      Sun: brick.halfironman
+
+  - week: 3
+    phase: Base
+    focus: "Completing base phase with volume increase"
+    workouts:
+      Mon: rest
+      Tue: swim.technique(50)
+      Wed: bike.endurance(75)
+      Thu: easy(50)
+      Fri: swim.threshold(50)
+      Sat: bike.endurance(150)
+      Sun: long(80)
+
+  # Recovery Phase - Week 4
+  - week: 4
+    phase: Recovery
+    focus: "Active recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(35)
+      Wed: bike.easy(45)
+      Thu: recovery(30)
+      Fri: rest
+      Sat: bike.endurance(75)
+      Sun: swim.endurance(40)
+
+  # Build Phase - Weeks 5-7
+  - week: 5
+    phase: Build
+    focus: "Introducing intensity"
+    workouts:
+      Mon: strength.triathlon(40)
+      Tue: swim.threshold(55)
+      Wed: bike.tempo(75)
+      Thu: tempo(50)
+      Fri: swim.endurance(50)
+      Sat: brick.halfironman
+      Sun: long(85)
+
+  - week: 6
+    phase: Build
+    focus: "Building race-specific fitness"
+    workouts:
+      Mon: rest
+      Tue: swim.threshold(55)
+      Wed: bike.endurance(60)
+      Thu: tempo(55)
+      Fri: swim.speed(50)
+      Sat: bike.tempo(150)
+      Sun: brick.halfironman
+
+  - week: 7
+    phase: Build
+    focus: "Peak build intensity"
+    workouts:
+      Mon: strength.triathlon(35)
+      Tue: swim.threshold(60)
+      Wed: bike.threshold(90)
+      Thu: progression(55)
+      Fri: swim.endurance(50)
+      Sat: bike.endurance(165)
+      Sun: long(95)
+
+  # Peak Phase - Week 8
+  - week: 8
+    phase: Peak
+    focus: "Race simulation and peak fitness"
+    workouts:
+      Mon: rest
+      Tue: swim.threshold(55)
+      Wed: bike.threshold(80)
+      Thu: threshold(60)
+      Fri: swim.speed(50)
+      Sat: brick.halfironman
+      Sun: long(100)
+
+raceStrategy:
+  goalTime: "5:30:00"
+  pacing:
+    swim: "Start wide to avoid contact. Settle into rhythm. Draft when possible."
+    bike: "165-180W target. Steady power, save legs for run. Stay aero."
+    run: "9:00-9:30/mi target. Start conservative. Walk aid stations first loop."
+  nutrition: "80g carbs/hour on bike. Maurten gels. Nothing new on race day."
+  notes:
+    - "Practice this nutrition plan on long training days"
+    - "Maintain intensity during taper, cut volume"

@@ -1,0 +1,83 @@
+id: strength.triathlon
+name: Triathlon Strength
+sport: strength
+type: strength
+category: strength
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 35
+    max: 60
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Light cardio + activation
+      duration: 5min
+      description: "Rowing or bike, dynamic stretches, band activation"
+  main:
+    - type: work
+      name: Swim strength
+      duration: 10min
+      description: "Upper body pulling strength"
+      exercises:
+        - "Lat pulldown x 10"
+        - "Pull-ups or assisted pull-ups x 8"
+        - "Band pull-aparts x 15"
+    - type: work
+      name: Bike/Run strength
+      duration: 15min
+      description: "Lower body power and stability"
+      exercises:
+        - "Goblet squats x 10"
+        - "Single-leg Romanian deadlift x 8 each"
+        - "Step-ups x 10 each leg"
+        - "Calf raises x 15"
+    - type: work
+      name: Core stability
+      duration: 10min
+      exercises:
+        - "Plank x 60s"
+        - "Side plank x 30s each side"
+        - "Dead bug x 12 each side"
+        - "Bird dog x 10 each side"
+  cooldown:
+    - type: cooldown
+      name: Stretching
+      duration: 5min
+
+humanReadable: |
+  TRIATHLON STRENGTH - ${duration} minutes
+
+  WARM-UP: 5 min
+  - Light rowing or bike
+  - Dynamic stretches
+  - Band activation (glutes, shoulders)
+
+  SWIM STRENGTH (10 min):
+  - Lat pulldown x 10 (3 sets)
+  - Pull-ups x 8 (assisted OK)
+  - Band pull-aparts x 15
+
+  BIKE/RUN STRENGTH (15 min):
+  - Goblet squats x 10
+  - Single-leg RDL x 8 each
+  - Step-ups x 10 each leg
+  - Calf raises x 15
+
+  CORE (10 min):
+  - Plank x 60s
+  - Side plank x 30s each side
+  - Dead bug x 12 each side
+  - Bird dog x 10 each side
+
+  COOL-DOWN: 5 min stretching
+
+  NOTES:
+  - All three disciplines covered
+  - Focus on single-leg stability
+  - Great for injury prevention

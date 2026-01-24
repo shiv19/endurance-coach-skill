@@ -1,0 +1,76 @@
+id: strength.runner
+name: Runner Strength
+sport: strength
+type: strength
+category: strength
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 40
+    min: 30
+    max: 50
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Dynamic warm-up
+      duration: 5min
+      description: "Light jog, leg swings, hip circles"
+  main:
+    - type: work
+      name: Lower body strength
+      duration: 20min
+      description: "Running-specific leg strength"
+      exercises:
+        - "Single-leg squats x 8 each"
+        - "Romanian deadlifts x 10"
+        - "Walking lunges x 10 each leg"
+        - "Calf raises x 15 each leg"
+        - "Step-ups x 10 each leg"
+    - type: work
+      name: Hip and core stability
+      duration: 10min
+      exercises:
+        - "Clamshells x 15 each side"
+        - "Hip bridges x 15"
+        - "Plank x 45s"
+        - "Side plank x 30s each side"
+        - "Dead bug x 10 each side"
+  cooldown:
+    - type: cooldown
+      name: Stretching
+      duration: 5min
+      description: "Hip flexors, hamstrings, calves"
+
+humanReadable: |
+  RUNNER STRENGTH - ${duration} minutes
+
+  WARM-UP: 5 min
+  - Light jog or skip in place
+  - Leg swings (front/back, side to side)
+  - Hip circles
+
+  LOWER BODY (20 min, 2-3 rounds):
+  - Single-leg squats x 8 each
+  - Romanian deadlifts x 10
+  - Walking lunges x 10 each leg
+  - Single-leg calf raises x 15 each
+  - Step-ups x 10 each leg
+
+  HIP & CORE (10 min):
+  - Clamshells x 15 each side
+  - Hip bridges x 15
+  - Plank x 45s
+  - Side plank x 30s each side
+  - Dead bug x 10 each side
+
+  COOL-DOWN: 5 min stretching
+  - Hip flexors, hamstrings, calves, glutes
+
+  NOTES:
+  - Focus on single-leg exercises
+  - Essential for injury prevention
+  - Do after easy runs, not before quality

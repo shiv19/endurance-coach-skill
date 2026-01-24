@@ -1,0 +1,175 @@
+version: "2.0"
+
+athlete:
+  name: "Demo Beginner Triathlete"
+  event: "Sprint Triathlon"
+  eventDate: "2025-03-30"
+  paces:
+    easy: "9:30/mi"
+    tempo: "7:45/mi"
+    threshold: "5:00/mi"
+    swimCSS: "2:15/100m"
+    swimRace: "2:25/100m"
+  zones:
+    hr:
+      lthr: 172
+    power:
+      ftp: 150
+    swim:
+      css: "2:15/100m"
+  constraints:
+    daysPerWeek: 6
+    hoursPerWeek: "6-8"
+    notes:
+      - "Available 5-6 days per week"
+      - "Pool access weekday mornings and weekends"
+      - "Primary goal is to finish comfortably and have fun"
+  unit: mi
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-3"
+    focus: "Build technique foundation in swim, establish training consistency"
+    keyWorkouts:
+      - "Swim technique with drills"
+      - "Easy aerobic bike"
+      - "Maintain run fitness"
+  - name: "Recovery"
+    weeks: "4-4"
+    focus: "Active recovery week to absorb training adaptations"
+    keyWorkouts:
+      - "Easy swims with drill focus"
+      - "Recovery rides"
+      - "Short easy runs"
+  - name: "Build"
+    weeks: "5-7"
+    focus: "Race-specific preparation with brick workouts"
+    keyWorkouts:
+      - "Weekly brick workout"
+      - "Continuous swim building to race distance"
+      - "Tempo work"
+  - name: "Taper"
+    weeks: "8-8"
+    focus: "Rest, sharpen, and prepare for race day"
+    keyWorkouts:
+      - "Short race-pace openers"
+      - "Easy maintenance swims"
+      - "Final brick"
+
+weeks:
+  # Base Phase - Weeks 1-3
+  - week: 1
+    phase: Base
+    focus: "Establish training rhythm, heavy focus on swim technique"
+    workouts:
+      Mon: swim.technique(35)
+      Tue: easy(35)
+      Wed: bike.endurance(45)
+      Thu: swim.technique(40)
+      Fri: strength.triathlon(30)
+      Sat: bike.endurance(70)
+      Sun: long(45)
+
+  - week: 2
+    phase: Base
+    focus: "Progress swim technique, add first brick workout"
+    workouts:
+      Mon: swim.technique(40)
+      Tue: strides(35, 4)
+      Wed: bike.endurance(50)
+      Thu: swim.endurance(45)
+      Fri: strength.triathlon(35)
+      Sat: brick.sprint
+      Sun: long(50)
+
+  - week: 3
+    phase: Base
+    focus: "Peak base week - highest volume before recovery week"
+    workouts:
+      Mon: swim.threshold(45)
+      Tue: tempo(40)
+      Wed: bike.endurance(55)
+      Thu: swim.endurance(50)
+      Fri: strength.triathlon(30)
+      Sat: brick.sprint
+      Sun: long(55)
+
+  # Recovery Phase - Week 4
+  - week: 4
+    phase: Recovery
+    focus: "Active recovery - absorb training, stay fresh mentally"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(35)
+      Wed: bike.easy(35)
+      Thu: recovery(25)
+      Fri: rest
+      Sat: bike.endurance(50)
+      Sun: strides(35, 6)
+
+  # Build Phase - Weeks 5-7
+  - week: 5
+    phase: Build
+    focus: "Begin race-specific work, increase intensity"
+    workouts:
+      Mon: swim.threshold(45)
+      Tue: threshold(40)
+      Wed: bike.tempo(55)
+      Thu: swim.endurance(50)
+      Fri: strength.triathlon(30)
+      Sat: brick.sprint
+      Sun: long(50)
+
+  - week: 6
+    phase: Build
+    focus: "Peak build week - highest quality work"
+    workouts:
+      Mon: swim.threshold(50)
+      Tue: tempo(45)
+      Wed: bike.tempo(60)
+      Thu: swim.endurance(45)
+      Fri: strength.light(25)
+      Sat: brick.sprint
+      Sun: recovery(40)
+
+  - week: 7
+    phase: Build
+    focus: "Final build week, maintain fitness, start freshening"
+    workouts:
+      Mon: swim.threshold(45)
+      Tue: tempo(40)
+      Wed: bike.endurance(50)
+      Thu: swim.endurance(40)
+      Fri: rest
+      Sat: brick.sprint
+      Sun: easy(30)
+
+  # Taper - Week 8
+  - week: 8
+    phase: Taper
+    focus: "RACE WEEK - Rest, sharpen, trust your training"
+    isRecoveryWeek: true
+    workouts:
+      Mon: swim.easy(30)
+      Tue: strides(25, 4)
+      Wed: bike.easy(30)
+      Thu: rest
+      Fri: swim.easy(20)
+      Sat: strides(15, 4)
+      Sun: rest
+
+raceStrategy:
+  goalTime: "1:25:00 - 1:35:00"
+  pacing:
+    swim: "2:20-2:40/100m. Target 17-20 min. Start conservative! First 200m sets your race."
+    bike: "105-125W (Zone 2-3). Target 38-45 min. Don't go hard on hills early. High cadence final 2km."
+    run: "8:00-10:00/mi. Target 26-32 min. First 800m will feel weird - this is normal!"
+  nutrition: "Pre-race: 50-80g carbs 2-3 hours before. Bike: 200-300ml sports drink. Optional gel."
+  notes:
+    - "Goal #1: HAVE FUN"
+    - "Goal #2: Don't drown"
+    - "Goal #3: Finish with a smile"
+    - "First triathlon - aim for conservative end"
+    - "Practice transitions during brick workouts"

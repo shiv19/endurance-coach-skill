@@ -1,0 +1,83 @@
+id: strength.trail
+name: Trail Running Strength
+sport: strength
+type: strength
+category: strength
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 35
+    max: 60
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Dynamic warm-up
+      duration: 5min
+      description: "Light movement, mobility drills"
+  main:
+    - type: work
+      name: Unilateral leg strength
+      duration: 15min
+      description: "Single-leg power for technical terrain"
+      exercises:
+        - "Single-leg squats x 8 each"
+        - "Bulgarian split squats x 10 each"
+        - "Step-ups with knee drive x 10 each"
+        - "Lateral lunges x 8 each side"
+    - type: work
+      name: Eccentric control
+      duration: 10min
+      description: "Downhill durability"
+      exercises:
+        - "Slow eccentric squats (4s down) x 8"
+        - "Single-leg eccentric calf lowers x 10 each"
+        - "Nordic curl negatives x 6"
+    - type: work
+      name: Ankle stability and core
+      duration: 10min
+      exercises:
+        - "Single-leg balance reaches x 10 each"
+        - "BOSU or unstable surface squats x 10"
+        - "Plank x 60s"
+        - "Side plank with hip dips x 10 each"
+  cooldown:
+    - type: cooldown
+      name: Stretching
+      duration: 5min
+
+humanReadable: |
+  TRAIL RUNNING STRENGTH - ${duration} minutes
+
+  WARM-UP: 5 min
+  - Light movement, jump rope
+  - Hip circles, leg swings
+  - Ankle circles
+
+  UNILATERAL STRENGTH (15 min):
+  - Single-leg squats x 8 each
+  - Bulgarian split squats x 10 each
+  - Step-ups with knee drive x 10 each
+  - Lateral lunges x 8 each side
+
+  ECCENTRIC CONTROL (10 min):
+  - Slow eccentric squats (4s down) x 8
+  - Single-leg eccentric calf lowers x 10 each
+  - Nordic curl negatives x 6
+
+  ANKLE & CORE (10 min):
+  - Single-leg balance reaches x 10 each
+  - Unstable surface squats x 10
+  - Plank x 60s
+  - Side plank with hip dips x 10 each
+
+  COOL-DOWN: 5 min stretching
+
+  NOTES:
+  - Develops terrain adaptability
+  - Eccentric work prevents downhill damage
+  - Ankle stability for technical trails

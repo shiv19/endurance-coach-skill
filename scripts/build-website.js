@@ -28,18 +28,18 @@ const COMPLETION_SCRIPT = `<script>(function(){var p=document.getElementById("pl
 function renderDemos() {
   console.log("Rendering demo training plans...\n");
 
-  // Find all JSON plan files in the demos directory
-  const files = readdirSync(demosDir).filter((f) => f.endsWith("-plan.json"));
+  // Find all YAML plan files in the demos directory
+  const files = readdirSync(demosDir).filter((f) => f.endsWith(".yaml"));
 
-  for (const jsonFile of files) {
-    const baseName = jsonFile.replace("-plan.json", "");
-    const jsonPath = join(demosDir, jsonFile);
+  for (const yamlFile of files) {
+    const baseName = yamlFile.replace(".yaml", "");
+    const yamlPath = join(demosDir, yamlFile);
     const htmlPath = join(demosDir, `${baseName}.html`);
 
-    console.log(`  ${jsonFile} -> ${baseName}.html`);
+    console.log(`  ${yamlFile} -> ${baseName}.html`);
 
     // Render using CLI
-    execSync(`node dist/cli.js render "${jsonPath}" --output "${htmlPath}"`, {
+    execSync(`node dist/cli.js render "${yamlPath}" --output "${htmlPath}"`, {
       cwd: rootDir,
       stdio: "pipe",
     });

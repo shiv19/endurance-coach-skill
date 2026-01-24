@@ -1,0 +1,60 @@
+id: strength.light
+name: Light Strength / Maintenance
+sport: strength
+type: strength
+category: maintenance
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 20
+    min: 15
+    max: 30
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Light activation
+      duration: 3min
+      description: "Gentle movement, no impact"
+  main:
+    - type: work
+      name: Maintenance circuit
+      duration: "${duration - 8}min"
+      description: "2 sets x 8-10 reps, light weight"
+      exercises:
+        - "Bodyweight squats x 10"
+        - "Push-ups x 8"
+        - "Lunges x 6 each leg"
+        - "Plank x 30s"
+        - "Hip bridges x 10"
+        - "Bird dog x 8 each side"
+  cooldown:
+    - type: cooldown
+      name: Light stretching
+      duration: 5min
+
+humanReadable: |
+  LIGHT STRENGTH - ${duration} minutes
+
+  WARM-UP: 3 min
+  - Gentle movement
+  - Light dynamic stretches
+
+  MAINTENANCE CIRCUIT (2 rounds):
+  - Bodyweight squats x 10
+  - Push-ups x 8
+  - Lunges x 6 each leg
+  - Plank x 30s
+  - Hip bridges x 10
+  - Bird dog x 8 each side
+
+  COOL-DOWN: 5 min light stretching
+
+  NOTES:
+  - For taper weeks or recovery periods
+  - Maintain movement patterns without fatigue
+  - Perfect for race week
+  - Keep effort low, focus on activation

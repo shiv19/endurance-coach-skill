@@ -1,0 +1,223 @@
+version: "2.0"
+
+athlete:
+  name: "Demo Triathlete"
+  event: "Olympic Distance Triathlon"
+  eventDate: "2025-06-15"
+  paces:
+    easy: "5:45/km"
+    tempo: "5:00/km"
+    threshold: "4:39/km"
+    raceTarget: "5:00/km"
+    swimCSS: "1:55/100m"
+    swimRace: "1:58/100m"
+  zones:
+    hr:
+      lthr: 168
+    power:
+      ftp: 200
+    swim:
+      css: "1:55/100m"
+  constraints:
+    daysPerWeek: 6
+    notes:
+      - "Pool access weekday mornings and evenings"
+      - "Long sessions on weekends"
+  unit: km
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Base"
+    weeks: "1-4"
+    focus: "Build aerobic foundation, technique refinement"
+    keyWorkouts:
+      - "Long ride"
+      - "Long run"
+      - "Swim technique drills"
+      - "CSS baseline work"
+  - name: "Build"
+    weeks: "5-8"
+    focus: "Increase intensity, race-pace work, sweet spot bike"
+    keyWorkouts:
+      - "Brick workouts 2x/week"
+      - "Threshold run intervals"
+      - "Sweet spot bike"
+      - "CSS swim sets"
+  - name: "Peak"
+    weeks: "9-11"
+    focus: "Race simulation, open water practice, peak fitness"
+    keyWorkouts:
+      - "Race simulation brick"
+      - "Open water swim"
+      - "Race-pace efforts"
+  - name: "Taper"
+    weeks: "12-12"
+    focus: "Rest, sharpen, race execution"
+    keyWorkouts:
+      - "Short openers"
+      - "Race-pace touches"
+      - "Pre-race swim"
+
+weeks:
+  # Base Phase - Weeks 1-4
+  - week: 1
+    phase: Base
+    focus: "Establish training rhythm, technique focus"
+    workouts:
+      Mon: rest
+      Tue: swim.technique(45)
+      Wed: bike.endurance(60)
+      Thu: easy(40)
+      Fri: swim.endurance(50)
+      Sat: bike.endurance(90)
+      Sun: long(60)
+
+  - week: 2
+    phase: Base
+    focus: "Build consistency, introduce strength work"
+    workouts:
+      Mon: strength.core(35)
+      Tue: swim.technique(50)
+      Wed: bike.endurance(70)
+      Thu: strides(45, 6)
+      Fri: swim.endurance(50)
+      Sat: brick.olympic
+      Sun: long(70)
+
+  - week: 3
+    phase: Base
+    focus: "Progressive overload, introduce tempo touches"
+    workouts:
+      Mon: strength.triathlon(40)
+      Tue: swim.threshold(55)
+      Wed: bike.tempo(75)
+      Thu: tempo(50)
+      Fri: swim.endurance(50)
+      Sat: bike.endurance(105)
+      Sun: long(75)
+
+  - week: 4
+    phase: Base
+    focus: "Active recovery week"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(35)
+      Wed: bike.easy(45)
+      Thu: recovery(30)
+      Fri: rest
+      Sat: bike.endurance(75)
+      Sun: swim.endurance(40)
+
+  # Build Phase - Weeks 5-8
+  - week: 5
+    phase: Build
+    focus: "Introduce intensity, sweet spot bike begins"
+    workouts:
+      Mon: strength.power(40)
+      Tue: swim.threshold(55)
+      Wed: bike.sweetspot(75)
+      Thu: threshold(55)
+      Fri: swim.endurance(50)
+      Sat: brick.olympic
+      Sun: long(80)
+
+  - week: 6
+    phase: Build
+    focus: "Increase intensity, race-specific work"
+    workouts:
+      Mon: rest
+      Tue: swim.threshold(55)
+      Wed: bike.sweetspot(80)
+      Thu: tempo(55)
+      Fri: swim.speed(50)
+      Sat: bike.endurance(120)
+      Sun: brick.olympic
+
+  - week: 7
+    phase: Build
+    focus: "Peak build week - highest intensity"
+    workouts:
+      Mon: strength.triathlon(35)
+      Tue: swim.threshold(60)
+      Wed: bike.threshold(85)
+      Thu: threshold(55)
+      Fri: swim.endurance(50)
+      Sat: brick.olympic
+      Sun: long(85)
+
+  - week: 8
+    phase: Build
+    focus: "Recovery week - absorb build phase"
+    isRecoveryWeek: true
+    workouts:
+      Mon: rest
+      Tue: swim.easy(40)
+      Wed: bike.easy(50)
+      Thu: strides(35, 4)
+      Fri: rest
+      Sat: bike.endurance(75)
+      Sun: swim.endurance(40)
+
+  # Peak Phase - Weeks 9-11
+  - week: 9
+    phase: Peak
+    focus: "Race simulation, open water"
+    workouts:
+      Mon: strength.light(30)
+      Tue: swim.threshold(55)
+      Wed: bike.tempo(90)
+      Thu: threshold(55)
+      Fri: swim.speed(50)
+      Sat: brick.olympic
+      Sun: long(85)
+
+  - week: 10
+    phase: Peak
+    focus: "Final race simulation"
+    workouts:
+      Mon: rest
+      Tue: swim.threshold(55)
+      Wed: bike.sweetspot(80)
+      Thu: tempo(50)
+      Fri: swim.endurance(45)
+      Sat: brick.olympic
+      Sun: long(75)
+
+  - week: 11
+    phase: Peak
+    focus: "Begin freshening"
+    workouts:
+      Mon: strength.light(25)
+      Tue: swim.threshold(50)
+      Wed: bike.tempo(70)
+      Thu: strides(45, 6)
+      Fri: swim.easy(40)
+      Sat: brick.olympic
+      Sun: long(60)
+
+  # Taper - Week 12
+  - week: 12
+    phase: Taper
+    focus: "Race week!"
+    isRecoveryWeek: true
+    workouts:
+      Mon: swim.easy(35)
+      Tue: strides(30, 4)
+      Wed: bike.easy(40)
+      Thu: rest
+      Fri: swim.easy(25)
+      Sat: strides(20, 4)
+      Sun: rest
+
+raceStrategy:
+  goalTime: "2:45:00"
+  pacing:
+    swim: "1:58-2:00/100m. Start at back-middle of pack. Sight every 8-10 strokes."
+    bike: "155-175W (78-88% FTP). Aero position as much as possible. 60g carbs/hour."
+    run: "5:00-5:10/km. First km should feel controlled. Negative split if possible."
+  nutrition: "60g carbs/hour on bike. Gel at T2. Water at aid stations."
+  notes:
+    - "Practice transitions during brick workouts"
+    - "Nothing new on race day"
+    - "Start conservatively - especially the swim and first 5km bike"

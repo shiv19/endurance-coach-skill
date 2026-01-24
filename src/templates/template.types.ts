@@ -93,6 +93,7 @@ export type WorkoutCategory =
   | "rest"
   | "recovery"
   | "endurance"
+  | "aerobic"
   | "tempo"
   | "threshold"
   | "intervals"
@@ -100,6 +101,8 @@ export type WorkoutCategory =
   | "hills"
   | "race"
   | "strength"
+  | "power"
+  | "maintenance"
   | "technique";
 
 /**

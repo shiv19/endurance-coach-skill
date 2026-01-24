@@ -1,8 +1,5 @@
 # Endurance Coach
 
-Originally forked from Claude Coach.
-This project is now independently maintained and has evolved with a different architecture and goals, focusing on agent-first, schema-driven endurance planning.
-
 Endurance Coach allows you to use Claude (or any AI assistant) to create custom-tailored training programs for triathlons, marathons, and other endurance activities. Using a data-driven approach and principles from top training plans, the AI will create a training plan that's uniquely fit for you, your personal fitness, and the constraints you have in the next couple of weeks. Maybe you're recovering from an injury, maybe you're traveling and don't have access to a pool or track in a certain week - tell the AI about it and it'll create a plan that works for you.
 
 The output is a beautiful training plan app that allows you to add, edit, or move workouts, mark them as complete, and update key training data like heart rate zones, LTHR, threshold paces, FTP, and others. Your data is kept locally in your browser.
@@ -94,4 +91,41 @@ The AI will use this information to create a plan tailored to your current fitne
 
 # About
 
-Endurance Coach is an independent, open-source project based on Felix Rieseberg's Claude Coach. It is not made by, endorsed by, or affiliated with Anthropic, PBC. "Claude" is a trademark of Anthropic. This skill works with Claude and other AI assistants but is developed and maintained independently. License: MIT.
+## Lineage & Architectural Evolution
+
+This project originated as a fork of [Claude Coach](https://github.com/felixrieseberg/claude-coach) by [Felix Rieseberg](https://felixrieseberg.com), but it is no longer a fork in any meaningful architectural or behavioral sense.
+
+The original project relied on large language models generating full, deeply nested workout plans as verbose JSON based solely on plain-text instructions. This approach had no formal schema contract, no validation loop, and no way for an AI agent to detect or correct structural errors before downstream rendering. Failures were late, brittle, and required human intervention.
+
+This project deliberately replaces that architecture.
+
+### Key changes that make this an independent system:
+
+**Contract-first design**
+The system now exposes explicit machine-consumable schemas (via validation tooling) rather than relying on prose instructions. AI agents can validate outputs and receive structured error feedback before proceeding.
+
+**Representation shift**
+Workout plans are no longer generated as large raw JSON objects. Instead, the system defines a constrained domain-specific language composed of reusable workout templates. Plans are authored as concise YAML compositions of these templates, drastically reducing output size, entropy, and failure modes.
+
+**Template-based composition**
+The AI agent does not invent workout structure freely. It selects from a predefined, inspectable set of workout building blocks supplied by the tool, turning generation into constrained composition rather than unconstrained construction.
+
+**Agent-first execution model**
+The primary consumer is an AI agent, not a human. All commands are deterministic, side-effect explicit, and validation-first. Outputs are designed to support self-correction loops by the agent.
+
+**Independent surface and identity**
+The project has a new name, a new installation path, and a different public contract. It is no longer Claude-specific and is designed to be consumed by any AI agent or orchestration framework.
+
+Because the core abstraction, data representation, validation model, target consumer, and public interface have all changed, this project should be treated as an independently evolved system that acknowledges its lineage but does not share the original architecture or assumptions.
+
+## Disclaimer
+
+Endurance Coach is an independent, open-source project. It is not made by, endorsed by, or affiliated with Anthropic, PBC. "Claude" is a trademark of Anthropic. This skill works with Claude and other AI assistants but is developed and maintained independently.
+
+## Maintainer
+
+Maintained by [Shiva Prasad](https://shiv19.com) · [@multishiv19](https://twitter.com/multishiv19)
+
+## License
+
+MIT License. Original work Copyright © 2025 Felix Rieseberg. Modifications and independent development Copyright © 2025-2026 Shiva Prasad.

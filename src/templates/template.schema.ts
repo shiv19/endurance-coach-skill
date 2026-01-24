@@ -20,6 +20,7 @@ export const WorkoutCategorySchema = z.enum([
   "rest",
   "recovery",
   "endurance",
+  "aerobic",
   "tempo",
   "threshold",
   "intervals",
@@ -27,6 +28,8 @@ export const WorkoutCategorySchema = z.enum([
   "hills",
   "race",
   "strength",
+  "power",
+  "maintenance",
   "technique",
 ]);
 

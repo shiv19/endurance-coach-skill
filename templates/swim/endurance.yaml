@@ -1,0 +1,57 @@
+id: swim.endurance
+name: Endurance Swim
+sport: swim
+type: endurance
+category: aerobic
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 45
+    min: 30
+    max: 90
+    description: Total session duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy swim with drills
+      description: "300m easy, 4x50m drills (catch-up, fingertip drag)"
+      duration: 10min
+      intensity: Zone 1-2
+  main:
+    - type: work
+      name: Continuous aerobic swim
+      duration: "${duration - 20}min"
+      description: "Steady-state swimming at comfortable aerobic pace"
+      pace: "CSS + 15-20s/100m"
+      intensity: Zone 2
+  cooldown:
+    - type: cooldown
+      name: Easy cool-down
+      distance: 200m
+      duration: 5min
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  ENDURANCE SWIM - ${duration} minutes
+
+  WARM-UP: 10 min
+  - 300m easy freestyle
+  - 4x50m drills (catch-up, fingertip drag)
+
+  MAIN SET: ${duration - 20} min continuous
+  - Steady aerobic swimming
+  - Pace: CSS + 15-20s/100m
+  - Focus: Relaxed stroke, consistent rhythm
+  - Breathing: Bilateral every 3 strokes
+
+  COOL-DOWN: 5 min
+  - 200m easy pull or backstroke
+
+  NOTES:
+  - Great for building aerobic base
+  - Focus on technique when fatigued
+  - Maintain consistent stroke count

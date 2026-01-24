@@ -1,0 +1,77 @@
+id: strength.eccentric
+name: Eccentric Strength
+sport: strength
+type: strength
+category: strength
+
+params:
+  duration:
+    type: int
+    required: true
+    default: 40
+    min: 30
+    max: 50
+    description: Duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Light warm-up
+      duration: 5min
+      description: "Easy movement, prepare muscles for eccentric loading"
+  main:
+    - type: work
+      name: Eccentric lower body
+      duration: 20min
+      description: "Slow lowering phase (3-5 seconds down)"
+      exercises:
+        - "Eccentric squats (4s down) x 8"
+        - "Eccentric step-downs x 8 each"
+        - "Eccentric calf lowers x 12 each"
+        - "Nordic curl negatives x 6"
+        - "Eccentric Romanian deadlifts x 8"
+    - type: work
+      name: Stability and control
+      duration: 10min
+      exercises:
+        - "Single-leg balance x 30s each"
+        - "Plank x 45s"
+        - "Side plank x 30s each"
+        - "Hip bridges with slow lower x 10"
+  cooldown:
+    - type: cooldown
+      name: Stretching
+      duration: 5min
+      description: "Gentle stretching, foam rolling recommended"
+
+humanReadable: |
+  ECCENTRIC STRENGTH - ${duration} minutes
+
+  WARM-UP: 5 min
+  - Easy movement
+  - Light dynamic stretches
+  - Prepare for eccentric loading
+
+  ECCENTRIC LOWER BODY (20 min):
+  All exercises: 3-5 second lowering phase
+  - Eccentric squats (4s down) x 8
+  - Eccentric step-downs x 8 each leg
+  - Eccentric calf lowers x 12 each leg
+  - Nordic curl negatives x 6
+  - Eccentric Romanian deadlifts x 8
+
+  STABILITY (10 min):
+  - Single-leg balance x 30s each
+  - Plank x 45s
+  - Side plank x 30s each side
+  - Hip bridges with slow lower x 10
+
+  COOL-DOWN: 5 min
+  - Gentle stretching
+  - Foam rolling recommended
+
+  NOTES:
+  - Develops downhill running strength
+  - Prevents muscle damage on descents
+  - Expect DOMS initially - build gradually
+  - Great for ultra and trail runners

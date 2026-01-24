@@ -1,0 +1,74 @@
+id: swim.speed
+name: Speed Swim
+sport: swim
+type: speed
+category: speed
+
+params:
+  reps:
+    type: int
+    required: true
+    default: 8
+    min: 6
+    max: 12
+    description: Number of 50m fast repeats
+  rest_secs:
+    type: int
+    default: 30
+    description: Rest between repeats in seconds
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy swim
+      distance: 400m
+      duration: 8min
+      pace: Easy
+      intensity: Zone 1
+    - type: warmup
+      name: Build set
+      description: "4x50m build 1-4"
+      duration: 5min
+      intensity: Zone 1-4
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: 50m FAST
+        distance: 50m
+        pace: "CSS - 10s/100m"
+        intensity: Zone 5
+      recovery:
+        type: recovery
+        name: Rest
+        duration: "${rest_secs}s"
+  cooldown:
+    - type: cooldown
+      name: Easy swim
+      distance: 300m
+      duration: 8min
+      pace: Very easy
+      intensity: Zone 1
+
+humanReadable: |
+  SPEED SWIM - ${reps} x 50m Fast
+
+  WARM-UP: 13 min
+  - 400m easy freestyle
+  - 4x50m build (easy to fast)
+
+  MAIN SET: ${reps} x 50m FAST
+  - Pace: CSS - 10s/100m (race pace or faster)
+  - Rest: ${rest_secs}s between reps
+  - Focus: High turnover, strong catch
+  - Zone 5 effort
+
+  COOL-DOWN: 8 min
+  - 300m easy swimming
+
+  NOTES:
+  - Focus on speed and power
+  - Maintain technique even when pushing
+  - Great for developing race-pace turnover
+  - Use for peak phase, 1x/week max
