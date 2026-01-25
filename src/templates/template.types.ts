@@ -176,6 +176,12 @@ export interface TemplateRegistry {
 
   /** Get all template IDs */
   ids(): string[];
+
+  /** Get the source of a template (user or builtin) */
+  getSource?(id: string): "user" | "builtin" | undefined;
+
+  /** Get the file path of a template */
+  getSourcePath?(id: string): string | undefined;
 }
 
 // ============================================================================

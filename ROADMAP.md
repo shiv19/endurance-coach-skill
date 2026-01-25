@@ -8,14 +8,17 @@ This roadmap is organized to make **coaching correctness and judgment** the spin
 
 ### Bugs / Invariants
 
-- **Fix incorrect training start dates**
+- [x] **Fix incorrect training start dates**
   - Current issue: `Athlete` YAML contains `eventDate` but no explicit `trainingStartDate`.
-  - Investigate and document what currently determines the training start date.
+  - Investigate and document what currently determines training start date.
   - Make the inference rule explicit and deterministic.
   - Add regression tests covering:
     - Event-based plans
     - Non-event-based plans
     - Edge cases (late config edits, timezone boundaries)
+  - **Completed**: Fixed date calculation to use `(totalWeeks - 1) * 7` instead of `totalWeeks * 7`, ensuring final week aligns with event date
+  - **Added**: Optional `startDate` field to athlete config for explicit override
+  - **Tests**: 8 comprehensive tests covering leap years, different start days, and explicit dates
 
 ---
 
@@ -25,19 +28,27 @@ This roadmap is organized to make **coaching correctness and judgment** the spin
 
 Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend artifacts**.
 
-- **Fail fast on unknown templates**
+- [x] **Fail fast on unknown templates**
   - CLI expander throws a clear error if an unknown template name is used.
   - Error message should:
     - List closest matching known templates
     - Suggest creating a custom template if needed
+  - **Completed**: Implemented Levenshtein distance fuzzy matching with helpful error messages
+  - **Added**: `validateTemplateExists()` function called before expansion (fail-fast)
+  - **Tests**: 28 tests covering fuzzy matching, similarity scoring, and validation
 
-- **Custom template precedence & discovery**
+- [x] **Custom template precedence & discovery**
   - Custom templates live in:
     - `~/.endurance-coach/workout-templates/`
 
   - Template resolution order:
     1. User templates
     2. Built-in templates
+  - **Completed**: User templates override built-in templates
+  - **Added**: `LoadTemplatesOptions` interface with `includeUserTemplates` flag
+  - **Added**: `getUserTemplatesDir()` function
+  - **Added**: Source tracking (user vs built-in) via `getSource()` and `getSourcePath()`
+  - **Tests**: 4 tests covering basic custom template loading
 
 - **Template inspectability & ergonomics**
   - Improve `templates` CLI command to clearly explain:
