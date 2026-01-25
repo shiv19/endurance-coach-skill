@@ -430,11 +430,156 @@ function toTitleCase(str: string): string {
 }
 
 // ============================================================================
+// Validate Command Handler
+// ============================================================================
+
+function handleValidate(args: TemplatesArgs): void {
+  if (!args.validate) {
+    throw new Error("Template ID is required for validate command");
+  }
+
+  const userTemplatesDir = args.userTemplatesDir || getUserTemplatesDir();
+  const templates = loadTemplates({
+    includeUserTemplates: true,
+    userTemplatesDir,
+  });
+
+  const templateId = args.validate;
+  const template = templates.get(templateId);
+
+  if (!template) {
+    // Template not found in registry, which could mean:
+    // 1. Template doesn't exist at all
+    // 2. Template failed to load due to validation errors
+
+    // Try to manually load the template file to provide better error messages
+    const manualTemplate = tryLoadTemplateFromFile(templateId, userTemplatesDir);
+
+    if (manualTemplate && manualTemplate.error) {
+      // Template file exists but has validation errors
+      throw new Error(`${colors.bold(templateId)}: ${manualTemplate.error}`);
+    }
+
+    // Template doesn't exist
+    const suggestions = findSimilarTemplates(templateId, templates, 5);
+    let errorMsg = `Template not found: ${templateId}`;
+    if (suggestions.length > 0) {
+      errorMsg += `\n\nDid you mean one of these?\n${suggestions.map((s) => `  - ${s}`).join("\n")}`;
+    }
+    errorMsg += `\n\nList all templates with: endurance-coach templates list`;
+
+    log.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  // Get source information
+  const source = (templates.getSource && templates.getSource(templateId)) || "builtin";
+  const sourcePath = templates.getSourcePath && templates.getSourcePath(templateId);
+  const sourceLabel = source === "user" ? colors.green("[USER]") : colors.gray("[BUILTIN]");
+
+  // Validate template schema
+  validateTemplateOrThrow(template);
+
+  // Display validation results
+  console.log(
+    `\n${colors.green("✓")} ${sourceLabel} ${colors.bold(template.name)} ${colors.dim(`(${template.id})`)}`
+  );
+
+  console.log(`${colors.bold("Source:")}      ${source}`);
+  if (source === "user" && sourcePath) {
+    console.log(`${colors.bold("File:")}        ${sourcePath}`);
+  }
+
+  console.log(`${colors.bold("Sport:")}       ${template.sport}`);
+  console.log(`${colors.bold("Category:")}    ${template.category}`);
+  console.log(`${colors.bold("Type:")}        ${template.type}`);
+
+  if (template.targetZone) {
+    console.log(`${colors.bold("Target Zone:")} ${template.targetZone}`);
+  }
+
+  if (template.rpe) {
+    console.log(`${colors.bold("RPE:")}         ${template.rpe}`);
+  }
+
+  if (template.params && Object.keys(template.params).length > 0) {
+    console.log(`\n${colors.bold("Parameters:")}`);
+    for (const [name, param] of Object.entries(template.params)) {
+      const required = param.required ? colors.red("(required)") : colors.dim("(optional)");
+      const defaultVal =
+        param.default !== undefined ? ` ${colors.dim(`[default: ${param.default}]`)}` : "";
+      console.log(`  ${colors.bold(name)}: ${param.type} ${required}${defaultVal}`);
+      if (param.description) {
+        console.log(`    ${colors.dim(param.description)}`);
+      }
+    }
+  }
+
+  console.log(`\n${colors.green("✓ Template is valid")}`);
+  console.log(`\n${colors.dim("Validation checks passed:")}`);
+  console.log(`  ${colors.dim("•")} Schema validation`);
+  console.log(`  ${colors.dim("•")} Required fields present`);
+  console.log(`  ${colors.dim("•")} Valid sport and category types`);
+  console.log(`  ${colors.dim("•")} Parameter definitions valid`);
+}
+
+function tryLoadTemplateFromFile(
+  templateId: string,
+  userTemplatesDir: string
+): { error?: string } | null {
+  // Try to find template file in user templates directory
+  // Check all sport subdirectories
+  const sports = ["run", "bike", "swim", "strength", "brick", "rest"];
+
+  for (const sport of sports) {
+    const sportDir = sport === "rest" ? "run" : sport;
+    const filePath = join(userTemplatesDir, sportDir, `${templateId}.yaml`);
+
+    if (existsSync(filePath)) {
+      try {
+        const content = readFileSync(filePath, "utf-8");
+        const parsed = parseYaml(content) as unknown;
+        validateTemplateOrThrow(parsed);
+        // If validation passes, no error
+        return null;
+      } catch (error) {
+        if (error instanceof Error) {
+          // Format validation errors
+          if (error.name === "ZodError") {
+            const zodError = error as unknown as { issues: { path: string[]; message: string }[] };
+            const errors = zodError.issues.map((issue) => {
+              const path = issue.path.length > 0 ? issue.path.join(".") : "root";
+              return `${colors.bold(path)}: ${issue.message}`;
+            });
+            return { error: `Validation errors:\n  ${errors.join("\n  ")}` };
+          }
+          // YAML parsing errors
+          if ((error as any).name === "YAMLParseError") {
+            return { error: `Invalid YAML: ${error.message}` };
+          }
+          return { error: error.message };
+        }
+        return { error: String(error) };
+      }
+    }
+  }
+
+  // Template file not found in user directory
+  return null;
+}
+
+// ============================================================================
 // Templates Command
 // ============================================================================
 
 export function runTemplates(args: TemplatesArgs): void {
   try {
+    // Handle validate subcommand
+    if (args.validate) {
+      handleValidate(args);
+      return;
+    }
+
     // Handle create subcommand
     if (args.create) {
       handleCreate(args);
@@ -653,6 +798,9 @@ export function runTemplates(args: TemplatesArgs): void {
       console.log(
         `  ${colors.green("endurance-coach templates show <id>")}  Show template details`
       );
+      console.log(
+        `  ${colors.green("endurance-coach templates validate <id>")}  Validate a template by ID`
+      );
       console.log(`  ${colors.green("endurance-coach templates list")}        List all templates`);
       console.log(
         `  ${colors.green("endurance-coach templates list --type=<type>")}  Filter by workout type`
@@ -663,12 +811,7 @@ export function runTemplates(args: TemplatesArgs): void {
       console.log(`\n${colors.dim("Custom templates directory:")} ${getUserTemplatesDir()}`);
     }
   } catch (error) {
-    if (error instanceof Error) {
-      log.error(error.message);
-      throw error; // Re-throw for test to catch
-    } else {
-      log.error(String(error));
-      throw error; // Re-throw for test to catch
-    }
+    // Re-throw for main() to catch and log
+    throw error;
   }
 }

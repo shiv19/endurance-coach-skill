@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdirSync, rmSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { randomBytes } from "node:crypto";
 import { runTemplates } from "../../src/cli/commands/templates.js";
 import type { TemplatesArgs } from "../../src/cli/args.js";
 
@@ -9,7 +10,8 @@ import type { TemplatesArgs } from "../../src/cli/args.js";
 let testDir: string;
 
 function setupTestDir(): string {
-  const dir = join(tmpdir(), `endurance-coach-test-${Date.now()}`);
+  const uniqueId = randomBytes(8).toString("hex");
+  const dir = join(tmpdir(), `endurance-coach-create-test-${Date.now()}-${uniqueId}`);
   mkdirSync(dir, { recursive: true });
   return dir;
 }

@@ -64,6 +64,7 @@ export interface TemplatesArgs {
   dryRun?: boolean;
   example?: boolean;
   userTemplatesDir?: string; // For testing
+  validate?: string; // Template ID to validate
 }
 
 export interface SchemaArgs {
@@ -235,6 +236,11 @@ export function parseArgs(): CliArgs {
       } else if (args[i] === "create") {
         if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
           templatesArgs.create = args[i + 1];
+          i++;
+        }
+      } else if (args[i] === "validate") {
+        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+          templatesArgs.validate = args[i + 1];
           i++;
         }
       } else if (args[i] === "--sport") {
