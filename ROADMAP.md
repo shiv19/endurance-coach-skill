@@ -90,23 +90,32 @@ Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend 
 - [x] **CLI Refactoring (Phase 1.35)**
   - Break down `src/cli.ts` (1650+ lines) into smaller modules
   - Target structure:
-    - `src/cli/index.ts` - Main entry point, argument parsing
+    - `src/cli/index.ts` - Main entry point
+    - `src/cli/args.ts` - Argument parsing
+    - `src/cli/help.ts` - Help text
     - `src/cli/commands/` - Individual command handlers
-    - `src/cli/utils/` - Shared utilities (colors, logging)
-  - **Completed**: Extracted colors utility to `src/cli/utils/colors.ts`
-  - **Updated**: `src/cli.ts` imports colors from utils
+      - templates.ts, strava.ts, schema.ts, validate.ts, expand.ts, render.ts, query.ts, modify.ts
+    - `src/cli/utils/` - Shared utilities
+      - colors.ts
+  - **Completed**: Full CLI refactoring
+  - **Files Created**:
+    - src/cli/index.ts (main entry, ~320 lines)
+    - src/cli/args.ts (argument parsing, ~250 lines)
+    - src/cli/help.ts (help text, ~170 lines)
+    - src/cli/commands/ (8 command files, ~900 lines total)
+    - src/cli/utils/colors.ts (color utilities, ~10 lines)
   - **Tested**: All 202 tests pass
-  - **Remaining**: Extract command handlers (templates, strava, schema, validate, expand, render, query, modify)
+  - **Result**: Original 1650-line cli.ts now ~950 lines across focused modules
 
-- [x] **Template creation command (Phase 1.4 - PARKED)**
+- [ ] **Template creation command (Phase 1.4)**
   - Implement `templates create` command for easy custom template creation
   - Support: `--type <sport>`, `--id <template-id>`, `--template-file <path>`
   - Add: `--overwrite`, `--dry-run`, `--example` flags
   - Generate scaffold templates with proper structure
   - Validate templates before writing to user directory
-  - **Status**: Ready to implement in modular CLI structure
+  - **Status**: Ready to implement in modular CLI structure (much easier now)
   - **Schema**: Updated to support hyphens in template IDs
-  - **Reason**: Template creation requires complex template literal escaping that's easier with modular structure
+  - **Location**: Add to `src/cli/commands/templates.ts`
 
 ---
 
