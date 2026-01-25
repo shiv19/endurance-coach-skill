@@ -50,14 +50,25 @@ Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend 
   - **Added**: Source tracking (user vs built-in) via `getSource()` and `getSourcePath()`
   - **Tests**: 4 tests covering basic custom template loading
 
-- **Template inspectability & ergonomics**
+- [x] **Template inspectability & ergonomics**
   - Improve `templates` CLI command to clearly explain:
     - Template `id`
+    - Template name
     - Template source (built-in vs user)
+    - File path for user templates
 
   - Add:
-    - `templates list`
-    - `templates show <template-id>`
+    - `templates list` - Enhanced with table format and filters
+    - `templates show <template-id>` - Full template details
+    - `--source <user|builtin|all>` filter option
+    - `--type <type>` filter option
+    - `--verbose` flag for additional columns
+    - Color-coded source display (green for user, gray for built-in)
+    - Fuzzy matching suggestions for typos in template IDs
+  - **Completed**: Enhanced templates CLI with table output, filters, source tracking
+  - **Added**: Color-coded source badges and fuzzy matching errors
+  - **Enhanced**: `templates list` with filtering and verbose mode
+  - **Enhanced**: `templates show` with full details and source info
 
 - **Template validation**
   - Add command:

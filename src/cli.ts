@@ -25,10 +25,21 @@ import {
   validateCompactPlan,
   formatCompactValidationErrors,
 } from "./schema/compact-plan.schema.js";
-import { loadTemplates, parseYaml, stringifyYaml } from "./templates/index.js";
+import { loadTemplates, parseYaml, stringifyYaml, getUserTemplatesDir } from "./templates/index.js";
 import { expandPlan, validateWorkoutRefs } from "./expander/index.js";
+import { findSimilarTemplates } from "./expander/validation.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Color helpers for terminal output
+const colors = {
+  gray: (text: string) => `\x1b[90m${text}\x1b[0m`,
+  green: (text: string) => `\x1b[32m${text}\x1b[0m`,
+  dim: (text: string) => `\x1b[2m${text}\x1b[0m`,
+  bold: (text: string) => `\x1b[1m${text}\x1b[0m`,
+  red: (text: string) => `\x1b[31m${text}\x1b[0m`,
+  cyan: (text: string) => `\x1b[36m${text}\x1b[0m`,
+};
 
 // ============================================================================
 // Proxy Configuration
@@ -98,6 +109,9 @@ interface TemplatesArgs {
   command: "templates";
   sport?: string;
   show?: string;
+  type?: string;
+  source?: "user" | "builtin" | "all";
+  verbose?: boolean;
 }
 
 interface SchemaArgs {
@@ -255,14 +269,45 @@ function parseArgs(): CliArgs {
     };
 
     for (let i = 1; i < args.length; i++) {
-      if (args[i] === "--sport") {
+      if (args[i] === "list") {
+        // Default subcommand, no action needed
+      } else if (args[i] === "show") {
+        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+          templatesArgs.show = args[i + 1];
+          i++;
+        }
+      } else if (args[i] === "--sport") {
         templatesArgs.sport = args[i + 1];
         i++;
+      } else if (args[i] === "--type") {
+        templatesArgs.type = args[i + 1];
+        i++;
+      } else if (args[i] === "--source") {
+        const sourceVal = args[i + 1];
+        if (sourceVal === "user" || sourceVal === "builtin" || sourceVal === "all") {
+          templatesArgs.source = sourceVal;
+        } else {
+          log.error(`Invalid source value: ${sourceVal}. Must be 'user', 'builtin', or 'all'`);
+          process.exit(1);
+        }
+        i++;
+      } else if (args[i] === "--verbose" || args[i] === "-v") {
+        templatesArgs.verbose = true;
       } else if (args[i].startsWith("--sport=")) {
         templatesArgs.sport = args[i].split("=")[1];
-      } else if (args[i] === "show") {
-        templatesArgs.show = args[i + 1];
-        i++;
+      } else if (args[i].startsWith("--type=")) {
+        templatesArgs.type = args[i].split("=")[1];
+      } else if (args[i].startsWith("--source=")) {
+        const sourceVal = args[i].split("=")[1];
+        if (sourceVal === "user" || sourceVal === "builtin" || sourceVal === "all") {
+          templatesArgs.source = sourceVal;
+        } else {
+          log.error(`Invalid source value: ${sourceVal}. Must be 'user', 'builtin', or 'all'`);
+          process.exit(1);
+        }
+      } else if (!args[i].startsWith("-") && !templatesArgs.show) {
+        // Treat as template ID for 'show' subcommand
+        templatesArgs.show = args[i];
       }
     }
 
@@ -358,8 +403,12 @@ Expand Options:
   --verbose, -v         Show template resolution details
 
 Templates Options:
-  --sport SPORT         Filter by sport (run, bike, swim)
-  show <template-id>    Show details of a specific template
+  list                   List all templates (default)
+    --sport SPORT        Filter by sport (run, bike, swim)
+    --type TYPE          Filter by workout type
+    --source SOURCE      Filter by source (user, builtin, all)
+    --verbose, -v        Show additional columns
+  show <template-id>     Show details of a specific template
 
 Render Options:
   --output, -o FILE     Output HTML file (default: <input>.html)
@@ -959,96 +1008,221 @@ function runExpand(args: ExpandArgs): void {
 // ============================================================================
 
 function runTemplates(args: TemplatesArgs): void {
-  const templates = loadTemplates();
+  // Load templates with user templates included
+  const templates = loadTemplates({ includeUserTemplates: true });
 
   if (args.show) {
     // Show details of a specific template
-    const template = templates.get(args.show);
+    const templateId = args.show;
+    const template = templates.get(templateId);
+
     if (!template) {
-      log.error(`Template not found: ${args.show}`);
-      console.log("\nAvailable templates:");
-      templates.ids().forEach((id) => console.log(`  - ${id}`));
+      log.error(`Template not found: ${colors.bold(templateId)}`);
+
+      // Use fuzzy matching to find similar templates
+      const suggestions = findSimilarTemplates(templateId, templates, 5);
+      if (suggestions.length > 0) {
+        console.log(`\n${colors.dim("Did you mean one of these?")}`);
+        suggestions.forEach((s) => console.log(`  - ${colors.green(s)}`));
+      }
+
+      console.log(`\nList all templates with: ${colors.green("endurance-coach templates list")}`);
       process.exit(1);
     }
 
-    console.log(`\n${template.name} (${template.id})`);
-    console.log(`${"=".repeat(template.name.length + template.id.length + 3)}`);
-    console.log(`\nSport: ${template.sport}`);
-    console.log(`Category: ${template.category}`);
-    console.log(`Type: ${template.type}`);
+    // Get source information
+    const source = (templates.getSource && templates.getSource(templateId)) || "builtin";
+    const sourcePath = templates.getSourcePath && templates.getSourcePath(templateId);
+    const sourceLabel = source === "user" ? colors.green("[USER]") : colors.gray("[BUILTIN]");
 
+    // Display template header
+    console.log(`\n${sourceLabel} ${colors.bold(template.name)} ${colors.dim(`(${template.id})`)}`);
+    console.log(`${"─".repeat(template.name.length + template.id.length + 12)}`);
+
+    // Display basic info
+    console.log(`\n${colors.bold("Sport:")}      ${template.sport}`);
+    console.log(`${colors.bold("Category:")}   ${template.category}`);
+    console.log(`${colors.bold("Type:")}       ${template.type}`);
+
+    // Display source path for user templates
+    if (source === "user" && sourcePath) {
+      console.log(`${colors.bold("File:")}       ${sourcePath}`);
+    }
+
+    // Display target zone
     if (template.targetZone) {
-      console.log(`Target Zone: ${template.targetZone}`);
-    }
-    if (template.rpe) {
-      console.log(`RPE: ${template.rpe}`);
-    }
-    if (template.estimatedDuration) {
-      console.log(`Estimated Duration: ${template.estimatedDuration} min`);
+      console.log(`${colors.bold("Target Zone:")} ${template.targetZone}`);
     }
 
+    // Display RPE
+    if (template.rpe) {
+      console.log(`${colors.bold("RPE:")}        ${template.rpe}`);
+    }
+
+    // Display estimated duration formula
+    if (template.estimatedDuration) {
+      const durationDisplay =
+        typeof template.estimatedDuration === "string"
+          ? `${template.estimatedDuration} (formula)`
+          : `${template.estimatedDuration} minutes`;
+      console.log(`${colors.bold("Est. Duration:")} ${durationDisplay}`);
+    }
+
+    // Display parameters
     if (template.params && Object.keys(template.params).length > 0) {
-      console.log("\nParameters:");
+      console.log(`\n${colors.bold("Parameters:")}`);
       for (const [name, param] of Object.entries(template.params)) {
-        const required = param.required ? " (required)" : "";
-        const defaultVal = param.default !== undefined ? ` [default: ${param.default}]` : "";
-        console.log(`  - ${name}: ${param.type}${required}${defaultVal}`);
+        const required = param.required ? colors.red("(required)") : colors.dim("(optional)");
+        const defaultVal =
+          param.default !== undefined ? ` ${colors.dim(`[default: ${param.default}]`)}` : "";
+        console.log(`  ${colors.bold(name)}: ${param.type} ${required}${defaultVal}`);
         if (param.description) {
-          console.log(`    ${param.description}`);
+          console.log(`    ${colors.dim(param.description)}`);
         }
       }
     }
 
-    console.log("\nUsage examples:");
+    // Display usage examples
+    console.log(`\n${colors.bold("Usage examples:")}`);
     const paramNames = template.params ? Object.keys(template.params) : [];
     if (paramNames.length === 0) {
-      console.log(`  ${template.id}`);
+      console.log(`  ${colors.green(template.id)}`);
     } else {
       const defaults = paramNames
         .filter((p) => template.params![p].default !== undefined)
         .map((p) => template.params![p].default);
       if (defaults.length > 0) {
-        console.log(`  ${template.id}(${defaults.join(", ")})`);
+        console.log(`  ${colors.green(template.id)}(${colors.dim(defaults.join(", "))})`);
       }
-      console.log(`  ${template.id}(${paramNames.join(", ")})`);
+      console.log(`  ${colors.green(template.id)}(${colors.dim(paramNames.join(", "))})`);
     }
 
-    console.log("\nWorkout description:");
+    // Display human-readable description
+    console.log(`\n${colors.bold("Description:")}`);
     console.log(template.humanReadable);
+
+    // Display notes if present
+    if (template.notes) {
+      console.log(`\n${colors.bold("Notes:")}`);
+      console.log(colors.dim(template.notes));
+    }
   } else {
     // List all templates
-    const sport = args.sport as "run" | "bike" | "swim" | undefined;
-    const list = templates.list(sport);
+    const sportFilter = args.sport as "run" | "bike" | "swim" | undefined;
+    const typeFilter = args.type;
+    const sourceFilter = args.source;
+    const verbose = args.verbose;
+
+    let list = templates.list(sportFilter);
+
+    // Filter by source if specified
+    if (sourceFilter && sourceFilter !== "all") {
+      list = list.filter((t) => {
+        const source = templates.getSource && templates.getSource(t.id);
+        return source === sourceFilter;
+      });
+    }
+
+    // Filter by type if specified
+    if (typeFilter) {
+      list = list.filter((t) => t.type.toLowerCase().includes(typeFilter.toLowerCase()));
+    }
 
     if (list.length === 0) {
-      console.log("No templates found.");
+      console.log(
+        `\n${colors.dim("No templates found")}${verbose ? " with specified filters" : ""}.`
+      );
+
+      const filters = [];
+      if (sportFilter) filters.push(`sport=${colors.green(sportFilter)}`);
+      if (sourceFilter && sourceFilter !== "all")
+        filters.push(`source=${colors.green(sourceFilter)}`);
+      if (typeFilter) filters.push(`type=${colors.green(typeFilter)}`);
+
+      if (filters.length > 0) {
+        console.log(`${colors.dim("Filters:")} ${filters.join(", ")}`);
+      }
+
+      console.log(`\nList all templates with: ${colors.green("endurance-coach templates list")}`);
       return;
     }
 
-    console.log(`\nAvailable Templates${sport ? ` (${sport})` : ""}:`);
-    console.log("=".repeat(40));
+    console.log(
+      `\n${colors.bold("Available Templates")}${sportFilter ? ` ${colors.dim(`(${sportFilter})`)}` : ""}${sourceFilter ? ` ${colors.dim(`[source: ${sourceFilter}]`)}` : ""}`
+    );
 
-    // Group by category
-    const byCategory = new Map<string, typeof list>();
+    // Calculate column widths
+    const idWidth = Math.max(12, ...list.map((t) => t.id.length));
+    const nameWidth = Math.max(20, ...list.map((t) => t.name.length));
+    const sportWidth = Math.max(8, ...list.map((t) => t.sport.length));
+    const categoryWidth = Math.max(10, ...list.map((t) => t.category.length));
+    const sourceWidth = 10;
+
+    console.log(
+      `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}`
+    );
+    const separatorRow =
+      "─".repeat(idWidth) +
+      "──" +
+      "─".repeat(nameWidth) +
+      "──" +
+      "─".repeat(sportWidth) +
+      "──" +
+      "─".repeat(categoryWidth) +
+      "──" +
+      "─".repeat(sourceWidth);
+    console.log(separatorRow);
+
+    // Build data rows
     for (const t of list) {
-      const cat = t.category;
-      if (!byCategory.has(cat)) {
-        byCategory.set(cat, []);
+      const source = (templates.getSource && templates.getSource(t.id)) || "builtin";
+      const sourceDisplay = source === "user" ? colors.green("[USER]  ") : colors.gray("[BUILTIN]");
+
+      const cells = [
+        t.id.padEnd(idWidth),
+        t.name.padEnd(nameWidth),
+        t.sport.padEnd(sportWidth),
+        t.category.padEnd(categoryWidth),
+        sourceDisplay.padEnd(sourceWidth),
+      ];
+
+      if (verbose) {
+        const typeWidth = 12;
+        const zoneWidth = 8;
+        const typeDisplay = (t.type || "-").substring(0, typeWidth).padEnd(typeWidth);
+        const zoneDisplay = (t.targetZone || t.rpe || "-")
+          .substring(0, zoneWidth)
+          .padEnd(zoneWidth);
+        cells.push(colors.dim(typeDisplay), colors.dim(zoneDisplay));
+
+        // Add verbose headers if not already shown
+        if (list.indexOf(t) === 0) {
+          console.log(
+            `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Type".padEnd(12))}  ${colors.bold("Zone".padEnd(8))}`
+          );
+          const verboseSeparator =
+            separatorRow + "──" + "─".repeat(typeWidth) + "──" + "─".repeat(zoneWidth);
+          console.log(verboseSeparator);
+        }
       }
-      byCategory.get(cat)!.push(t);
+
+      console.log(cells.join("  "));
     }
 
-    for (const [category, categoryTemplates] of byCategory) {
-      console.log(`\n${category.toUpperCase()}:`);
-      for (const t of categoryTemplates) {
-        const params = t.params ? Object.keys(t.params) : [];
-        const paramStr = params.length > 0 ? `(${params.join(", ")})` : "";
-        console.log(`  ${t.id}${paramStr} - ${t.name}`);
-      }
-    }
+    console.log(
+      `\n${colors.dim("Total:")} ${list.length} ${list.length === 1 ? "template" : "templates"}`
+    );
 
-    console.log(`\nTotal: ${list.length} templates`);
-    console.log("\nUse 'endurance-coach templates show <id>' to see template details.");
+    console.log(`\n${colors.dim("Commands:")}`);
+    console.log(`  ${colors.green("endurance-coach templates show <id>")}  Show template details`);
+    console.log(`  ${colors.green("endurance-coach templates list")}        List all templates`);
+    console.log(
+      `  ${colors.green("endurance-coach templates list --type=<type>")}  Filter by workout type`
+    );
+    console.log(
+      `  ${colors.green("endurance-coach templates list --source=<user|builtin|all>")}  Filter by source`
+    );
+    console.log(`\n${colors.dim("Custom templates directory:")} ${getUserTemplatesDir()}`);
   }
 }
 
