@@ -234,15 +234,16 @@ This works on any Node.js version (uses built-in SQLite on Node 22.5+, falls bac
 
 Read these files as needed during plan creation:
 
-| File                                 | When to Read                | Contents                                     |
-| ------------------------------------ | --------------------------- | -------------------------------------------- |
-| `skill/reference/queries.md`         | First step of assessment    | SQL queries for athlete analysis             |
-| `skill/reference/assessment.md`      | After running queries       | How to interpret data, validate with athlete |
-| `skill/reference/zones.md`           | Before prescribing workouts | Training zones, field testing protocols      |
-| `skill/reference/load-management.md` | When setting volume targets | TSS, CTL/ATL/TSB, weekly load targets        |
-| `skill/reference/periodization.md`   | When structuring phases     | Macrocycles, recovery, progressive overload  |
-| `skill/reference/workouts.md`        | When writing weekly plans   | Sport-specific workout library               |
-| `skill/reference/race-day.md`        | Final section of plan       | Pacing strategy, nutrition                   |
+| File                                 | When to Read                    | Contents                                     |
+| ------------------------------------ | ------------------------------- | -------------------------------------------- |
+| `skill/reference/queries.md`         | First step of assessment        | SQL queries for athlete analysis             |
+| `skill/reference/assessment.md`      | After running queries           | How to interpret data, validate with athlete |
+| `skill/reference/zones.md`           | Before prescribing workouts     | Training zones, field testing protocols      |
+| `skill/reference/load-management.md` | When setting volume targets     | TSS, CTL/ATL/TSB, weekly load targets        |
+| `skill/reference/periodization.md`   | When structuring phases         | Macrocycles, recovery, progressive overload  |
+| `skill/reference/templates.md`       | When using or editing templates | Template syntax and examples                 |
+| `skill/reference/workouts.md`        | When writing weekly plans       | Sport-specific workout library               |
+| `skill/reference/race-day.md`        | Final section of plan           | Pacing strategy, nutrition                   |
 
 ---
 
@@ -295,348 +296,42 @@ Read these files as needed during plan creation:
 
 **IMPORTANT: Output training plans in the compact YAML v2.0 format, then render to HTML.**
 
-The v2.0 format uses compact **template references** like `easy(40)` or `swim.threshold(10)` that expand to full workouts. This is significantly more concise than writing verbose workout objects manually.
+The v2.0 format uses compact **template references** like `easy(40)` or `swim.threshold(10)` that expand to full workouts. Use the schema for exact field requirements.
 
 > **Quick Start:** Run `npx -y endurance-coach@latest schema` to see a minimal working example you can copy and modify.
 
-### Required Fields Quick Reference
-
-**Top-level sections** (all required):
-
-| Section        | Purpose                     |
-| -------------- | --------------------------- |
-| `version`      | Must be `"2.0"`             |
-| `athlete`      | Name, event, paces, zones   |
-| `assessment`   | Current fitness & history   |
-| `phases`       | Training phase definitions  |
-| `weeks`        | Weekly workout schedules    |
-| `raceStrategy` | Race day pacing & nutrition |
-
-**athlete fields:**
-
-| Field            | Required | Type   | Example                               |
-| ---------------- | -------- | ------ | ------------------------------------- |
-| `name`           | Yes      | string | `"John Smith"`                        |
-| `event`          | Yes      | string | `"Half Marathon"`                     |
-| `eventDate`      | Yes      | date   | `"2026-05-15"`                        |
-| `paces`          | Yes      | object | See Pace Requirements                 |
-| `zones`          | Yes      | object | `hr.lthr`, `power.ftp`, or `swim.css` |
-| `unit`           | Yes      | enum   | `km` or `mi`                          |
-| `firstDayOfWeek` | Yes      | enum   | `monday` or `sunday`                  |
-| `constraints`    | No       | object | `daysPerWeek`, `notes[]`              |
-
-**weeks[] fields:**
-
-| Field            | Required | Type    | Example                             |
-| ---------------- | -------- | ------- | ----------------------------------- |
-| `week`           | Yes      | number  | `1`                                 |
-| `phase`          | Yes      | string  | `"Base"` (must match phases[].name) |
-| `focus`          | Yes      | string  | `"Build aerobic base"`              |
-| `workouts`       | Yes      | object  | `Mon: easy(40)`, `Tue: rest`, etc.  |
-| `isRecoveryWeek` | No       | boolean | `true`                              |
-
-**raceStrategy fields:**
-
-| Field                   | Required | Type     | Example                        |
-| ----------------------- | -------- | -------- | ------------------------------ |
-| `goalTime`              | Yes      | string   | `"1:45:00"`                    |
-| `pacing`                | Yes      | object   | `swim`, `bike`, `run` targets  |
-| `pacing.swim`           | No       | string   | `"1:50/100m"`                  |
-| `pacing.bike`           | No       | string   | `"180-190W (72% FTP)"`         |
-| `pacing.run`            | Yes      | string   | `"8:00/mi"`                    |
-| `nutrition.preRace`     | Yes      | string   | `"3 hours before: 100g carbs"` |
-| `nutrition.during`      | Yes      | string   | `"60g carbs/hour"`             |
-| `nutrition.products`    | No       | string[] | `["Maurten 320", "Gel 100"]`   |
-| `taper.startWeek`       | Yes      | number   | `17`                           |
-| `taper.volumeReduction` | Yes      | string   | `"50%"`                        |
-| `taper.notes`           | No       | string   | `"Maintain intensity"`         |
-
-**assessment fields:**
-
-| Field                            | Required | Type     | Example                                         |
-| -------------------------------- | -------- | -------- | ----------------------------------------------- |
-| `foundation.foundationLevel`     | Yes      | enum     | `beginner`, `intermediate`, `advanced`, `elite` |
-| `foundation.yearsInSport`        | Yes      | number   | `3`                                             |
-| `foundation.raceHistory`         | No       | string[] | `["Marathon 2024"]`                             |
-| `foundation.peakTrainingLoad`    | No       | number   | `12` (peak hours/week)                          |
-| `currentForm.weeklyVolume.total` | Yes      | number   | `8` (hours/week)                                |
-| `currentForm.weeklyVolume.run`   | No       | number   | `4`                                             |
-| `currentForm.weeklyVolume.bike`  | No       | number   | `3`                                             |
-| `currentForm.weeklyVolume.swim`  | No       | number   | `1`                                             |
-| `currentForm.consistency`        | Yes      | number   | `4` (weeks consistent)                          |
-| `strengths[]`                    | No       | array    | `[{sport: "bike", evidence: "..."}]`            |
-| `limiters[]`                     | No       | array    | `[{sport: "swim", evidence: "..."}]`            |
-| `constraints[]`                  | No       | string[] | `["Pool only weekdays"]`                        |
-
-**phases[] fields:**
-
-| Field         | Required | Type     | Example                                  |
-| ------------- | -------- | -------- | ---------------------------------------- |
-| `name`        | Yes      | string   | `"Base"`, `"Build"`, `"Peak"`, `"Taper"` |
-| `weeks`       | Yes      | string   | `"1-6"` (week range)                     |
-| `focus`       | Yes      | string   | `"Aerobic foundation"`                   |
-| `keyWorkouts` | No       | string[] | `["Long run", "Tempo"]`                  |
-
-### CLI Commands Reference
-
-```bash
-# List all available workout templates
-npx -y endurance-coach@latest templates
-npx -y endurance-coach@latest templates --sport run
-npx -y endurance-coach@latest templates --sport swim
-npx -y endurance-coach@latest templates show intervals.400
-
-# Validate a compact plan
-npx -y endurance-coach@latest validate plan.yaml
-
-# Expand to see full format (debugging)
-npx -y endurance-coach@latest expand plan.yaml --verbose
-
-# Render to HTML
-npx -y endurance-coach@latest render plan.yaml -o plan.html
-```
-
-### Template Reference
-
-Workouts are specified using template references. Running templates are the default; use sport prefixes for other sports.
-
-**Running Templates** (no prefix needed):
-
-| Template                     | Usage           | Params                 |
-| ---------------------------- | --------------- | ---------------------- |
-| `easy(duration)`             | Easy run        | duration in mins       |
-| `recovery(duration)`         | Recovery run    | duration in mins       |
-| `long(duration)`             | Long run        | duration in mins       |
-| `tempo(tempo_mins)`          | Tempo run       | tempo section mins     |
-| `threshold(threshold_mins)`  | Threshold run   | threshold section mins |
-| `intervals.400(reps)`        | 400m repeats    | num reps               |
-| `intervals.800(reps)`        | 800m repeats    | num reps               |
-| `intervals.1k(reps)`         | 1K repeats      | num reps               |
-| `intervals.mile(reps)`       | Mile repeats    | num reps               |
-| `fartlek(duration)`          | Fartlek         | duration in mins       |
-| `progression(duration)`      | Progression run | duration in mins       |
-| `strides(duration, strides)` | Easy + strides  | mins, stride count     |
-| `hills(reps)`                | Hill repeats    | num reps               |
-| `rest`                       | Rest day        | -                      |
-| `race.5k`                    | 5K race         | -                      |
-
-**Swimming Templates** (prefix: `swim.`):
-
-| Template                   | Usage          | Params           |
-| -------------------------- | -------------- | ---------------- |
-| `swim.easy(duration)`      | Easy swim      | duration in mins |
-| `swim.technique(duration)` | Drill-focused  | duration in mins |
-| `swim.aerobic(reps)`       | 400m @ CSS+10s | num 400m reps    |
-| `swim.threshold(reps)`     | 100m @ CSS     | num 100m reps    |
-| `swim.vo2max(reps)`        | 100m @ CSS-5s  | num 100m reps    |
-| `swim.openwater(duration)` | Open water     | duration in mins |
-| `swim.rest`                | Rest day       | -                |
-
-**Cycling Templates** (prefix: `bike.`):
-
-| Template                   | Usage               | Params             |
-| -------------------------- | ------------------- | ------------------ |
-| `bike.easy(duration)`      | Easy ride           | duration in mins   |
-| `bike.endurance(duration)` | Endurance ride      | duration in mins   |
-| `bike.tempo(tempo_mins)`   | Tempo intervals     | tempo section mins |
-| `bike.sweetspot(ss_mins)`  | Sweet spot          | sweet spot mins    |
-| `bike.threshold(reps)`     | Threshold intervals | num intervals      |
-| `bike.vo2max(reps)`        | VO2max intervals    | num intervals      |
-| `bike.overunders(sets)`    | Over-unders         | num sets           |
-| `bike.hills(reps)`         | Hill repeats        | num reps           |
-| `bike.rest`                | Rest day            | -                  |
-
-**Brick Templates** (prefix: `brick.`):
-
-| Template                                | Usage         | Params               |
-| --------------------------------------- | ------------- | -------------------- |
-| `brick.sprint(bike_mins, run_mins)`     | Sprint brick  | bike mins, run mins  |
-| `brick.olympic(bike_mins, run_mins)`    | Olympic brick | bike mins, run mins  |
-| `brick.halfironman(bike_hrs, run_mins)` | 70.3 brick    | bike hours, run mins |
-| `brick.ironman(bike_hrs, run_mins)`     | IM brick      | bike hours, run mins |
-
-**Strength Templates** (prefix: `strength.`):
-
-| Template                         | Usage           | Params           |
-| -------------------------------- | --------------- | ---------------- |
-| `strength.foundation(duration)`  | Bodyweight      | duration in mins |
-| `strength.full(duration)`        | Full session    | duration in mins |
-| `strength.maintenance(duration)` | Taper/race week | duration in mins |
-| `strength.core(duration)`        | Core only       | duration in mins |
-
-### Zone Auto-Calculation
-
-In v2.0, you only need to specify threshold values—zone ranges are auto-calculated:
-
-```yaml
-zones:
-  hr:
-    lthr: 165 # Zones auto-calculated from LTHR
-  power:
-    ftp: 250 # Zones auto-calculated from FTP
-  swim:
-    css: "1:45" # Zones auto-calculated from CSS
-```
-
-The expander calculates zone ranges using standard percentages:
-
-- **HR Zone 1 (Recovery)**: < 81% LTHR
-- **HR Zone 2 (Aerobic)**: 81-89% LTHR
-- **HR Zone 3 (Tempo)**: 90-93% LTHR
-- **HR Zone 4 (Sub-threshold)**: 94-99% LTHR
-- **HR Zone 5a (Threshold)**: 100-102% LTHR
-- **HR Zone 5b (VO2max)**: 103-106% LTHR
-
-### Athlete Paces
-
-**IMPORTANT:** Templates require specific paces to be defined. If you use a template without its required pace, validation will fail.
-
-**Pace → Template Requirements:**
-
-| If you use these templates...       | You MUST define this pace |
-| ----------------------------------- | ------------------------- |
-| `easy()`, `recovery()`, `strides()` | `easy`                    |
-| `long()`                            | `long`                    |
-| `tempo()`                           | `tempo`                   |
-| `threshold()`, `progression()`      | `threshold`               |
-| `intervals.400()`                   | `r400`                    |
-| `intervals.800()`                   | `r800`                    |
-| `intervals.1k()`                    | `r1k`                     |
-| `intervals.mile()`                  | `rMile`                   |
-| `swim.*` templates                  | `css`, `swim_easy`        |
-
-**Example paces block:**
-
-```yaml
-paces:
-  # Required for basic run templates
-  easy: "9:30/mi" # easy(), recovery(), strides()
-  long: "9:45/mi" # long()
-  tempo: "8:15/mi" # tempo()
-  threshold: "7:45/mi" # threshold(), progression()
-
-  # Required for interval templates (if used)
-  r400: "1:40" # intervals.400()
-  r800: "3:30" # intervals.800()
-  r1k: "4:30" # intervals.1k()
-  rMile: "7:15" # intervals.mile()
-
-  # Optional - for marathon/half plans
-  marathon: "8:30/mi"
-  halfMarathon: "8:00/mi"
-
-  # Swimming (required if using swim.* templates)
-  css: "1:45/100m" # Critical Swim Speed
-  swim_easy: "2:00/100m"
-```
-
-### Step 1: Write YAML Plan
-
-Create a YAML file: `{event-name}-{date}.yaml`
-
-Example: `ironman-703-oceanside-2026-03-29.yaml`
-
-**Inferring Unit Preferences:**
-
-Determine the athlete's preferred units from their Strava data and event location:
-
-| Indicator                                          | Likely Preference                            |
-| -------------------------------------------------- | -------------------------------------------- |
-| US-based events (Ironman Arizona, Boston Marathon) | Imperial: miles for bike/run, yards for swim |
-| European/Australian events                         | Metric: km for bike/run, meters for swim     |
-| Strava activities show distances in miles          | Imperial                                     |
-| Strava activities show distances in km             | Metric                                       |
-
-**Week Scheduling:** Weeks must start on Monday or Sunday. Work backwards from race day to determine the start date.
-
-Here's the compact v2.0 structure:
+### Minimal v2.0 Example
 
 ```yaml
 version: "2.0"
 
 athlete:
   name: "Athlete Name"
-  event: "Ironman 70.3 Oceanside"
-  eventDate: "2026-03-29"
-  paces:
-    easy: "9:30/mi"
-    long: "9:45/mi"
-    tempo: "8:15/mi"
-    threshold: "7:45/mi"
-    marathon: "8:30/mi"
-    halfMarathon: "8:00/mi"
-    r400: "1:40"
-    r800: "3:30"
-    css: "1:45/100m"
-    swim_easy: "2:00/100m"
-  zones:
-    hr:
-      lthr: 165 # Auto-calculates all HR zone ranges
-    power:
-      ftp: 250 # Auto-calculates all power zone ranges
-    swim:
-      css: "1:45" # Auto-calculates swim zones
-  constraints:
-    daysPerWeek: 5
-    notes:
-      - "No doubles"
-      - "Travel week 8"
-      - "Pool access weekdays only"
+  event: "Half Marathon"
+  eventDate: "2026-05-15"
   unit: mi
   firstDayOfWeek: monday
+  paces:
+    easy: "9:30/mi"
+    tempo: "8:15/mi"
+    threshold: "7:45/mi"
+  zones:
+    hr:
+      lthr: 165
 
 assessment:
   foundation:
-    raceHistory:
-      - "Ironman 2024"
-      - "3x 70.3"
-    peakTrainingLoad: 14
-    foundationLevel: advanced
-    yearsInSport: 5
+    foundationLevel: intermediate
+    yearsInSport: 3
   currentForm:
     weeklyVolume:
-      total: 8
-      swim: 1.5
-      bike: 4
-      run: 2.5
-    longestSessions:
-      swim: 3000
-      bike: 80
-      run: 18
-    consistency: 5
-  strengths:
-    - sport: bike
-      evidence: "Highest relative suffer score"
-  limiters:
-    - sport: swim
-      evidence: "Lowest weekly volume"
-  constraints:
-    - "Work travel 2x/month"
-    - "Pool access only weekdays"
+      total: 6
+    consistency: 6
 
 phases:
-  - name: "Base"
+  - name: Base
     weeks: "1-6"
     focus: "Aerobic foundation"
-    keyWorkouts:
-      - "Long ride"
-      - "Long run"
-  - name: "Build"
-    weeks: "7-12"
-    focus: "Race-specific intensity"
-    keyWorkouts:
-      - "Threshold runs"
-      - "Sweet spot rides"
-  - name: "Peak"
-    weeks: "13-16"
-    focus: "Sharpening"
-    keyWorkouts:
-      - "Race-pace work"
-  - name: "Taper"
-    weeks: "17-18"
-    focus: "Recovery and freshness"
-    keyWorkouts:
-      - "Short openers"
 
 weeks:
   - week: 1
@@ -644,138 +339,96 @@ weeks:
     focus: "Establish routine"
     workouts:
       Mon: rest
-      Tue: swim.technique(45)
-      Wed: bike.endurance(90)
-      Thu: easy(40)
-      Fri: swim.easy(30)
+      Tue: easy(40)
+      Thu: tempo(20)
       Sat: long(75)
-      Sun: bike.easy(60)
-
-  - week: 2
-    phase: Base
-    focus: "Build consistency"
-    workouts:
-      Mon: rest
-      Tue: swim.aerobic(4)
-      Wed: tempo(20)
-      Thu: bike.endurance(75)
-      Fri: recovery(30)
-      Sat: brick.olympic(90, 20)
-      Sun: swim.threshold(8)
-
-  - week: 3
-    phase: Base
-    focus: "Introduce threshold"
-    workouts:
-      Mon: strength.foundation(30)
-      Tue: swim.technique(45)
-      Wed: threshold(15)
-      Thu: bike.sweetspot(45)
-      Fri: easy(35)
-      Sat: long(90)
-      Sun: swim.easy(40)
-
-  # Week 4: Recovery week (reduced volume)
-  - week: 4
-    phase: Base
-    focus: "Recovery week"
-    isRecoveryWeek: true
-    workouts:
-      Mon: rest
-      Tue: swim.easy(30)
-      Wed: easy(30)
-      Thu: bike.easy(60)
-      Fri: rest
-      Sat: long(60)
-      Sun: swim.technique(30)
-
-  # Continue for remaining weeks...
 
 raceStrategy:
-  goalTime: "5:30:00"
+  goalTime: "1:45:00"
   pacing:
-    swim: "1:50/100m"
-    bike: "180-190W (72% FTP)"
-    run: "8:30/mi"
+    run: "8:00/mi"
   nutrition:
-    preRace: "3 hours before: 100g carbs, low fiber"
-    during: "80g carbs/hour on bike, 60g/hour on run"
-    products:
-      - "Maurten 320"
-      - "Maurten Gel 100"
+    preRace: "3 hours before: 100g carbs"
+    during: "60g carbs/hour"
   taper:
-    startWeek: 17
+    startWeek: 5
     volumeReduction: "50%"
-    notes: "Maintain intensity, reduce volume"
 ```
 
-> **Note:** This is an abbreviated example showing 4 weeks. A complete plan would have all weeks through race day.
-
-### Step 2: Validate the Plan
-
-Validate the YAML before rendering:
+### CLI Quick Reference
 
 ```bash
+# Schema reference
+npx -y endurance-coach@latest schema
+
+# Validate
 npx -y endurance-coach@latest validate plan.yaml
+
+# Render to HTML (auto-expands YAML)
+npx -y endurance-coach@latest render plan.yaml -o plan.html
+
+# Templates
+npx -y endurance-coach@latest templates list
+npx -y endurance-coach@latest templates list --sport run
+npx -y endurance-coach@latest templates list --source user
+npx -y endurance-coach@latest templates show intervals.400
+npx -y endurance-coach@latest templates validate intervals.400
+
+# Create custom template scaffold
+npx -y endurance-coach@latest templates create my-tempo --type run --category tempo --example
 ```
 
-This checks schema compliance and template validity. Fix any errors before proceeding.
+### Templates & Custom Templates
 
-### Step 3: Render to HTML
+- Built-in templates live in the package; user templates live in `$HOME/.endurance-coach/workout-templates`.
+- User templates override built-ins if IDs collide.
+- Use `templates list` to discover available templates and their usage examples.
+- Use `templates list --source user` to see custom templates.
 
-Render the plan to an interactive HTML viewer:
+**Create a new template:**
 
 ```bash
-npx -y endurance-coach@latest render plan.yaml -o plan.html
+npx -y endurance-coach@latest templates create my-tempo --type run --category tempo
 ```
 
-The render command:
+Optional flags:
 
-1. Validates the plan against the schema
-2. Expands all template references to full workouts
-3. Generates an interactive HTML calendar
+- `--example` adds a filled-in sample structure
+- `--template-file=/path/to/template.yaml` clones a scaffold
+- `--overwrite` replaces an existing template
+- `--dry-run` prints the YAML instead of writing
 
-The HTML includes:
+**Validate a template by ID:**
 
-- Calendar view with color-coded workouts by sport
-- Click workouts to see full details
-- Mark workouts as complete (saved to localStorage)
-- Week summaries with hours by sport
-- Dark mode, mobile responsive
+```bash
+npx -y endurance-coach@latest templates validate my-tempo
+```
 
-### Step 4: Tell the User
+### Plan Workflow
 
-After files are created, tell the user:
-
-1. The YAML file path (for data/editing)
-2. The HTML file path (for viewing)
-3. Suggest opening the HTML file in a browser
+1. Write YAML in v2.0 format.
+2. Validate (`validate`) to catch missing paces or template errors.
+3. Render (`render`) to HTML (auto-expands YAML).
+4. Share YAML + HTML paths with the user.
 
 ---
 
 ## Key Coaching Principles
 
-1. **Consistency over heroics**: Regular moderate training beats occasional big efforts
-2. **Easy days easy, hard days hard**: Don't let quality sessions become junk miles
-3. **Respect recovery**: Fitness is built during rest, not during workouts
-4. **Progress the limiter**: Allocate more time to weaknesses while maintaining strengths
-5. **Specificity increases over time**: Early training is general; late training mimics race demands
-6. **Taper adequately**: Most athletes under-taper; trust the fitness you've built
-7. **Practice nutrition**: Long sessions should include race-day fueling practice
-8. **Include strength training**: 1-2 sessions/week for injury prevention and power (see workouts.md)
-9. **Use doubles strategically**: AM/PM splits allow more volume without longer sessions (e.g., AM swim + PM run)
-10. **Never schedule same sport back-to-back**: Avoid swim Mon + swim Tue, or run Thu + run Fri—spread each sport across the week
+1. **Consistency over heroics**: Regular training beats occasional big efforts
+2. **Easy days easy, hard days hard**: Protect quality sessions
+3. **Respect recovery**: Adaptation happens during rest
+4. **Progress the limiter**: Bias time toward weaknesses
+5. **Specificity increases over time**: General early, race-like late
+6. **Practice nutrition**: Long sessions include fueling practice
 
 ---
 
 ## Critical Reminders
 
 - **Never skip athlete validation** - Present your assessment and get confirmation before writing the plan
-- **Distinguish foundation from form** - An Ironman finisher who took 3 months off is NOT the same as a beginner
-- **Zones must be established** before prescribing specific workouts
-- **Output YAML, then render HTML** - Write the plan as `.yaml` using the v2.0 format, then use `npx -y endurance-coach@latest render` to create the HTML viewer
-- **Define paces for templates you use** - If using `intervals.400()`, you MUST define `paces.r400`. Check the Pace → Template Requirements table.
-- **Use `npx -y endurance-coach@latest schema`** - When unsure about YAML structure, run this command to see a minimal working example
-- **Explain the "why"** - Athletes trust and follow plans they understand
-- **Be conservative with manual data** - When working without Strava, err on the side of caution with volume and intensity
-- **Recommend field tests** - For manual data athletes, include zone validation workouts in the first 1-2 weeks
+- **Distinguish foundation from form** - Recent breaks matter more than historical races
+- **Zones + paces are required** for the templates you use
+- **Output YAML, then render HTML** using `npx -y endurance-coach@latest render`
+- **Use `npx -y endurance-coach@latest schema`** when unsure about structure
+- **Be conservative with manual data** and recommend early field tests

@@ -731,15 +731,25 @@ export function runTemplates(args: TemplatesArgs): void {
         `\n${colors.bold("Available Templates")}${sportFilter ? ` ${colors.dim(`(${sportFilter})`)}` : ""}${sourceFilter ? ` ${colors.dim(`[source: ${sourceFilter}]`)}` : ""}`
       );
 
+      const usageExamples = list.map((t) => {
+        const baseId = t.id;
+        const paramNames = t.params ? Object.keys(t.params) : [];
+        if (paramNames.length === 0) {
+          return baseId;
+        }
+        return `${baseId}(${paramNames.join(", ")})`;
+      });
+
       // Calculate column widths
       const idWidth = Math.max(12, ...list.map((t) => t.id.length));
       const nameWidth = Math.max(20, ...list.map((t) => t.name.length));
       const sportWidth = Math.max(8, ...list.map((t) => t.sport.length));
       const categoryWidth = Math.max(10, ...list.map((t) => t.category.length));
       const sourceWidth = 10;
+      const usageWidth = Math.max(18, ...usageExamples.map((example) => example.length));
 
       console.log(
-        `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}`
+        `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Usage".padEnd(usageWidth))}`
       );
       const separatorRow =
         "─".repeat(idWidth) +
@@ -750,21 +760,25 @@ export function runTemplates(args: TemplatesArgs): void {
         "──" +
         "─".repeat(categoryWidth) +
         "──" +
-        "─".repeat(sourceWidth);
+        "─".repeat(sourceWidth) +
+        "──" +
+        "─".repeat(usageWidth);
       console.log(separatorRow);
 
       // Build data rows
-      for (const t of list) {
+      for (const [index, t] of list.entries()) {
         const source = (templates.getSource && templates.getSource(t.id)) || "builtin";
         const sourceDisplay =
           source === "user" ? colors.green("[USER]  ") : colors.gray("[BUILTIN]");
 
+        const usageExample = usageExamples[index];
         const cells = [
           t.id.padEnd(idWidth),
           t.name.padEnd(nameWidth),
           t.sport.padEnd(sportWidth),
           t.category.padEnd(categoryWidth),
           sourceDisplay.padEnd(sourceWidth),
+          colors.dim(usageExample.padEnd(usageWidth)),
         ];
 
         if (verbose) {
@@ -779,7 +793,7 @@ export function runTemplates(args: TemplatesArgs): void {
           // Add verbose headers if not already shown
           if (list.indexOf(t) === 0) {
             console.log(
-              `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Type".padEnd(12))}  ${colors.bold("Zone".padEnd(8))}`
+              `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Usage".padEnd(usageWidth))}  ${colors.bold("Type".padEnd(12))}  ${colors.bold("Zone".padEnd(8))}`
             );
             const verboseSeparator =
               separatorRow + "──" + "─".repeat(typeWidth) + "──" + "─".repeat(zoneWidth);
@@ -803,7 +817,10 @@ export function runTemplates(args: TemplatesArgs): void {
       );
       console.log(`  ${colors.green("endurance-coach templates list")}        List all templates`);
       console.log(
-        `  ${colors.green("endurance-coach templates list --type=<type>")}  Filter by workout type`
+        `  ${colors.green("endurance-coach templates list --sport=<sport>")}  Filter by sport`
+      );
+      console.log(
+        `  ${colors.green("endurance-coach templates list --type=<category>")}  Filter by workout category`
       );
       console.log(
         `  ${colors.green("endurance-coach templates list --source=<user|builtin|all>")}  Filter by source`

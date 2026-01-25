@@ -41,49 +41,49 @@ weeks:
   - week: 1
     phase: Testing Phase
     workouts:
-      Mon: easy(30)
-      Tue: long(60)
-      Wed: hills(6)
-      Thu: tempo(20)
-      Fri: recovery(25)
-      Sat: race.5k
-      Sun: rest
+      Mon: run.easy(30)
+      Tue: run.long(60)
+      Wed: run.hills(6)
+      Thu: run.tempo(20)
+      Fri: run.recovery(25)
+      Sat: run.race.5k
+      Sun: run.rest
 
   # Week 2: Run templates - Part 2
   - week: 2
     phase: Testing Phase
     workouts:
-      Mon: rest
-      Tue: strides(30)
-      Wed: fartlek(45)
-      Thu: easy(35)
-      Fri: threshold(25)
-      Sat: progression(40)
-      Sun: rest
+      Mon: run.rest
+      Tue: run.strides(30)
+      Wed: run.fartlek(45)
+      Thu: run.easy(35)
+      Fri: run.threshold(25)
+      Sat: run.progression(40)
+      Sun: run.rest
 
   # Week 3: Run templates - Part 3 (Intervals)
   - week: 3
     phase: Testing Phase
     workouts:
-      Mon: rest
-      Tue: intervals.1k(6)
-      Wed: easy(30)
-      Thu: intervals.400(8, 90s)
-      Fri: long(50)
-      Sat: intervals.800(6, 60s)
-      Sun: rest
+      Mon: run.rest
+      Tue: run.intervals.1k(6)
+      Wed: run.easy(30)
+      Thu: run.intervals.400(8, 90s)
+      Fri: run.long(50)
+      Sat: run.intervals.800(6, 60s)
+      Sun: run.rest
 
   # Week 4: Run templates - Part 4 (Finish intervals)
   - week: 4
     phase: Testing Phase
     workouts:
-      Mon: rest
-      Tue: intervals.mile(4, 2min)
-      Wed: easy(30)
-      Thu: tempo(25, 10, 10)
-      Fri: long(60)
-      Sat: strides(25)
-      Sun: rest
+      Mon: run.rest
+      Tue: run.intervals.mile(4, 2min)
+      Wed: run.easy(30)
+      Thu: run.tempo(25, 10, 10)
+      Fri: run.long(60)
+      Sat: run.strides(25)
+      Sun: run.rest
 
   # Week 5: Swim templates - Part 1
   - week: 5
@@ -142,8 +142,8 @@ weeks:
       Wed: strength.light(20)
       Thu: strength.trail(25)
       Fri: strength.power(25)
-      Sat: rest
-      Sun: rest
+      Sat: strength.rest
+      Sun: strength.rest
 
   # Week 10: Strength templates - Part 2
   - week: 10
@@ -154,17 +154,17 @@ weeks:
       Wed: strength.triathlon(30)
       Thu: strength.foundation(30)
       Fri: strength.maintenance(20)
-      Sat: rest
-      Sun: rest
+      Sat: strength.rest
+      Sun: strength.rest
 
   # Week 11: Brick templates
   - week: 11
     phase: Testing Phase
     workouts:
       Mon: brick.sprint(45, 15, 10)
-      Tue: rest
+      Tue: brick.rest
       Wed: brick.olympic(75, 30, 15)
-      Thu: rest
+      Thu: brick.rest
       Fri: brick.halfironman(3, 45)
-      Sat: rest
+      Sat: brick.rest
       Sun: brick.ironman(5, 60)
