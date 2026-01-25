@@ -10,6 +10,12 @@ import { runExpand } from "./commands/expand.js";
 import { runTemplates } from "./commands/templates.js";
 import { runAuth, runSync } from "./commands/strava.js";
 import { runModify } from "./commands/modify.js";
+import { runStats } from "./commands/stats.js";
+import { runTrainingLoad } from "./commands/training-load.js";
+import { runFoundation } from "./commands/foundation.js";
+import { runStrength } from "./commands/strength.js";
+import { runSchedulePreferences } from "./commands/schedule-preferences.js";
+import { runHrZones } from "./commands/hr-zones.js";
 
 // ============================================================================
 // Proxy Configuration
@@ -56,6 +62,24 @@ async function main(): Promise<void> {
       break;
     case "render":
       runRender(args);
+      break;
+    case "stats":
+      await runStats(args);
+      break;
+    case "training-load":
+      await runTrainingLoad(args);
+      break;
+    case "foundation":
+      await runFoundation(args);
+      break;
+    case "strength":
+      await runStrength(args);
+      break;
+    case "schedule-preferences":
+      await runSchedulePreferences(args);
+      break;
+    case "hr-zones":
+      await runHrZones(args);
       break;
     case "query":
       await runQuery(args);

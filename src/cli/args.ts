@@ -19,6 +19,49 @@ export interface RenderArgs {
   outputFile?: string;
 }
 
+export interface StatsArgs {
+  command: "stats";
+  weeks?: number;
+  longestWeeks?: number;
+  json: boolean;
+}
+
+export interface TrainingLoadArgs {
+  command: "training-load";
+  weeks?: number;
+  json: boolean;
+}
+
+export interface FoundationArgs {
+  command: "foundation";
+  topWeeks?: number;
+  json: boolean;
+}
+
+export interface StrengthArgs {
+  command: "strength";
+  months?: number;
+  longMonths?: number;
+  easyHrMax?: number;
+  longMinutes?: number;
+  years?: number;
+  json: boolean;
+}
+
+export interface SchedulePreferencesArgs {
+  command: "schedule-preferences";
+  rideMinutes?: number;
+  runMinutes?: number;
+  json: boolean;
+}
+
+export interface HrZonesArgs {
+  command: "hr-zones";
+  weeks?: number;
+  distributionWeeks?: number;
+  json: boolean;
+}
+
 export interface QueryArgs {
   command: "query";
   sql: string;
@@ -81,6 +124,12 @@ export interface ModifyArgs {
 export type CliArgs =
   | SyncArgs
   | RenderArgs
+  | StatsArgs
+  | TrainingLoadArgs
+  | FoundationArgs
+  | StrengthArgs
+  | SchedulePreferencesArgs
+  | HrZonesArgs
   | QueryArgs
   | AuthArgs
   | HelpArgs
@@ -142,6 +191,149 @@ export function parseArgs(): CliArgs {
     }
 
     return renderArgs;
+  }
+
+  if (args[0] === "stats") {
+    const statsArgs: StatsArgs = {
+      command: "stats",
+      json: args.includes("--json"),
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--weeks") {
+        statsArgs.weeks = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--weeks=")) {
+        statsArgs.weeks = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--longest-weeks") {
+        statsArgs.longestWeeks = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--longest-weeks=")) {
+        statsArgs.longestWeeks = parseInt(args[i].split("=")[1]);
+      }
+    }
+
+    return statsArgs;
+  }
+
+  if (args[0] === "training-load") {
+    const trainingLoadArgs: TrainingLoadArgs = {
+      command: "training-load",
+      json: args.includes("--json"),
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--weeks") {
+        trainingLoadArgs.weeks = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--weeks=")) {
+        trainingLoadArgs.weeks = parseInt(args[i].split("=")[1]);
+      }
+    }
+
+    return trainingLoadArgs;
+  }
+
+  if (args[0] === "foundation") {
+    const foundationArgs: FoundationArgs = {
+      command: "foundation",
+      json: args.includes("--json"),
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--top-weeks") {
+        foundationArgs.topWeeks = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--top-weeks=")) {
+        foundationArgs.topWeeks = parseInt(args[i].split("=")[1]);
+      }
+    }
+
+    return foundationArgs;
+  }
+
+  if (args[0] === "strength") {
+    const strengthArgs: StrengthArgs = {
+      command: "strength",
+      json: args.includes("--json"),
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--months") {
+        strengthArgs.months = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--months=")) {
+        strengthArgs.months = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--long-months") {
+        strengthArgs.longMonths = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--long-months=")) {
+        strengthArgs.longMonths = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--easy-hr-max") {
+        strengthArgs.easyHrMax = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--easy-hr-max=")) {
+        strengthArgs.easyHrMax = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--long-minutes") {
+        strengthArgs.longMinutes = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--long-minutes=")) {
+        strengthArgs.longMinutes = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--years") {
+        strengthArgs.years = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--years=")) {
+        strengthArgs.years = parseInt(args[i].split("=")[1]);
+      }
+    }
+
+    return strengthArgs;
+  }
+
+  if (args[0] === "schedule-preferences") {
+    const scheduleArgs: SchedulePreferencesArgs = {
+      command: "schedule-preferences",
+      json: args.includes("--json"),
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--ride-minutes") {
+        scheduleArgs.rideMinutes = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--ride-minutes=")) {
+        scheduleArgs.rideMinutes = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--run-minutes") {
+        scheduleArgs.runMinutes = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--run-minutes=")) {
+        scheduleArgs.runMinutes = parseInt(args[i].split("=")[1]);
+      }
+    }
+
+    return scheduleArgs;
+  }
+
+  if (args[0] === "hr-zones") {
+    const hrArgs: HrZonesArgs = {
+      command: "hr-zones",
+      json: args.includes("--json"),
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--weeks") {
+        hrArgs.weeks = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--weeks=")) {
+        hrArgs.weeks = parseInt(args[i].split("=")[1]);
+      } else if (args[i] === "--distribution-weeks") {
+        hrArgs.distributionWeeks = parseInt(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--distribution-weeks=")) {
+        hrArgs.distributionWeeks = parseInt(args[i].split("=")[1]);
+      }
+    }
+
+    return hrArgs;
   }
 
   if (args[0] === "query") {

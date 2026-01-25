@@ -16,6 +16,12 @@ Commands:
   expand <file>     Expand a compact YAML plan to full format
   render <file>     Render a training plan to HTML
   templates         List available workout templates
+  stats             Current form stats (volume, longest, averages)
+  training-load     Weekly training load trend
+  foundation        Athletic foundation overview
+  strength          Strength/limiter signals
+  schedule-preferences  Preferred training days by sport
+  hr-zones          HR summaries for zone estimation
   query <sql>       Run a SQL query against the database
   modify            Apply backup changes to a training plan
   help              Show this help message
@@ -54,6 +60,37 @@ Render Options:
 Query Options:
   --json                Output as JSON (default: plain text)
 
+Stats Options:
+  --weeks N             Weeks for volume/averages (default: 8)
+  --longest-weeks N     Weeks for longest sessions (default: 12)
+  --json                Output as JSON
+
+Training Load Options:
+  --weeks N             Weeks for load trend (default: 12)
+  --json                Output as JSON
+
+Foundation Options:
+  --top-weeks N         Number of peak weeks (default: 5)
+  --json                Output as JSON
+
+Strength Options:
+  --months N            Window for efficiency (default: 6)
+  --long-months N       Window for easy long sessions (default: 12)
+  --easy-hr-max N       Max HR for easy long sessions (default: 145)
+  --long-minutes N      Min minutes for long sessions (default: 60)
+  --years N             Window for historical peaks (default: 2)
+  --json                Output as JSON
+
+Schedule Preferences Options:
+  --ride-minutes N      Long ride threshold (default: 90)
+  --run-minutes N       Long run threshold (default: 60)
+  --json                Output as JSON
+
+HR Zones Options:
+  --weeks N             Window for avg HR (default: 8)
+  --distribution-weeks N Window for HR distribution (default: 12)
+  --json                Output as JSON
+
 Modify Options:
   --backup, -b FILE     Backup JSON file (exported from Settings)
   --plan, -p FILE       Expanded plan JSON file to modify
@@ -78,7 +115,25 @@ Examples:
   # Render a training plan to HTML
   npx endurance-coach render plan.yaml --output my-plan.html
 
-  # Query the database
+  # Current form snapshot
+  npx endurance-coach stats --weeks 8
+
+  # Training load trend
+  npx endurance-coach training-load --weeks 12
+
+  # Athletic foundation overview
+  npx endurance-coach foundation --top-weeks 5
+
+  # Strength signals
+  npx endurance-coach strength --months 6
+
+  # Schedule preferences
+  npx endurance-coach schedule-preferences --ride-minutes 90 --run-minutes 60
+
+  # HR summaries for zone estimation
+  npx endurance-coach hr-zones --weeks 8
+
+  # Advanced: run a raw SQL query
   npx endurance-coach query "SELECT * FROM weekly_volume LIMIT 5"
 
   # Apply backup changes to an expanded plan
