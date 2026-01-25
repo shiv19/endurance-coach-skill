@@ -57,6 +57,13 @@ export interface TemplatesArgs {
   type?: string;
   source?: "user" | "builtin" | "all";
   verbose?: boolean;
+  create?: string;
+  category?: string;
+  templateFile?: string;
+  overwrite?: boolean;
+  dryRun?: boolean;
+  example?: boolean;
+  userTemplatesDir?: string; // For testing
 }
 
 export interface SchemaArgs {
@@ -225,6 +232,11 @@ export function parseArgs(): CliArgs {
           templatesArgs.show = args[i + 1];
           i++;
         }
+      } else if (args[i] === "create") {
+        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+          templatesArgs.create = args[i + 1];
+          i++;
+        }
       } else if (args[i] === "--sport") {
         templatesArgs.sport = args[i + 1];
         i++;
@@ -242,6 +254,18 @@ export function parseArgs(): CliArgs {
         i++;
       } else if (args[i] === "--verbose" || args[i] === "-v") {
         templatesArgs.verbose = true;
+      } else if (args[i] === "--category") {
+        templatesArgs.category = args[i + 1];
+        i++;
+      } else if (args[i] === "--template-file") {
+        templatesArgs.templateFile = args[i + 1];
+        i++;
+      } else if (args[i] === "--overwrite") {
+        templatesArgs.overwrite = true;
+      } else if (args[i] === "--dry-run") {
+        templatesArgs.dryRun = true;
+      } else if (args[i] === "--example") {
+        templatesArgs.example = true;
       } else if (args[i].startsWith("--sport=")) {
         templatesArgs.sport = args[i].split("=")[1];
       } else if (args[i].startsWith("--type=")) {
@@ -254,7 +278,11 @@ export function parseArgs(): CliArgs {
           log.error(`Invalid source value: ${sourceVal}. Must be 'user', 'builtin', or 'all'`);
           process.exit(1);
         }
-      } else if (!args[i].startsWith("-") && !templatesArgs.show) {
+      } else if (args[i].startsWith("--category=")) {
+        templatesArgs.category = args[i].split("=")[1];
+      } else if (args[i].startsWith("--template-file=")) {
+        templatesArgs.templateFile = args[i].split("=")[1];
+      } else if (!args[i].startsWith("-") && !templatesArgs.show && !templatesArgs.create) {
         // Treat as template ID for 'show' subcommand
         templatesArgs.show = args[i];
       }

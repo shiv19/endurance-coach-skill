@@ -48,8 +48,8 @@ export function runValidate(args: ValidateArgs): void {
       process.exit(1);
     }
 
-    // Also validate template references
-    const templates = loadTemplates();
+    // Also validate template references (include user templates)
+    const templates = loadTemplates({ includeUserTemplates: true });
     const templateErrors = validateWorkoutRefs(validation.data, templates);
     if (templateErrors.length > 0) {
       log.warn("Template reference warnings:");

@@ -41,8 +41,8 @@ export function runExpand(args: ExpandArgs): void {
     process.exit(1);
   }
 
-  // Load templates
-  const templates = loadTemplates();
+  // Load templates (include user templates)
+  const templates = loadTemplates({ includeUserTemplates: true });
   if (args.verbose) {
     log.info(`Loaded ${templates.ids().length} templates`);
   }

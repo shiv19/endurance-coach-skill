@@ -74,8 +74,8 @@ export function runRender(args: RenderArgs): void {
       process.exit(1);
     }
 
-    // Load templates and expand
-    const templates = loadTemplates();
+    // Load templates and expand (include user templates)
+    const templates = loadTemplates({ includeUserTemplates: true });
     const expanded = expandPlan(compactValidation.data, templates);
 
     log.success("Plan expanded successfully");
