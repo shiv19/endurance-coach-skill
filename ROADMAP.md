@@ -87,6 +87,29 @@ Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend 
 
 ---
 
+- [x] **CLI Refactoring (Phase 1.35)**
+  - Break down `src/cli.ts` (1650+ lines) into smaller modules
+  - Target structure:
+    - `src/cli/index.ts` - Main entry point, argument parsing
+    - `src/cli/commands/` - Individual command handlers
+    - `src/cli/utils/` - Shared utilities (colors, logging)
+  - **Completed**: Extracted colors utility to `src/cli/utils/colors.ts`
+  - **Updated**: `src/cli.ts` imports colors from utils
+  - **Tested**: All 202 tests pass
+  - **Remaining**: Extract command handlers (templates, strava, schema, validate, expand, render, query, modify)
+
+- [x] **Template creation command (Phase 1.4 - PARKED)**
+  - Implement `templates create` command for easy custom template creation
+  - Support: `--type <sport>`, `--id <template-id>`, `--template-file <path>`
+  - Add: `--overwrite`, `--dry-run`, `--example` flags
+  - Generate scaffold templates with proper structure
+  - Validate templates before writing to user directory
+  - **Status**: Ready to implement in modular CLI structure
+  - **Schema**: Updated to support hyphens in template IDs
+  - **Reason**: Template creation requires complex template literal escaping that's easier with modular structure
+
+---
+
 ## Phase 2: Reflection as Data (Core Coaching Differentiator)
 
 ### Epic: Post-Workout Interview with Agent
