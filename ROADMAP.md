@@ -4,73 +4,13 @@ This roadmap is organized to make **coaching correctness and judgment** the spin
 
 ---
 
-## Phase 0: Coaching Correctness (Foundation)
-
-### Bugs / Invariants
-
-- [x] **Fix incorrect training start dates**
-  - Current issue: `Athlete` YAML contains `eventDate` but no explicit `trainingStartDate`.
-  - Investigate and document what currently determines training start date.
-  - Make the inference rule explicit and deterministic.
-  - Add regression tests covering:
-    - Event-based plans
-    - Non-event-based plans
-    - Edge cases (late config edits, timezone boundaries)
-  - **Completed**: Fixed date calculation to use `(totalWeeks - 1) * 7` instead of `totalWeeks * 7`, ensuring final week aligns with event date
-  - **Added**: Optional `startDate` field to athlete config for explicit override
-  - **Tests**: 8 comprehensive tests covering leap years, different start days, and explicit dates
-
----
-
 ## Phase 1: Workout Template System (Expression Layer)
 
 ### Epic: Workout Template Enhancements
 
 Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend artifacts**.
 
-- [x] **Fail fast on unknown templates**
-  - CLI expander throws a clear error if an unknown template name is used.
-  - Error message should:
-    - List closest matching known templates
-    - Suggest creating a custom template if needed
-  - **Completed**: Implemented Levenshtein distance fuzzy matching with helpful error messages
-  - **Added**: `validateTemplateExists()` function called before expansion (fail-fast)
-  - **Tests**: 28 tests covering fuzzy matching, similarity scoring, and validation
-
-- [x] **Custom template precedence & discovery**
-  - Custom templates live in:
-    - `~/.endurance-coach/workout-templates/`
-
-  - Template resolution order:
-    1. User templates
-    2. Built-in templates
-  - **Completed**: User templates override built-in templates
-  - **Added**: `LoadTemplatesOptions` interface with `includeUserTemplates` flag
-  - **Added**: `getUserTemplatesDir()` function
-  - **Added**: Source tracking (user vs built-in) via `getSource()` and `getSourcePath()`
-  - **Tests**: 4 tests covering basic custom template loading
-
-- [x] **Template inspectability & ergonomics**
-  - Improve `templates` CLI command to clearly explain:
-    - Template `id`
-    - Template name
-    - Template source (built-in vs user)
-    - File path for user templates
-
-  - Add:
-    - `templates list` - Enhanced with table format and filters
-    - `templates show <template-id>` - Full template details
-    - `--source <user|builtin|all>` filter option
-    - `--type <type>` filter option
-    - `--verbose` flag for additional columns
-    - Color-coded source display (green for user, gray for built-in)
-    - Fuzzy matching suggestions for typos in template IDs
-  - **Completed**: Enhanced templates CLI with table output, filters, source tracking
-  - **Added**: Color-coded source badges and fuzzy matching errors
-  - **Enhanced**: `templates list` with filtering and verbose mode
-  - **Enhanced**: `templates show` with full details and source info
-
-- **Template validation**
+- [ ] **Template validation**
   - Add command:
     - `templates validate --template <template-id>`
 
@@ -78,44 +18,12 @@ Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend 
     - Checks user templates first, then built-ins
     - Validates schema, required variables, and unsupported fields
 
-- **Template variable hygiene**
+- [ ] **Template variable hygiene**
   - Audit all template variables
   - Identify variables not consumed by the Viewer project
   - Either:
     - Wire them through properly, or
     - Deprecate them explicitly
-
----
-
-- [x] **CLI Refactoring (Phase 1.35)**
-  - Break down `src/cli.ts` (1650+ lines) into smaller modules
-  - Target structure:
-    - `src/cli/index.ts` - Main entry point
-    - `src/cli/args.ts` - Argument parsing
-    - `src/cli/help.ts` - Help text
-    - `src/cli/commands/` - Individual command handlers
-      - templates.ts, strava.ts, schema.ts, validate.ts, expand.ts, render.ts, query.ts, modify.ts
-    - `src/cli/utils/` - Shared utilities
-      - colors.ts
-  - **Completed**: Full CLI refactoring
-  - **Files Created**:
-    - src/cli/index.ts (main entry, ~320 lines)
-    - src/cli/args.ts (argument parsing, ~250 lines)
-    - src/cli/help.ts (help text, ~170 lines)
-    - src/cli/commands/ (8 command files, ~900 lines total)
-    - src/cli/utils/colors.ts (color utilities, ~10 lines)
-  - **Tested**: All 202 tests pass
-  - **Result**: Original 1650-line cli.ts now ~950 lines across focused modules
-
-- [ ] **Template creation command (Phase 1.4)**
-  - Implement `templates create` command for easy custom template creation
-  - Support: `--type <sport>`, `--id <template-id>`, `--template-file <path>`
-  - Add: `--overwrite`, `--dry-run`, `--example` flags
-  - Generate scaffold templates with proper structure
-  - Validate templates before writing to user directory
-  - **Status**: Ready to implement in modular CLI structure (much easier now)
-  - **Schema**: Updated to support hyphens in template IDs
-  - **Location**: Add to `src/cli/commands/templates.ts`
 
 ---
 
