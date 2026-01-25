@@ -53,3 +53,12 @@ export {
   hasInterpolation,
   extractVariables,
 } from "./interpolate.js";
+
+// Conversion (template to workout structure)
+export {
+  parseDuration,
+  parseIntensity,
+  convertTemplateStep,
+  convertTemplateIntervalSet,
+  convertTemplateStructure,
+} from "./converter.js";

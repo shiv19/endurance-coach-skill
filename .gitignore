@@ -6,6 +6,8 @@ dist/
 
 # Test coverage
 coverage/
+tests/test-all-templates.html
+tests/test-all-templates.json
 
 # Environment and secrets
 .env

@@ -44,6 +44,8 @@
     "dev:viewer": "vite --config vite.config.viewer.ts",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:allTemplates": "npm start -- render ./tests/test-all-templates.yaml -o ./tests/test-all-templates.html",
+    "test:expandPlanToJson": "npm start -- expand ./tests/test-all-templates.yaml -o ./tests/test-all-templates.json",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

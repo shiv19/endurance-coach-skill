@@ -5,6 +5,7 @@
  */
 
 import type { Sport } from "../schema/compact-plan.js";
+import type { StructuredWorkout } from "../schema/training-plan.js";
 
 // ============================================================================
 // Expanded Workout
@@ -17,12 +18,15 @@ export interface ExpandedWorkout {
   id: string;
   sport: Sport;
   type: string;
+  category?: string;
   name: string;
   description?: string;
   durationMinutes?: number;
   primaryZone?: string;
   rpe?: string;
+  coachingNotes?: string;
   humanReadable: string;
+  structure?: StructuredWorkout;
   completed: boolean;
 }
 

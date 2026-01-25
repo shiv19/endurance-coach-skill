@@ -103,6 +103,11 @@ export interface IntervalSet {
   steps: WorkoutStep[]; // Usually [work, recovery]
 }
 
+/**
+ * Structured workout with object-based properties for device export.
+ * This is the converted form of TemplateStructure where all string-based
+ * properties have been parsed into proper objects.
+ */
 export interface StructuredWorkout {
   warmup?: WorkoutStep[];
   main: (WorkoutStep | IntervalSet)[];
@@ -120,8 +125,10 @@ export interface Workout {
   id: string;
   sport: Sport;
   type: WorkoutType;
+  category?: string; // From template: endurance, speed, technique, etc.
   name: string;
-  description: string;
+  description: string; // Athlete-provided description
+  coachingNotes?: string; // From template: coaching context and focus points
 
   // Duration
   durationMinutes?: number;
@@ -134,7 +141,7 @@ export interface Workout {
   targetPace?: { low: string; high: string }; // "5:30/km" - "5:45/km"
   rpe?: number; // 1-10
 
-  // Structured workout for device export
+  // Structured workout for device export (object-based properties)
   structure?: StructuredWorkout;
 
   // Human-readable workout text (for display)

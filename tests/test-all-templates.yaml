@@ -1,0 +1,170 @@
+version: "2.0"
+
+athlete:
+  name: "Test Athlete"
+  event: "Endurance Test Event"
+  eventDate: "2026-06-01"
+  paces:
+    # Running paces
+    easy: "5:45/km"
+    long: "6:00/km"
+    tempo: "5:00/km"
+    threshold: "4:45/km"
+    marathon: "5:15/km"
+    halfMarathon: "5:00/km"
+    r1k: "4:30/km"
+    r400: "4:15/km"
+    r800: "4:20/km"
+    rMile: "4:45/km"
+
+    # Cycling
+    bikeFtp: 250
+
+    # Swimming
+    swimCss: "1:50/100m"
+    swimEasy: "2:10/100m"
+
+  zones:
+    hr:
+      lthr: 165
+
+  unit: km
+  firstDayOfWeek: monday
+
+phases:
+  - name: "Testing Phase"
+    weeks: "1-11"
+    focus: "Comprehensive template testing"
+
+weeks:
+  # Week 1: Run templates - Part 1
+  - week: 1
+    phase: Testing Phase
+    workouts:
+      Mon: easy(30)
+      Tue: long(60)
+      Wed: hills(6)
+      Thu: tempo(20)
+      Fri: recovery(25)
+      Sat: race.5k
+      Sun: rest
+
+  # Week 2: Run templates - Part 2
+  - week: 2
+    phase: Testing Phase
+    workouts:
+      Mon: rest
+      Tue: strides(30)
+      Wed: fartlek(45)
+      Thu: easy(35)
+      Fri: threshold(25)
+      Sat: progression(40)
+      Sun: rest
+
+  # Week 3: Run templates - Part 3 (Intervals)
+  - week: 3
+    phase: Testing Phase
+    workouts:
+      Mon: rest
+      Tue: intervals.1k(6)
+      Wed: easy(30)
+      Thu: intervals.400(8, 90s)
+      Fri: long(50)
+      Sat: intervals.800(6, 60s)
+      Sun: rest
+
+  # Week 4: Run templates - Part 4 (Finish intervals)
+  - week: 4
+    phase: Testing Phase
+    workouts:
+      Mon: rest
+      Tue: intervals.mile(4, 2min)
+      Wed: easy(30)
+      Thu: tempo(25, 10, 10)
+      Fri: long(60)
+      Sat: strides(25)
+      Sun: rest
+
+  # Week 5: Swim templates - Part 1
+  - week: 5
+    phase: Testing Phase
+    workouts:
+      Mon: swim.easy(30)
+      Tue: swim.aerobic(5, 30)
+      Wed: swim.speed(8)
+      Thu: swim.vo2max(8, 30)
+      Fri: swim.easy(25)
+      Sat: swim.rest
+      Sun: swim.endurance(45)
+
+  # Week 6: Swim templates - Part 2
+  - week: 6
+    phase: Testing Phase
+    workouts:
+      Mon: swim.rest
+      Tue: swim.technique(30)
+      Wed: swim.easy(35)
+      Thu: swim.threshold(10)
+      Fri: swim.endurance(50)
+      Sat: swim.openwater(60)
+      Sun: swim.rest
+
+  # Week 7: Bike templates - Part 1
+  - week: 7
+    phase: Testing Phase
+    workouts:
+      Mon: bike.easy(60)
+      Tue: bike.endurance(90)
+      Wed: bike.hills(6)
+      Thu: bike.rest
+      Fri: bike.tempo(60)
+      Sat: bike.vo2max(6, 5, 5, 20, 15)
+      Sun: bike.rest
+
+  # Week 8: Bike templates - Part 2
+  - week: 8
+    phase: Testing Phase
+    workouts:
+      Mon: bike.rest
+      Tue: bike.sweetspot(60, 3, 20, 15)
+      Wed: bike.easy(45)
+      Thu: bike.threshold(60)
+      Fri: bike.rest
+      Sat: bike.endurance(120)
+      Sun: bike.overunders(4)
+
+  # Week 9: Strength templates - Part 1
+  - week: 9
+    phase: Testing Phase
+    workouts:
+      Mon: strength.core(20)
+      Tue: strength.full(30)
+      Wed: strength.light(20)
+      Thu: strength.trail(25)
+      Fri: strength.power(25)
+      Sat: rest
+      Sun: rest
+
+  # Week 10: Strength templates - Part 2
+  - week: 10
+    phase: Testing Phase
+    workouts:
+      Mon: strength.runner(20)
+      Tue: strength.eccentric(25)
+      Wed: strength.triathlon(30)
+      Thu: strength.foundation(30)
+      Fri: strength.maintenance(20)
+      Sat: rest
+      Sun: rest
+
+  # Week 11: Brick templates
+  - week: 11
+    phase: Testing Phase
+    workouts:
+      Mon: brick.sprint(45, 15, 10)
+      Tue: rest
+      Wed: brick.olympic(75, 30, 15)
+      Thu: rest
+      Fri: brick.halfironman(3, 45)
+      Sat: rest
+      Sun: brick.ironman(5, 60)

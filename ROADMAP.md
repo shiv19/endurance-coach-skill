@@ -4,30 +4,7 @@ This roadmap is organized to make **coaching correctness and judgment** the spin
 
 ---
 
-## Phase 1: Workout Template System (Expression Layer)
-
-### Epic: Workout Template Enhancements
-
-Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend artifacts**.
-
-- [ ] **Template validation**
-  - Add command:
-    - `templates validate --template <template-id>`
-
-  - Validation behavior:
-    - Checks user templates first, then built-ins
-    - Validates schema, required variables, and unsupported fields
-
-- [ ] **Template variable hygiene**
-  - Audit all template variables
-  - Identify variables not consumed by the Viewer project
-  - Either:
-    - Wire them through properly, or
-    - Deprecate them explicitly
-
----
-
-## Phase 2: Reflection as Data (Core Coaching Differentiator)
+## Phase 1: Reflection as Data (Core Coaching Differentiator)
 
 ### Epic: Post-Workout Interview with Agent
 
@@ -84,7 +61,7 @@ Goal: Turn subjective athlete feedback into **structured coaching signal**, not 
 
 ---
 
-## Phase 3: Intelligence Compounding (Future-Facing)
+## Phase 2: Intelligence Compounding (Future-Facing)
 
 _(Not implementation-heavy yet, but directionally important)_
 
@@ -100,7 +77,7 @@ _(Not implementation-heavy yet, but directionally important)_
 
 ---
 
-## Phase 4: Public Expression Loop (Strava Write-Back)
+## Phase 3: Public Expression Loop (Strava Write-Back)
 
 ### Epic: Coach-Authored Strava Titles & Descriptions
 
@@ -152,7 +129,7 @@ This phase is intentionally opinionated: the coach must _commit to a perspective
 
 ---
 
-## Phase 5: Web UI Enhancements (Amplify Insight, Not Distract)
+## Phase 4: Web UI Enhancements (Amplify Insight, Not Distract)
 
 ### Epic: Web UI Enhancements
 
@@ -166,6 +143,8 @@ Goal: Reduce friction **only where it surfaces coaching insight**.
   - Expand sidebar to view full content without scrolling
 
 > UI work should not precede coaching intelligence. It should surface and reinforce it.
+
+---
 
 ---
 

@@ -12,6 +12,7 @@ import type {
   InterpolationContext,
 } from "../templates/index.js";
 import { interpolate, createContext } from "../templates/index.js";
+import { convertTemplateStructure } from "../templates/converter.js";
 import { calculateAthleteZones } from "./zones.js";
 import type {
   ExpandedPlan,
@@ -169,15 +170,23 @@ export function expandWorkout(
     }
   }
 
+  // Interpolate and convert structure to object-based format
+  const structure = template.structure
+    ? convertTemplateStructure(template.structure, fullContext)
+    : undefined;
+
   return {
     id: workoutId,
     sport: template.sport,
     type: template.type,
+    category: template.category,
     name: template.name,
     durationMinutes,
     primaryZone: template.targetZone,
     rpe: template.rpe,
+    coachingNotes: template.notes,
     humanReadable,
+    structure,
     completed: false,
   };
 }
