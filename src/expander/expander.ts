@@ -22,6 +22,7 @@ import type {
   ExpandedWeekSummary,
   ExpansionOptions,
 } from "./types.js";
+import { validateTemplateExists } from "./validation.js";
 
 // ============================================================================
 // Date Utilities
@@ -74,8 +75,9 @@ function calculateStartDate(
   firstDayOfWeek: "monday" | "sunday"
 ): Date {
   const event = parseLocalDate(eventDate);
-  // Go back totalWeeks * 7 days from event date
-  const start = addDays(event, -(totalWeeks * 7));
+  // Go back (totalWeeks - 1) * 7 days from event date
+  // This ensures the final week's last day aligns with the event date
+  const start = addDays(event, -((totalWeeks - 1) * 7));
 
   // Adjust to the first day of the week
   const targetDay = firstDayOfWeek === "monday" ? 1 : 0;
@@ -136,19 +138,11 @@ export function expandWorkout(
   templates: TemplateRegistry
 ): ExpandedWorkout {
   const parsed = parseWorkoutReference(ref);
-  const template = templates.get(parsed.templateId);
 
-  if (!template) {
-    // Create a placeholder workout for unknown templates
-    return {
-      id: workoutId,
-      sport: "run",
-      type: "unknown",
-      name: `Unknown: ${parsed.templateId}`,
-      humanReadable: `Template not found: ${parsed.templateId}`,
-      completed: false,
-    };
-  }
+  // Validate template exists before attempting expansion (fail-fast)
+  validateTemplateExists(parsed.templateId, templates);
+
+  const template = templates.get(parsed.templateId)!; // Safe after validation
 
   // Build the full context with template params
   const paramContext = buildParamContext(template, parsed.params);
@@ -342,7 +336,9 @@ export function expandPlan(
 
   // Calculate start date
   const startDate =
-    options.startDate || calculateStartDate(compact.athlete.eventDate, totalWeeks, firstDayOfWeek);
+    options.startDate ||
+    (compact.athlete.startDate ? parseLocalDate(compact.athlete.startDate) : null) ||
+    calculateStartDate(compact.athlete.eventDate, totalWeeks, firstDayOfWeek);
 
   // Build interpolation context
   const zonesForContext = compact.athlete.zones?.hr

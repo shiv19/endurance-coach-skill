@@ -25,6 +25,17 @@ export type {
 // Core expander
 export { expandPlan, expandWorkout, validateWorkoutRefs } from "./expander.js";
 
+// Template validation
+export {
+  UnknownTemplateError,
+  validateTemplateExists,
+  findSimilarTemplates,
+  levenshteinDistance,
+  similarityScore,
+  validatePlanTemplates,
+  formatValidationErrors,
+} from "./validation.js";
+
 // Zone calculations
 export {
   calculateHRZones,

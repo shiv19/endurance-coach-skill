@@ -91,6 +91,7 @@ export interface CompactAthlete {
   name: string;
   event: string;
   eventDate: string; // ISO date: "2025-03-02"
+  startDate?: string; // Explicit plan start date (ISO format: "2025-02-17")
   paces: AthletePaces;
   zones?: AthleteZones;
   constraints?: AthleteConstraints;

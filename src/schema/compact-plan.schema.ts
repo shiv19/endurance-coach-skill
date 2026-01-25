@@ -95,6 +95,10 @@ export const CompactAthleteSchema = z.object({
   name: z.string().min(1),
   event: z.string().min(1),
   eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in ISO format: YYYY-MM-DD"),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in ISO format: YYYY-MM-DD")
+    .optional(),
   paces: AthletePacesSchema,
   zones: AthleteZonesSchema.optional(),
   constraints: AthleteConstraintsSchema.optional(),
