@@ -222,7 +222,7 @@ export async function exportAllWorkouts(
     for (const day of week.days ?? []) {
       for (const workout of day.workouts ?? []) {
         // Skip rest days
-        if (workout.sport === "rest") {
+        if (workout.sport === "rest" || workout.type === "rest") {
           skipped++;
           continue;
         }

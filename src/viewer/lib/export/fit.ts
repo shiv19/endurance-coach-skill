@@ -61,15 +61,15 @@ function getFitSport(sport: Sport): string {
 function getFitSubSport(sport: Sport): string {
   switch (sport) {
     case "swim":
-      return "lap_swimming";
+      return "lapSwimming";
     case "bike":
       return "road";
     case "run":
       return "road";
     case "strength":
-      return "strength_training";
+      return "strengthTraining";
     case "brick":
-      return "triathlon";
+      return "generic";
     default:
       return "generic";
   }
@@ -135,6 +135,25 @@ function getDurationType(unit: string): string {
   }
 }
 
+function parsePaceToSpeedMps(pace: string): number | null {
+  const match = pace.trim().match(/^(\d{1,2}):(\d{2})(?:\/(km|mi))?$/i);
+  if (!match) {
+    return null;
+  }
+
+  const minutes = Number(match[1]);
+  const seconds = Number(match[2]);
+  if (Number.isNaN(minutes) || Number.isNaN(seconds)) {
+    return null;
+  }
+
+  const totalSeconds = minutes * 60 + seconds;
+  const unit = (match[3] ?? "km").toLowerCase();
+  const meters = unit === "mi" ? 1609.34 : 1000;
+
+  return meters / totalSeconds;
+}
+
 /**
  * Generate workout steps from structured workout
  */
@@ -155,7 +174,7 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
 
     const fitStep: any = {
       messageIndex: stepIndex,
-      workoutStepName: step.name || "",
+      wktStepName: step.name || "",
       intensity: getStepIntensity(step.type),
       durationType: durationType,
       durationValue: durationValue,
@@ -169,22 +188,33 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
         case "percent_ftp":
           fitStep.targetType = "power";
           fitStep.targetValue = 0;
-          fitStep.customTargetValueLow = step.intensity.valueLow ?? intensityValue - 5;
-          fitStep.customTargetValueHigh = step.intensity.valueHigh ?? intensityValue + 5;
+          fitStep.customTargetValueLow = step.intensity.valueLow ?? intensityValue;
+          fitStep.customTargetValueHigh = step.intensity.valueHigh ?? intensityValue;
           break;
         case "percent_lthr":
-        case "hr_zone":
-          fitStep.targetType = "heart_rate";
+          fitStep.targetType = "heartRate";
           fitStep.targetValue = 0;
-          // HR zone values need to be actual BPM if available
-          if (step.intensity.valueLow !== undefined && step.intensity.valueHigh !== undefined) {
-            fitStep.customTargetValueLow = step.intensity.valueLow;
-            fitStep.customTargetValueHigh = step.intensity.valueHigh;
+          fitStep.customTargetValueLow = step.intensity.valueLow ?? intensityValue;
+          fitStep.customTargetValueHigh = step.intensity.valueHigh ?? intensityValue;
+          break;
+        case "hr_zone":
+          fitStep.targetType = "heartRate";
+          fitStep.targetValue = Math.round(intensityValue);
+          break;
+        case "pace_zone": {
+          const pace = step.intensity.description ?? "";
+          const speedMps = parsePaceToSpeedMps(pace);
+          if (speedMps) {
+            fitStep.targetType = "speed";
+            fitStep.targetValue = 0;
+            const scaled = Math.round(speedMps * 1000);
+            fitStep.customTargetValueLow = scaled;
+            fitStep.customTargetValueHigh = scaled;
           } else {
-            // Use zone as target value (1-5)
-            fitStep.targetValue = intensityValue;
+            fitStep.targetType = "open";
           }
           break;
+        }
         case "rpe":
           // No direct RPE support in FIT, use open target
           fitStep.targetType = "open";
@@ -210,28 +240,26 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
   // Helper to add interval set
   const addIntervalSet = (intervalSet: IntervalSet) => {
     // For FIT, we need to add a repeat step that references the child steps
-    const repeatStepIndex = stepIndex;
-    stepIndex++; // Reserve index for repeat step
+    const repeatFromIndex = stepIndex;
 
     // Add the child steps
-    const childStepIndices: number[] = [];
     for (const childStep of intervalSet.steps) {
-      childStepIndices.push(addStep(childStep, true));
+      addStep(childStep, true);
     }
 
-    // Create the repeat step
+    // Create the repeat step (must follow the block)
     const repeatStep: any = {
-      messageIndex: repeatStepIndex,
-      workoutStepName: intervalSet.name || "Intervals",
-      durationType: "repeat_until_steps_cmplt",
-      durationValue: intervalSet.repeats,
+      messageIndex: stepIndex,
+      wktStepName: intervalSet.name || "Intervals",
+      durationType: "repeatUntilStepsCmplt",
+      durationValue: repeatFromIndex,
       targetType: "open",
+      targetValue: intervalSet.repeats,
       intensity: "interval",
     };
 
-    // Insert repeat step at correct position
-    steps.splice(repeatStepIndex, 0, repeatStep);
-    stepIndex++; // Adjust for inserted repeat step
+    steps.push(repeatStep);
+    stepIndex++;
   };
 
   // Process warmup
@@ -313,7 +341,7 @@ function generateSimpleSteps(workout: Workout): { steps: any[]; totalSteps: numb
 /**
  * Generate a complete FIT workout file
  */
-export async function generateFit(workout: Workout, _settings: Settings): Promise<Uint8Array> {
+export async function generateFit(workout: Workout, settings: Settings): Promise<Uint8Array> {
   if (!isFitSupported(workout.sport)) {
     throw new Error(`FIT export not supported for ${workout.sport} workouts`);
   }
@@ -335,12 +363,21 @@ export async function generateFit(workout: Workout, _settings: Settings): Promis
     : generateSimpleSteps(workout);
 
   // Workout message
-  encoder.onMesg(Profile.MesgNum.WORKOUT, {
-    workoutName: workout.name,
+  const workoutMessage: Record<string, unknown> = {
+    wktName: workout.name,
     sport: getFitSport(workout.sport),
     subSport: getFitSubSport(workout.sport),
     numValidSteps: totalSteps,
-  });
+  };
+
+  if (workout.sport === "swim") {
+    const isYards = settings.units.swim === "yards";
+    const poolLengthMeters = isYards ? 22.86 : 25;
+    workoutMessage.poolLength = Math.round(poolLengthMeters * 100) / 100;
+    workoutMessage.poolLengthUnit = isYards ? "statute" : "metric";
+  }
+
+  encoder.onMesg(Profile.MesgNum.WORKOUT, workoutMessage);
 
   // Write workout steps
   for (const step of steps) {

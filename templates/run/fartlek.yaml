@@ -13,6 +13,33 @@ params:
     max: 60
     description: Total duration in minutes
 
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 10min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "8"
+      work:
+        type: work
+        name: Fast effort
+        duration: 1min
+        pace: "${paces.interval}"
+        intensity: Zone 4-5
+      recovery:
+        type: recovery
+        name: Easy recovery
+        duration: 2min
+        pace: "${paces.easy}"
+        intensity: Zone 2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 10min
+      pace: "${paces.easy}"
+
 humanReadable: |
   FARTLEK - ${duration} minutes
 
