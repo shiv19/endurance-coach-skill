@@ -120,21 +120,36 @@ function applyCompletedStatus(plan: TrainingPlan, completed: Record<string, bool
 function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingPlan {
   const modifiedPlan = JSON.parse(JSON.stringify(plan)) as TrainingPlan;
 
-  // Track all workouts by ID for easy lookup
-  const workoutMap = new Map<string, { weekIdx: number; dayIdx: number; workoutIdx: number }>();
+  const findWorkoutLocation = (
+    workoutId: string
+  ): { weekIdx: number; dayIdx: number; workoutIdx: number; workout: Workout } | null => {
+    for (const [weekIdx, week] of (modifiedPlan.weeks || []).entries()) {
+      for (const [dayIdx, day] of (week.days || []).entries()) {
+        for (const [workoutIdx, workout] of (day.workouts || []).entries()) {
+          if (workout.id === workoutId) {
+            return { weekIdx, dayIdx, workoutIdx, workout };
+          }
+        }
+      }
+    }
+    return null;
+  };
 
-  modifiedPlan.weeks?.forEach((week, weekIdx) => {
-    week.days?.forEach((day, dayIdx) => {
-      day.workouts?.forEach((workout, workoutIdx) => {
-        workoutMap.set(workout.id, { weekIdx, dayIdx, workoutIdx });
-      });
-    });
-  });
+  const findDayByDate = (date: string): TrainingDay | null => {
+    for (const week of modifiedPlan.weeks || []) {
+      for (const day of week.days || []) {
+        if (day.date === date) {
+          return day;
+        }
+      }
+    }
+    return null;
+  };
 
   // 1. Apply deleted workouts
   console.log(`Applying ${changes.deleted.length} deletions...`);
   changes.deleted.forEach((workoutId) => {
-    const location = workoutMap.get(workoutId);
+    const location = findWorkoutLocation(workoutId);
     if (location) {
       const { weekIdx, dayIdx, workoutIdx } = location;
       modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
@@ -142,24 +157,13 @@ function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingP
     }
   });
 
-  // Rebuild workout map after deletions
-  workoutMap.clear();
-  modifiedPlan.weeks?.forEach((week, weekIdx) => {
-    week.days?.forEach((day, dayIdx) => {
-      day.workouts?.forEach((workout, workoutIdx) => {
-        workoutMap.set(workout.id, { weekIdx, dayIdx, workoutIdx });
-      });
-    });
-  });
-
   // 2. Apply edits to existing workouts
   const editCount = Object.keys(changes.edited).length;
   console.log(`Applying ${editCount} edits...`);
   Object.entries(changes.edited).forEach(([workoutId, edits]) => {
-    const location = workoutMap.get(workoutId);
+    const location = findWorkoutLocation(workoutId);
     if (location) {
-      const { weekIdx, dayIdx, workoutIdx } = location;
-      const workout = modifiedPlan.weeks![weekIdx].days![dayIdx].workouts![workoutIdx];
+      const { workout } = location;
       Object.assign(workout, edits);
       console.log(`  - Edited workout: ${workoutId}`);
     }
@@ -169,28 +173,17 @@ function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingP
   const moveCount = Object.keys(changes.moved).length;
   console.log(`Applying ${moveCount} moves...`);
   Object.entries(changes.moved).forEach(([workoutId, newDate]) => {
-    const location = workoutMap.get(workoutId);
-    if (!location) return;
-
-    const { weekIdx, dayIdx, workoutIdx } = location;
-
-    // Remove workout from original location
-    const [workout] = modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
-
     // Find the target day
-    let targetDay: TrainingDay | null = null;
-
-    for (const week of modifiedPlan.weeks || []) {
-      for (const day of week.days || []) {
-        if (day.date === newDate) {
-          targetDay = day;
-          break;
-        }
-      }
-      if (targetDay) break;
-    }
+    const targetDay = findDayByDate(newDate);
 
     if (targetDay) {
+      const location = findWorkoutLocation(workoutId);
+      if (!location) return;
+
+      const { weekIdx, dayIdx, workoutIdx, workout } = location;
+
+      modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
+
       // Add workout to new location
       if (!targetDay.workouts) {
         targetDay.workouts = [];
@@ -207,17 +200,7 @@ function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingP
   console.log(`Adding ${addCount} new workouts...`);
   Object.entries(changes.added).forEach(([workoutId, { date, workout }]) => {
     // Find the target day
-    let targetDay: TrainingDay | null = null;
-
-    for (const week of modifiedPlan.weeks || []) {
-      for (const day of week.days || []) {
-        if (day.date === date) {
-          targetDay = day;
-          break;
-        }
-      }
-      if (targetDay) break;
-    }
+    const targetDay = findDayByDate(date);
 
     if (targetDay) {
       if (!targetDay.workouts) {
