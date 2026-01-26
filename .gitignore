@@ -41,4 +41,3 @@ npm-debug.log*
 # Built template (generated from src/viewer via Vite)
 templates/plan-viewer.html
 cloud-output/
-cloud-output/

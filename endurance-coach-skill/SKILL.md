@@ -24,10 +24,10 @@ Keep this skill lean. When you need specifics, read the single-source references
 
 The athlete's training data is stored in SQLite at `~/.endurance-coach/coach.db`.
 
-- Use the assessment commands in @reference/queries.md for standard analysis.
-- Use `activity <id> --laps` for detailed lap-by-lap interval analysis (fetches from Strava).
-- Use @reference/schema.md when forming custom queries.
-- Use `query` only for advanced, ad-hoc SQL.
+- Run the assessment commands in @reference/queries.md for standard analysis.
+- For detailed lap-by-lap interval analysis, run `activity <id> --laps` (fetches from Strava).
+- Consult `@reference/schema.md` when forming custom queries.
+- Reserve `query` for advanced, ad-hoc SQL only.
 
 This works on any Node.js version (uses built-in SQLite on Node 22.5+, falls back to CLI otherwise).
 

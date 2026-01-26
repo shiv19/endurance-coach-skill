@@ -52,18 +52,23 @@ describe("runValidate", () => {
       success: true,
       data: { weeks: [] },
     } as any);
-    vi.mocked(loadTemplates).mockReturnValue({} as never);
-    vi.mocked(validateWorkoutRefs).mockReturnValue(["Missing template"]);
+    vi.mocked(loadTemplates).mockReturnValue({ has: () => false } as any);
+    vi.mocked(validateWorkoutRefs).mockReturnValue(["Week 1, Mon: Unknown template 'tempo'"]);
 
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit:${code}`);
+    }) as never);
 
-    runValidate({ command: "validate", inputFile: "plan.yaml", compact: true });
-
-    expect(log.warn).toHaveBeenCalledWith("Template reference warnings:");
-    expect(errorSpy).toHaveBeenCalledWith("  - Missing template");
-    expect(log.success).toHaveBeenCalledWith("Compact plan is valid!");
+    expect(() =>
+      runValidate({ command: "validate", inputFile: "plan.yaml", compact: true })
+    ).toThrow("exit:1");
+    expect(log.warn).toHaveBeenCalledWith(
+      "Compact plan validation failed with template reference warnings:"
+    );
 
     errorSpy.mockRestore();
+    exitSpy.mockRestore();
   });
 
   it("validates full plan JSON", () => {

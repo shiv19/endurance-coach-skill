@@ -11,6 +11,11 @@ export function formatTable(
   headers: string[],
   keys: string[]
 ): string {
+  if (headers.length !== keys.length) {
+    throw new Error(
+      `formatTable: headers length (${headers.length}) must match keys length (${keys.length})`
+    );
+  }
   if (rows.length === 0) return "";
 
   const stringRows = rows.map((row) =>

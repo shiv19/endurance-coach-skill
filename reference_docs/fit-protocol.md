@@ -1,6 +1,6 @@
 # FIT Protocol Summary
 
-Source: https://developer.garmin.com/fit/protocol/
+Source: [Garmin FIT Protocol](https://developer.garmin.com/fit/protocol/)
 
 Key ideas
 

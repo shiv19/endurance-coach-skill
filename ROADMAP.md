@@ -16,7 +16,7 @@ Goal: Turn subjective athlete feedback into **structured coaching signal**, not 
     - Sync workout automatically if Strava is enabled, and gets the Lap Details
     - Otherwise, naturally prompt for workout details
 
-- **Interview flow using natural back and forth, open ended (baseline questions)**
+- **Interview flow using natural back-and-forth, open-ended (baseline questions)**
   - How did the workout feel overall?
   - What were the key challenges or highlights?
   - Did you stick to the planned structure?
@@ -143,8 +143,6 @@ Goal: Reduce friction **only where it surfaces coaching insight**.
   - Expand sidebar to view full content without scrolling
 
 > UI work should not precede coaching intelligence. It should surface and reinforce it.
-
----
 
 ---
 

@@ -178,7 +178,7 @@ export function validatePlanTemplates(
       const refArray = Array.isArray(refs) ? refs : [refs];
       for (const ref of refArray) {
         // Extract template ID from reference (e.g., "easy(30)" -> "easy")
-        const templateId = ref.split(/[:(]/)[0];
+        const templateId = ref.trim().split(/[:(]/)[0];
 
         if (!templates.has(templateId)) {
           const suggestions = findSimilarTemplates(templateId, templates);

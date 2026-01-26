@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { read, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { log } from "../../lib/logging.js";
@@ -33,7 +33,7 @@ export function getTemplatePath(): string {
 
   for (const loc of locations) {
     try {
-      readFileSync(loc);
+      readFileSync(loc, "utf-8");
       return loc;
     } catch {
       // Continue to next location
@@ -118,7 +118,13 @@ export function runRender(args: RenderArgs): void {
 
   // Read the template
   const templatePath = getTemplatePath();
-  let template = readFileSync(templatePath, "utf-8");
+  let template: string;
+  try {
+    template = readFileSync(templatePath, "utf-8");
+  } catch {
+    log.error(`Could not read template file: ${templatePath}`);
+    process.exit(1);
+  }
 
   // Replace the plan data in the template
   const planDataRegex = /<script type="application\/json" id="plan-data">[\s\S]*?<\/script>/;

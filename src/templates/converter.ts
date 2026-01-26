@@ -292,9 +292,9 @@ export function convertTemplateIntervalSet(
 ): IntervalSet {
   // Parse repeats (may be a variable like "${reps}")
   const repeatsStr = interpolate(intervalSet.repeats, context);
-  const repeats = typeof repeatsStr === "string" ? parseInt(repeatsStr, 10) : Number(repeatsStr);
+  const repeats = Number(repeatsStr);
 
-  if (isNaN(repeats) || repeats < 0) {
+  if (!Number.isInteger(repeats) || repeats < 0) {
     throw new Error(`Invalid repeats value: "${intervalSet.repeats}" (parsed: "${repeatsStr}")`);
   }
 

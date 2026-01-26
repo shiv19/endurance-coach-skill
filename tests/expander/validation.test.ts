@@ -39,8 +39,9 @@ describe("Fuzzy Matching - Levenshtein Distance", () => {
     expect(levenshteinDistance("", "")).toBe(0);
   });
 
-  it("is case insensitive", () => {
-    expect(levenshteinDistance("Easy".toLowerCase(), "easy")).toBe(0);
+  it("is case sensitive (use similarityScore for case-insensitive comparison)", () => {
+    // levenshteinDistance is case-sensitive; "Easy" vs "easy" would differ
+    expect(levenshteinDistance("Easy", "easy")).toBe(1);
   });
 });
 

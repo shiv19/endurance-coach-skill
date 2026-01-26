@@ -2,7 +2,18 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { SchedulePreferencesArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+
 import { printSection } from "../utils/printSection.js";
+
+const DAY_NAME_CASE = `CASE strftime('%w', start_date)
+  WHEN '0' THEN 'Sunday'
+  WHEN '1' THEN 'Monday'
+  WHEN '2' THEN 'Tuesday'
+  WHEN '3' THEN 'Wednesday'
+  WHEN '4' THEN 'Thursday'
+  WHEN '5' THEN 'Friday'
+  WHEN '6' THEN 'Saturday'
+END`;
 
 const DEFAULT_RIDE_MINUTES = 90;
 const DEFAULT_RUN_MINUTES = 60;
@@ -26,15 +37,7 @@ export async function runSchedulePreferences(args: SchedulePreferencesArgs): Pro
 
   const rideSql = `
     SELECT
-      CASE strftime('%w', start_date)
-        WHEN '0' THEN 'Sunday'
-        WHEN '1' THEN 'Monday'
-        WHEN '2' THEN 'Tuesday'
-        WHEN '3' THEN 'Wednesday'
-        WHEN '4' THEN 'Thursday'
-        WHEN '5' THEN 'Friday'
-        WHEN '6' THEN 'Saturday'
-      END AS day_name,
+      ${DAY_NAME_CASE} AS day_name,
       COUNT(*) AS long_rides
     FROM activities
     WHERE sport_type = 'Ride'
@@ -45,15 +48,7 @@ export async function runSchedulePreferences(args: SchedulePreferencesArgs): Pro
 
   const runSql = `
     SELECT
-      CASE strftime('%w', start_date)
-        WHEN '0' THEN 'Sunday'
-        WHEN '1' THEN 'Monday'
-        WHEN '2' THEN 'Tuesday'
-        WHEN '3' THEN 'Wednesday'
-        WHEN '4' THEN 'Thursday'
-        WHEN '5' THEN 'Friday'
-        WHEN '6' THEN 'Saturday'
-      END AS day_name,
+      ${DAY_NAME_CASE} AS day_name,
       COUNT(*) AS long_runs
     FROM activities
     WHERE sport_type IN ('Run', 'Trail Run')
@@ -64,15 +59,7 @@ export async function runSchedulePreferences(args: SchedulePreferencesArgs): Pro
 
   const swimSql = `
     SELECT
-      CASE strftime('%w', start_date)
-        WHEN '0' THEN 'Sunday'
-        WHEN '1' THEN 'Monday'
-        WHEN '2' THEN 'Tuesday'
-        WHEN '3' THEN 'Wednesday'
-        WHEN '4' THEN 'Thursday'
-        WHEN '5' THEN 'Friday'
-        WHEN '6' THEN 'Saturday'
-      END AS day_name,
+      ${DAY_NAME_CASE} AS day_name,
       COUNT(*) AS swim_sessions
     FROM activities
     WHERE sport_type = 'Swim'

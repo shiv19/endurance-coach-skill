@@ -87,7 +87,7 @@ export async function getActivityLaps(tokens: Tokens, id: number): Promise<Lap[]
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch activity details: ${response.statusText}`);
+    throw new Error(`Failed to fetch activity laps: ${response.statusText}`);
   }
 
   return response.json();
