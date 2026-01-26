@@ -64,8 +64,9 @@ export function runExpand(args: ExpandArgs): void {
   // Validate template references
   const templateErrors = validateWorkoutRefs(validation.data, templates);
   if (templateErrors.length > 0) {
-    log.warn("Template reference warnings:");
-    templateErrors.forEach((e) => console.error(`  - ${e}`));
+    log.warn("Compact plan validation failed with template reference warnings:");
+    templateErrors.forEach((e) => log.error(`  - ${e}`));
+    process.exit(1);
   }
 
   // Expand the plan
@@ -93,7 +94,9 @@ export function runExpand(args: ExpandArgs): void {
       console.log(output);
     }
   } catch (error) {
-    log.error(`Failed to write expanded plan: ${error instanceof Error ? error.message : "Unknown error"}`);
+    log.error(
+      `Failed to write expanded plan: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
     process.exit(1);
   }
 }

@@ -65,8 +65,9 @@ export function runValidate(args: ValidateArgs): void {
     const templates = loadTemplates({ includeUserTemplates: true });
     const templateErrors = validateWorkoutRefs(validation.data, templates);
     if (templateErrors.length > 0) {
-      log.warn("Template reference warnings:");
-      templateErrors.forEach((e) => console.error(`  - ${e}`));
+      log.warn("Compact plan validation failed with template reference warnings:");
+      templateErrors.forEach((e) => log.error(`  - ${e}`));
+      process.exit(1);
     }
 
     log.success("Compact plan is valid!");
