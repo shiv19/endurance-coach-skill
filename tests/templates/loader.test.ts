@@ -4,14 +4,9 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
-import { join, homedir } from "node:path";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
-import {
-  loadTemplates,
-  loadTemplatesFromArray,
-  getUserTemplatesDir,
-  type WorkoutTemplate,
-} from "../../src/templates/index.js";
+import { loadTemplates, getUserTemplatesDir } from "../../src/templates/index.js";
 
 let testDir: string;
 
@@ -54,7 +49,7 @@ describe("Template Loader - User Template Support", () => {
 
   it("loads built-in templates by default", () => {
     const registry = loadTemplates();
-    expect(registry.has("easy")).toBe(true);
+    expect(registry.has("run.easy")).toBe(true);
   });
 
   it("loads user templates when includeUserTemplates is true", () => {
@@ -67,7 +62,7 @@ describe("Template Loader - User Template Support", () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const nonExistent = join(tmpdir(), "non-existent");
     const registry = loadTemplates({ includeUserTemplates: true, userTemplatesDir: nonExistent });
-    expect(registry.has("easy")).toBe(true);
+    expect(registry.has("run.easy")).toBe(true);
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("does not exist"));
     logSpy.mockRestore();
   });

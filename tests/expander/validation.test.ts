@@ -72,21 +72,21 @@ describe("Fuzzy Matching - Find Similar Templates", () => {
 
   it("finds exact matches", () => {
     const results = findSimilarTemplates("easy", templates);
-    expect(results).toContain("easy");
-    expect(results[0]).toBe("easy");
+    expect(results).toContain("run.easy");
+    expect(results[0]).toBe("run.easy");
   });
 
   it("finds templates with small typos", () => {
     const results = findSimilarTemplates("eazy", templates);
     expect(results.length).toBeGreaterThan(0);
-    expect(results).toContain("easy");
+    expect(results).toContain("run.easy");
   });
 
   it("finds templates with missing sport prefix", () => {
     const results = findSimilarTemplates("tempo", templates);
     expect(results.length).toBeGreaterThan(0);
     // Should suggest run.tempo, bike.tempo
-    expect(results.some((r) => r.includes("tempo"))).toBe(true);
+    expect(results.some((r) => r.includes("run.tempo"))).toBe(true);
   });
 
   it("suggests multiple similar templates", () => {
@@ -110,8 +110,8 @@ describe("Validate Template Exists", () => {
   const templates = loadTemplates();
 
   it("does not throw for valid templates", () => {
-    expect(() => validateTemplateExists("easy", templates)).not.toThrow();
-    expect(() => validateTemplateExists("rest", templates)).not.toThrow();
+    expect(() => validateTemplateExists("run.easy", templates)).not.toThrow();
+    expect(() => validateTemplateExists("run.rest", templates)).not.toThrow();
   });
 
   it("throws UnknownTemplateError for invalid templates", () => {
@@ -137,7 +137,7 @@ describe("Validate Template Exists", () => {
       expect(e).toBeInstanceOf(UnknownTemplateError);
       const error = e as UnknownTemplateError;
       expect(error.suggestions.length).toBeGreaterThan(0);
-      expect(error.suggestions).toContain("easy");
+      expect(error.suggestions).toContain("run.easy");
     }
   });
 
@@ -161,13 +161,13 @@ describe("Template Suggestion Scenarios", () => {
 
   it("suggests easy when user types eazy", () => {
     const results = findSimilarTemplates("eazy", templates);
-    expect(results).toContain("easy");
+    expect(results).toContain("run.easy");
   });
 
   it("suggests run templates when user types easy", () => {
     const results = findSimilarTemplates("easy", templates);
     // easy is a run template, so should match exactly
-    expect(results[0]).toBe("easy");
+    expect(results[0]).toBe("run.easy");
   });
 
   it("suggests multiple sport-specific templates", () => {
@@ -184,7 +184,7 @@ describe("Template Suggestion Scenarios", () => {
   });
 
   it("handles sport prefix variations", () => {
-    const results = findSimilarTemplates("run.easy", templates);
-    expect(results).toContain("easy");
+    const results = findSimilarTemplates("easy", templates);
+    expect(results).toContain("run.easy");
   });
 });

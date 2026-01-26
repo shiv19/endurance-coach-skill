@@ -12,13 +12,13 @@ import { loadTemplates } from "../../src/templates/index.js";
 
 const createWeek = (weekNum: number, phase: string, baseWorkouts: Record<string, string> = {}) => {
   const defaultWorkouts = {
-    Mon: "rest",
-    Tue: "easy(30)",
-    Wed: "rest",
-    Thu: "easy(30)",
-    Fri: "rest",
-    Sat: "easy(45)",
-    Sun: "long(60)",
+    Mon: "run.rest",
+    Tue: "run.easy(30)",
+    Wed: "run.rest",
+    Thu: "run.easy(30)",
+    Fri: "run.rest",
+    Sat: "run.easy(45)",
+    Sun: "run.long(60)",
     ...baseWorkouts,
   };
   return { week: weekNum, phase, workouts: defaultWorkouts };
@@ -45,8 +45,8 @@ describe("Training Start Date Calculation", () => {
 
   it("aligns final week with event date for 8-week plan (monday start)", () => {
     const weeks = generate8WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
-    weeks[7] = createWeek(8, "Base", { Sun: "race.5k" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
+    weeks[7] = createWeek(8, "Base", { Sun: "run.race.5k" });
 
     const compact = {
       version: "2.0",
@@ -71,8 +71,8 @@ describe("Training Start Date Calculation", () => {
 
   it("handles Sunday first day of week", () => {
     const weeks = generate8WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Sun: "easy(30)" });
-    weeks[7] = createWeek(8, "Base", { Sat: "race.5k" });
+    weeks[0] = createWeek(1, "Base", { Sun: "run.easy(30)" });
+    weeks[7] = createWeek(8, "Base", { Sat: "run.race.5k" });
 
     const compact = {
       version: "2.0",
@@ -96,8 +96,8 @@ describe("Training Start Date Calculation", () => {
 
   it("calculates correct dates for 12-week plan", () => {
     const weeks = generate12WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
-    weeks[11] = createWeek(12, "Base", { Sun: "long(90)" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
+    weeks[11] = createWeek(12, "Base", { Sun: "run.long(90)" });
 
     const compact = {
       version: "2.0",
@@ -122,7 +122,7 @@ describe("Training Start Date Calculation", () => {
 
   it("uses explicit startDate if provided in athlete config", () => {
     const weeks = generate4WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
 
     const compact = {
       version: "2.0",
@@ -146,7 +146,7 @@ describe("Training Start Date Calculation", () => {
 
   it("respects options.startDate over athlete.startDate and calculated date", () => {
     const weeks = generate4WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
 
     const compact = {
       version: "2.0",
@@ -171,8 +171,8 @@ describe("Training Start Date Calculation", () => {
 
   it("handles 4-week plan with Monday event", () => {
     const weeks = generate4WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
-    weeks[3] = createWeek(4, "Peak", { Mon: "race.5k" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
+    weeks[3] = createWeek(4, "Peak", { Mon: "run.race.5k" });
 
     const compact = {
       version: "2.0",
@@ -197,8 +197,8 @@ describe("Training Start Date Calculation", () => {
 
   it("validates last week contains the event date day", () => {
     const weeks = generate8WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
-    weeks[7] = createWeek(8, "Peak", { Sun: "race.5k" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
+    weeks[7] = createWeek(8, "Peak", { Sun: "run.race.5k" });
 
     const compact = {
       version: "2.0",
@@ -222,8 +222,8 @@ describe("Training Start Date Calculation", () => {
 
   it("handles leap year correctly", () => {
     const weeks = generate8WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
-    weeks[7] = createWeek(8, "Peak", { Sun: "race.5k" });
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
+    weeks[7] = createWeek(8, "Peak", { Sun: "run.race.5k" });
 
     const compact = {
       version: "2.0",
@@ -272,7 +272,7 @@ describe("Template Validation - Fail-Fast", () => {
 
   it("includes helpful suggestions in error message", () => {
     const weeks = generate8WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "eazy(30)" }); // Typo for "easy"
+    weeks[0] = createWeek(1, "Base", { Mon: "run.eazy(30)" }); // Typo for "easy"
 
     const compact = {
       version: "2.0",
@@ -293,16 +293,15 @@ describe("Template Validation - Fail-Fast", () => {
       expect.fail("Should have thrown");
     } catch (e) {
       const message = (e as Error).message;
-      expect(message).toContain("eazy");
-      expect(message.toLowerCase()).toContain("easy");
+      expect(message).toContain("run.eazy");
+      expect(message.toLowerCase()).toContain("run.easy");
     }
   });
 
   it("validates all templates before expansion", () => {
     const weeks = generate8WeekPlan("Base");
-    weeks[0] = createWeek(1, "Base", { Mon: "easy(30)" });
-    weeks[7] = createWeek(8, "Base", { Sun: "badtemplate(30)" });
-
+    weeks[0] = createWeek(1, "Base", { Mon: "run.easy(30)" });
+    weeks[7] = createWeek(8, "Base", { Sun: "run.badtemplate(30)" });
     const compact = {
       version: "2.0",
       athlete: {

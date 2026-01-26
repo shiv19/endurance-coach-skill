@@ -41,7 +41,7 @@ describe("templates validate command", () => {
     it("should validate a valid built-in template", () => {
       const args: TemplatesArgs = {
         command: "templates",
-        validate: "easy",
+        validate: "run.easy",
       };
 
       expect(() => runTemplates(args)).not.toThrow();
@@ -70,7 +70,7 @@ humanReadable: Easy run at comfortable pace`;
       const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       const args: TemplatesArgs = {
         command: "templates",
-        validate: "easy",
+        validate: "run.easy",
       };
 
       runTemplates(args);
@@ -234,7 +234,7 @@ humanReadable: Test`;
       const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       const args: TemplatesArgs = {
         command: "templates",
-        validate: "easy",
+        validate: "run.easy",
       };
 
       runTemplates(args);
