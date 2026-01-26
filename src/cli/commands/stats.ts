@@ -5,17 +5,41 @@ import { formatTable } from "../utils/format-table.js";
 const DEFAULT_WEEKS = 8;
 const DEFAULT_LONGEST_WEEKS = 12;
 
+/**
+ * Convert an input to a positive integer, falling back when the input is missing or invalid.
+ *
+ * @param value - The input number to convert; if `undefined`, `NaN`, or <= 0 the `fallback` is used
+ * @param fallback - The value returned when `value` is missing or not a positive number
+ * @returns `fallback` if `value` is missing, `NaN`, or less than or equal to zero; otherwise the largest integer less than or equal to `value`
+ */
 function toPositiveInt(value: number | undefined, fallback: number): number {
   if (!value || Number.isNaN(value) || value <= 0) return fallback;
   return Math.floor(value);
 }
 
+/**
+ * Print a titled console section with the provided output.
+ *
+ * @param title - The section title printed as a header
+ * @param output - Text to trim and print; if the trimmed text is empty, prints "(no results)"
+ */
 function printSection(title: string, output: string): void {
   const trimmed = output.trim();
   console.log(`\n# ${title}`);
   console.log(trimmed ? trimmed : "(no results)");
 }
 
+/**
+ * Generate activity statistics over a configurable lookback window and print them to stdout as either JSON or formatted tables.
+ *
+ * When the `json` flag is set, writes a JSON object with keys `weeklyVolume`, `longestSessions`, and `averageSessionDuration`.
+ * Otherwise prints three human-readable sections: weekly volume, longest recent sessions, and average session duration.
+ *
+ * @param args - Command options. Recognized fields:
+ *   - `weeks`: number of weeks to include for weekly and average calculations (falls back to `DEFAULT_WEEKS` if not a positive integer).
+ *   - `longestWeeks`: number of weeks to include when computing longest single sessions (falls back to `DEFAULT_LONGEST_WEEKS` if not a positive integer).
+ *   - `json`: when true, output is emitted as a JSON object instead of formatted tables.
+ */
 export async function runStats(args: StatsArgs): Promise<void> {
   await initDatabase();
 

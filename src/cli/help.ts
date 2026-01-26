@@ -1,6 +1,12 @@
 // ============================================================================
 // Help Command
-// ============================================================================
+/**
+ * Print the CLI usage, command reference, options, auth flow, and examples for the Endurance Coach tools to the console.
+ *
+ * The help text covers available commands, per-command options (auth, sync, activity, expand, render, templates, stats,
+ * training-load, foundation, strength, schedule-preferences, hr-zones, query, modify, etc.), headless and interactive auth
+ * instructions, and example invocations.
+ */
 
 export function printHelp(): void {
   console.log(`

@@ -26,16 +26,22 @@ const __dirname = dirname(__filename);
 const USER_TEMPLATES_DIR = join(homedir(), ".endurance-coach", "workout-templates");
 
 /**
- * Get user templates directory path.
+ * Get the default user templates directory path.
+ *
+ * @returns The absolute path to the user templates directory (typically `~/.endurance-coach/workout-templates`)
  */
 export function getUserTemplatesDir(): string {
   return USER_TEMPLATES_DIR;
 }
 
 /**
- * Default templates directory location.
- * In development: ./templates relative to project root
- * In production: bundled with package
+ * Locate the package's templates directory.
+ *
+ * Searches candidate locations in priority order (distribution build, source tree, then current working directory)
+ * and returns the first existing directory.
+ *
+ * @returns The filesystem path to the templates directory.
+ * @throws Error if no templates directory is found; the error message lists the locations that were searched.
  */
 function getTemplatesDir(): string {
   // Try multiple locations
@@ -86,7 +92,10 @@ export interface LoadTemplatesOptions {
 // ============================================================================
 
 /**
- * Recursively find all YAML files in a directory.
+ * Recursively find all YAML files under a directory.
+ *
+ * @param dir - Path of the directory to search
+ * @returns An array of file paths for files ending with `.yaml` or `.yml`; returns an empty array if the directory does not exist or no matching files are found
  */
 function findYamlFiles(dir: string): string[] {
   const files: string[] = [];
@@ -116,7 +125,12 @@ function findYamlFiles(dir: string): string[] {
 // ============================================================================
 
 /**
- * Load a single template from a YAML file.
+ * Loads a workout template from a YAML file and annotates it with source metadata.
+ *
+ * @param filePath - Path to the YAML template file
+ * @param source - Origin of the template, either `"builtin"` or `"user"`
+ * @returns The validated workout template with `_source` set to `source` and `_sourcePath` set to `filePath`
+ * @throws Error if the file cannot be read, the YAML is invalid, or the template fails schema validation
  */
 function loadTemplateFile(
   filePath: string,
@@ -136,7 +150,14 @@ function loadTemplateFile(
 }
 
 /**
- * Load templates from a directory and add them to the templates map.
+ * Loads all YAML templates from the given directory and inserts them into the provided templates map.
+ *
+ * Adds or overwrites entries in `templates` for each valid template found. Logs warnings when duplicate
+ * template IDs are encountered and logs errors for files that fail to load.
+ *
+ * @param dir - Filesystem path to the directory to search for YAML template files
+ * @param source - Origin label for loaded templates; `"builtin"` or `"user"`
+ * @param templates - Mutable map to receive loaded templates; keys are template IDs and values include `_source` and `_sourcePath`
  */
 function loadTemplatesFromDir(
   dir: string,
@@ -208,6 +229,19 @@ function loadTemplatesFromDir(
  */
 export function loadTemplates(templatesDir?: string): TemplateRegistry;
 export function loadTemplates(options?: LoadTemplatesOptions): TemplateRegistry;
+/**
+ * Load workout templates from built-in and optionally user template directories and return a registry.
+ *
+ * The `arg` may be either a string (treated as the built-in templates directory for backward compatibility)
+ * or an options object. When user templates are included, templates from the user directory override built-in templates
+ * with the same id.
+ *
+ * @param arg - A path to the built-in templates directory, or a LoadTemplatesOptions object:
+ *   - If a string, it is treated as the built-in templates directory.
+ *   - If a LoadTemplatesOptions object, `builtinTemplatesDir` and `userTemplatesDir` may override defaults,
+ *     and `includeUserTemplates` controls whether user templates are loaded and can override built-ins.
+ * @returns A TemplateRegistry containing all loaded templates; registry methods can be used to query templates and their sources.
+ */
 export function loadTemplates(arg?: string | LoadTemplatesOptions): TemplateRegistry {
   const templates = new Map<
     string,
@@ -267,7 +301,10 @@ export function loadTemplatesFromArray(templateArray: WorkoutTemplate[]): Templa
 }
 
 /**
- * Create a template registry from a Map of templates.
+ * Create a TemplateRegistry backed by the provided templates map.
+ *
+ * @param templates - Map keyed by template id with `WorkoutTemplate` values; template objects may include runtime metadata `_source` (`"user"` | `"builtin"`) and `_sourcePath`.
+ * @returns The registry exposing template lookup (`get`), listing (`list`), membership (`has`), id enumeration (`ids`), and source inquiry (`getSource`, `getSourcePath`).
  */
 function createRegistry(templates: Map<string, WorkoutTemplate>): TemplateRegistry {
   return {

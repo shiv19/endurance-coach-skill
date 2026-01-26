@@ -68,7 +68,12 @@ function addDays(date: Date, days: number): Date {
 }
 
 /**
- * Calculate the start date of the plan from the event date and total weeks.
+ * Compute the plan's start date so the event date falls within the final week and weeks align to the specified first day.
+ *
+ * @param eventDate - Event date as an ISO string (`YYYY-MM-DD`) interpreted in local time
+ * @param totalWeeks - Total number of weeks in the plan (must be >= 1)
+ * @param firstDayOfWeek - Week alignment, either `"monday"` or `"sunday"`
+ * @returns The Date representing the first day of the plan (local date)
  */
 function calculateStartDate(
   eventDate: string,
@@ -130,7 +135,17 @@ function parseWorkoutReference(ref: string): ParsedWorkoutRef {
 }
 
 /**
- * Expand a single workout from its template reference.
+ * Create an ExpandedWorkout from a template reference.
+ *
+ * Builds a full interpolation context from the provided base `context` and any
+ * parameters embedded in `ref`, interpolates description and duration, converts
+ * any template structure to object form, and returns the expanded workout record.
+ *
+ * @param ref - The workout reference string (template id optionally with positional/keyword params)
+ * @param workoutId - The id to assign to the expanded workout instance
+ * @param context - Base interpolation variables (athlete paces, zones, etc.)
+ * @param templates - Registry of available templates used to resolve the referenced template
+ * @returns An ExpandedWorkout populated from the resolved template, including `id`, `sport`, `type`, `category`, `name`, `durationMinutes`, `primaryZone`, `rpe`, `coachingNotes`, `humanReadable`, `structure`, and `completed`
  */
 export function expandWorkout(
   ref: string,
@@ -333,8 +348,17 @@ function expandPhases(compact: CompactPlan): ExpandedPhase[] {
 // ============================================================================
 
 /**
- * Expand a compact plan into the full format for HTML rendering.
- */
+ * Convert a compact training plan into a fully expanded plan suitable for rendering.
+ *
+ * The expansion resolves workout templates, interpolates template parameters, computes per-week
+ * schedules and summaries, calculates athlete zones, and assembles metadata, preferences, and
+ * phased weekly hour ranges.
+ *
+ * @param compact - The compact plan to expand
+ * @param templates - Registry of available workout templates used during expansion
+ * @param options - Expansion behavior overrides
+ * @param options.startDate - If provided, use this date as the plan start date; otherwise the function will use an explicit athlete startDate if present or compute a start date from the athlete's eventDate and total weeks
+ * @returns The expanded plan containing version, meta, preferences, zones, phases, weeks, and optional raceStrategy, assessment, athleteNotes, and athletePaces.
 export function expandPlan(
   compact: CompactPlan,
   templates: TemplateRegistry,

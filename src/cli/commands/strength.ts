@@ -8,17 +8,43 @@ const DEFAULT_EASY_HR_MAX = 145;
 const DEFAULT_LONG_MINUTES = 60;
 const DEFAULT_YEARS = 2;
 
+/**
+ * Converts a number to a positive integer, returning the fallback when the input is missing, NaN, or not greater than zero.
+ *
+ * @param value - The input number to convert.
+ * @param fallback - The value to return when `value` is missing, NaN, or <= 0.
+ * @returns The floored integer part of `value` when it is greater than zero, otherwise `fallback`.
+ */
 function toPositiveInt(value: number | undefined, fallback: number): number {
   if (!value || Number.isNaN(value) || value <= 0) return fallback;
   return Math.floor(value);
 }
 
+/**
+ * Print a titled section to the console containing the given content.
+ *
+ * @param title - The section title to display as a header.
+ * @param output - The section content; whitespace is trimmed. If the trimmed content is empty, "(no results)" is printed.
+ */
 function printSection(title: string, output: string): void {
   const trimmed = output.trim();
   console.log(`\n# ${title}`);
   console.log(trimmed ? trimmed : "(no results)");
 }
 
+/**
+ * Generates strength-related analytics from stored activities and prints them as tables or JSON.
+ *
+ * Executes aggregated queries against the initialized activities database and outputs:
+ * - efficiency metrics per sport over a recent window,
+ * - summaries of long easy (aerobic) sessions,
+ * - most recent session date and counts per sport for the last year,
+ * - historical distance/time peaks over a configurable number of years.
+ *
+ * @param args - Options that control query windows and output format. Recognized fields include
+ *   `months`, `longMonths`, `easyHrMax`, `longMinutes`, `years` (numeric thresholds with defaults)
+ *   and `json` (when true, emits a combined JSON object instead of formatted tables).
+ */
 export async function runStrength(args: StrengthArgs): Promise<void> {
   await initDatabase();
 

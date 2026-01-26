@@ -4,17 +4,41 @@ import { formatTable } from "../utils/format-table.js";
 
 const DEFAULT_TOP_WEEKS = 5;
 
+/**
+ * Normalize a numeric input to a positive integer using a fallback when the input is missing or invalid.
+ *
+ * @param value - The numeric input to normalize; may be `undefined`, `NaN`, or non-positive
+ * @param fallback - The fallback positive integer to return when `value` is missing, `NaN`, or <= 0
+ * @returns The floored integer of `value` when `value` is greater than 0, otherwise `fallback`
+ */
 function toPositiveInt(value: number | undefined, fallback: number): number {
   if (!value || Number.isNaN(value) || value <= 0) return fallback;
   return Math.floor(value);
 }
 
+/**
+ * Print a titled console section with trimmed content or a placeholder when empty.
+ *
+ * Trims whitespace from `output`, logs a header built from `title`, then logs the trimmed content or the string "(no results)" when the trimmed output is empty.
+ *
+ * @param title - Section title to display as a header
+ * @param output - Raw section content; leading and trailing whitespace will be removed before printing
+ */
 function printSection(title: string, output: string): void {
   const trimmed = output.trim();
   console.log(`\n# ${title}`);
   console.log(trimmed ? trimmed : "(no results)");
 }
 
+/**
+ * Collects foundation analytics from the activities database and writes summarized metrics to the console.
+ *
+ * When `args.json` is truthy, emits a single JSON object containing `raceHistory`, `lifetimePeaks`,
+ * `peakTrainingWeeks`, and `trainingHistoryDepth`. Otherwise prints human-readable tables for:
+ * race history (workout_type = 1), lifetime peaks by sport, peak training weeks (top N), and training history depth.
+ *
+ * @param args - CLI options; `args.json` toggles JSON output, and `args.topWeeks` controls how many top training weeks are shown (defaults to 5 when not a positive integer)
+ */
 export async function runFoundation(args: FoundationArgs): Promise<void> {
   await initDatabase();
 

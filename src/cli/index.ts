@@ -33,7 +33,12 @@ if (proxyUrl) {
 
 // ============================================================================
 // Main Dispatcher
-// ============================================================================
+/**
+ * Parse command-line arguments and dispatch to the matching CLI command handler.
+ *
+ * The function selects and invokes the appropriate command implementation based on
+ * the parsed `args.command` value; some handlers are awaited when asynchronous.
+ */
 
 async function main(): Promise<void> {
   const args = parseArgs();

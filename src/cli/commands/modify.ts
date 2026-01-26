@@ -28,7 +28,17 @@ export interface ModifyOptions {
 // ============================================================================
 
 /**
- * Extract plan ID, changes, and completed status from backup localStorage data
+ * Extract plan ID, plan changes, and completed-workout flags from backup localStorage data.
+ *
+ * Parses the backup entries to locate a `plan-{id}-changes` entry and an optional
+ * `plan-{id}-completed` entry. JSON parse failures are logged to the console and
+ * cause the corresponding return fields to be `null`.
+ *
+ * @param backupData - Mapping of localStorage keys to JSON string values from a backup.
+ * @returns An object containing:
+ *  - `planId` — the extracted plan identifier, or `null` if not found;
+ *  - `changes` — the parsed `PlanChanges` object, or `null` if missing or parsing failed;
+ *  - `completed` — a map of workout IDs to `true` for completed workouts, or `null` if missing or parsing failed.
  */
 function extractDataFromBackup(backupData: BackupData): {
   planId: string | null;
@@ -70,7 +80,10 @@ function extractDataFromBackup(backupData: BackupData): {
 }
 
 /**
- * Apply completed status to workouts in the plan
+ * Set each workout's `completed` flag according to the provided map.
+ *
+ * @param plan - The training plan whose workouts will be updated
+ * @param completed - A map from workout ID to a boolean; if an ID exists in this map the corresponding workout's `completed` property will be set to that boolean
  */
 function applyCompletedStatus(plan: TrainingPlan, completed: Record<string, boolean>): void {
   const completedCount = Object.keys(completed).filter((id) => completed[id]).length;
@@ -98,7 +111,11 @@ function applyCompletedStatus(plan: TrainingPlan, completed: Record<string, bool
 }
 
 /**
- * Apply changes to the training plan
+ * Apply deletions, edits, moves, and additions from a PlanChanges object to a training plan and return the resulting plan.
+ *
+ * @param plan - The source TrainingPlan; the function does not mutate this object and returns a modified deep clone.
+ * @param changes - The set of changes to apply (deleted IDs, edited fields, moved workout dates, and added workouts).
+ * @returns The modified TrainingPlan with all changes applied and `meta.updatedAt` set to the current ISO timestamp.
  */
 function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingPlan {
   const modifiedPlan = JSON.parse(JSON.stringify(plan)) as TrainingPlan;
@@ -221,7 +238,16 @@ function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingP
 
 // ============================================================================
 // Modify Command
-// ============================================================================
+/**
+ * Modify a training plan using changes and completed flags extracted from a backup file and persist the updated plan.
+ *
+ * Reads the specified backup to obtain plan changes and optional completed-workout flags, applies deletions/edits/moves/additions and completed status to the provided plan file, and writes the resulting plan to the output path (or overwrites the original plan).
+ *
+ * @param options - Options controlling the modify operation:
+ *   - backup: Path to the backup file containing change and completed data
+ *   - plan: Path to the existing training plan file to modify
+ *   - output: Optional path to write the modified plan (defaults to `plan` if omitted)
+ */
 
 export function modifyCommand(options: ModifyOptions): void {
   console.log("📝 Modifying training plan...\n");
@@ -291,7 +317,11 @@ export function modifyCommand(options: ModifyOptions): void {
   }
 }
 
-// Also export for use via CLI args
+/**
+ * Run the modify operation using parsed CLI arguments.
+ *
+ * @param args - Parsed CLI arguments containing `backup` and `plan` file paths and an optional `output` path
+ */
 export function runModify(args: ModifyArgs): void {
   modifyCommand({
     backup: args.backup,

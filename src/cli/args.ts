@@ -148,7 +148,15 @@ export type CliArgs =
 
 // ============================================================================
 // Argument Parsing
-// ============================================================================
+/**
+ * Parse command-line arguments from process.argv and produce the corresponding CLI command object.
+ *
+ * The returned object identifies the selected command and any parsed options or flags.
+ *
+ * Note: for missing required inputs or invalid option values this function logs an error and exits the process with status 1.
+ *
+ * @returns A `CliArgs` object describing the requested command and its parsed options
+ */
 
 export function parseArgs(): CliArgs {
   const args = process.argv.slice(2);

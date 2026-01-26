@@ -56,7 +56,10 @@ function getFitSport(sport: Sport): string {
 }
 
 /**
- * Map our sport types to FIT sub_sport enum values
+ * Convert an internal sport identifier to the corresponding FIT `sub_sport` enum value.
+ *
+ * @param sport - Internal sport identifier (e.g., "swim", "bike", "run", "strength", "brick")
+ * @returns The FIT `sub_sport` enum string (for example `lapSwimming`, `road`, `strengthTraining`, or `generic`)
  */
 function getFitSubSport(sport: Sport): string {
   switch (sport) {
@@ -118,7 +121,10 @@ function getDurationValue(value: number, unit: string): number {
 }
 
 /**
- * Get duration type for FIT
+ * Map a duration unit string to the corresponding FIT duration category.
+ *
+ * @param unit - Unit name (e.g., "seconds", "minutes", "hours", "meters", "kilometers", "miles")
+ * @returns `"time"` for time-based units or unknown units, `"distance"` for distance-based units
  */
 function getDurationType(unit: string): string {
   switch (unit) {
@@ -135,6 +141,12 @@ function getDurationType(unit: string): string {
   }
 }
 
+/**
+ * Convert a pace string in MM:SS[/km|/mi] form to meters per second.
+ *
+ * @param pace - Pace formatted as minutes and seconds (e.g., "4:30" or "5:00/mi"). If the unit is omitted, `/km` is assumed.
+ * @returns The corresponding speed in meters per second, or `null` if the input cannot be parsed.
+ */
 function parsePaceToSpeedMps(pace: string): number | null {
   const match = pace.trim().match(/^(\d{1,2}):(\d{2})(?:\/(km|mi))?$/i);
   if (!match) {
@@ -155,7 +167,13 @@ function parsePaceToSpeedMps(pace: string): number | null {
 }
 
 /**
- * Generate workout steps from structured workout
+ * Builds FIT workout steps from a structured workout.
+ *
+ * Creates an array of FIT WORKOUT_STEP-like message objects representing warmup,
+ * main (including interval repeat blocks), and cooldown sections from `structure`.
+ *
+ * @param structure - Structured workout with optional `warmup` and `cooldown` arrays and a `main` sequence that may include interval sets
+ * @returns An object containing `steps`, the generated array of FIT step message objects, and `totalSteps`, the number of generated steps
  */
 function generateStepsFromStructure(structure: StructuredWorkout): {
   steps: any[];
@@ -339,7 +357,16 @@ function generateSimpleSteps(workout: Workout): { steps: any[]; totalSteps: numb
 }
 
 /**
- * Generate a complete FIT workout file
+ * Create a Garmin FIT workout file from a Workout and exporter Settings.
+ *
+ * Validates that the workout's sport is supported, encodes the required FIT
+ * messages (FILE_ID, WORKOUT, WORKOUT_STEP), and includes swim pool metadata
+ * when applicable based on `settings`.
+ *
+ * @param workout - The workout to export
+ * @param settings - Exporter settings (used for units and swim pool information)
+ * @returns A Uint8Array containing the encoded FIT binary data
+ * @throws Error if the workout's sport is not supported for FIT export
  */
 export async function generateFit(workout: Workout, settings: Settings): Promise<Uint8Array> {
   if (!isFitSupported(workout.sport)) {

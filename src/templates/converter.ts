@@ -30,19 +30,12 @@ import type {
 import { interpolate, evaluateExpression } from "./interpolate.js";
 
 /**
- * Parse a duration string into a DurationTarget object.
+ * Parse a human-readable duration string and resolve interpolated expressions into a DurationTarget.
  *
- * Supports formats:
- * - "10min" -> { unit: "minutes", value: 10 }
- * - "30sec" -> { unit: "seconds", value: 30 }
- * - "1.5hr" -> { unit: "hours", value: 1.5 }
- * - "400m" -> { unit: "meters", value: 400 }
- * - "5km" -> { unit: "kilometers", value: 5 }
- * - "${warmup_mins}min" -> interpolates then parses
- *
- * @param durationStr - Duration string to parse
- * @param context - Interpolation context for resolving variables
- * @returns DurationTarget object
+ * @param durationStr - Duration string to parse; may contain interpolated variables or arithmetic expressions (e.g., `"${warmup_mins}min"`, `"10 + ${extra}"`, `"5km"`, `"30sec"`). If undefined, no parsing is performed.
+ * @param context - Interpolation context used to resolve variables and evaluate expressions
+ * @returns A DurationTarget describing the parsed numeric value and unit (e.g., minutes, seconds, kilometers), or `undefined` when `durationStr` is `undefined`.
+ * @throws Error if the string cannot be parsed as a duration or if the unit token is unrecognized
  */
 export function parseDuration(
   durationStr: string | undefined,
@@ -118,20 +111,13 @@ export function parseDuration(
 }
 
 /**
- * Parse an intensity string into an IntensityTarget object.
+ * Parse an intensity expression or label into a normalized intensity target.
  *
- * Supports formats:
- * - "Zone 2" -> { unit: "pace_zone", value: 2, description: "Zone 2" }
- * - "Z2" -> { unit: "pace_zone", value: 2, description: "Zone 2" }
- * - "75% FTP" -> { unit: "percent_ftp", value: 75 }
- * - "70-80% FTP" -> { unit: "percent_ftp", value: 75, valueLow: 70, valueHigh: 80 }
- * - "RPE 7" -> { unit: "rpe", value: 7 }
- * - "${paces.easy}" -> resolves from paces in context
- * - "Zone 2-3" -> { unit: "pace_zone", value: 2.5, valueLow: 2, valueHigh: 3 }
+ * Supports zone labels (e.g., "Zone 2", "Z2", "Zone 2-3"), percentage formats (single or ranges, with optional FTP/LTHR target), RPE (single or ranges, including "7/10"), explicit pace references (e.g., "5:30/km"), and interpolated variables from the provided context.
  *
- * @param intensityStr - Intensity string to parse
- * @param context - Interpolation context for resolving variables
- * @returns IntensityTarget object
+ * @param intensityStr - Intensity string to parse; may contain template variables that will be resolved using the context
+ * @param context - Interpolation context used to resolve variables in `intensityStr`
+ * @returns A normalized intensity target with a `unit` and numeric `value`; range inputs populate `valueLow`/`valueHigh`, and `description` contains a human-readable representation when available
  */
 export function parseIntensity(
   intensityStr: string | undefined,
@@ -233,11 +219,14 @@ export function parseIntensity(
 }
 
 /**
- * Convert a TemplateStep to a WorkoutStep.
+ * Convert a template-defined step into a WorkoutStep with parsed duration and intensity.
  *
- * @param templateStep - Template step with string-based properties
- * @param context - Interpolation context
- * @returns WorkoutStep with object-based properties
+ * Duration and intensity strings on the template step are parsed and interpolated; name and description are interpolated when present. If neither duration nor distance is provided, defaults to 10 minutes; if neither intensity nor pace is provided, defaults to 65% FTP.
+ *
+ * @param templateStep - Template step containing string-based duration/intensity/pace/name/description
+ * @param context - Interpolation context used to resolve template variables and expressions
+ * @returns The corresponding WorkoutStep with object-based `duration` and `intensity`, and interpolated `name` and `notes` when available
+ * @throws Error if a provided duration or distance string cannot be parsed
  */
 export function convertTemplateStep(
   templateStep: TemplateStep,
@@ -290,11 +279,12 @@ export function convertTemplateStep(
 }
 
 /**
- * Convert a TemplateIntervalSet to an IntervalSet.
+ * Convert a template interval set into an IntervalSet ready for export.
  *
- * @param intervalSet - Template interval set
- * @param context - Interpolation context
- * @returns IntervalSet with object-based properties
+ * @param intervalSet - The template interval set to convert; its `repeats` field may contain interpolated values.
+ * @param context - Interpolation context used to resolve template variables referenced in the interval set.
+ * @returns An IntervalSet with `type: "interval_set"`, a parsed non-negative `repeats` count, and `steps` containing the converted work and recovery WorkoutSteps.
+ * @throws Error if the interpolated `repeats` value cannot be parsed as a non-negative integer.
  */
 export function convertTemplateIntervalSet(
   intervalSet: TemplateIntervalSet,
@@ -320,11 +310,11 @@ export function convertTemplateIntervalSet(
 }
 
 /**
- * Convert a TemplateStructure to a StructuredWorkout.
+ * Convert a template-based workout structure into an object-based structured workout.
  *
- * @param templateStructure - Template structure with string-based properties
- * @param context - Interpolation context
- * @returns StructuredWorkout with object-based properties
+ * @param templateStructure - Template data containing warmup, main, and cooldown entries to convert
+ * @param context - Interpolation context used to resolve template variables and expressions
+ * @returns The structured workout with warmup, main, and cooldown sections represented as object-based steps and interval sets
  */
 export function convertTemplateStructure(
   templateStructure: TemplateStructure,

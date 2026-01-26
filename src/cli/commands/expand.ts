@@ -10,7 +10,20 @@ import type { ExpandArgs } from "../args.js";
 
 // ============================================================================
 // Expand Command
-// ============================================================================
+/**
+ * Executes the Expand command to transform a compact plan into an expanded plan.
+ *
+ * Reads the compact plan from disk, parses and validates it, loads templates (including user templates),
+ * validates template references, expands the plan, and emits the expanded plan as YAML or JSON.
+ *
+ * @param args - Command arguments:
+ *   - inputFile: Path to the compact plan file (YAML).
+ *   - outputFile: Optional path to write the expanded plan; if omitted the result is printed to stdout.
+ *   - format: Output format, either `"yaml"` or `"json"`.
+ *   - verbose: When true, emits additional progress information.
+ *
+ * Exits the process with code 1 on file read, YAML parse, or validation failures.
+ */
 
 export function runExpand(args: ExpandArgs): void {
   log.start("Expanding compact plan...");

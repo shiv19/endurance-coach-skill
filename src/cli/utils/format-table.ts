@@ -1,3 +1,11 @@
+/**
+ * Format an array of object rows into a plain-text table with aligned columns.
+ *
+ * @param rows - Array of records representing table rows; each object's properties are read using `keys`.
+ * @param headers - Column header titles in the order to appear in the table.
+ * @param keys - Object property keys that determine column order and which values to include from each row.
+ * @returns A single string containing the table (header, separator, and body lines) or an empty string if `rows` is empty.
+ */
 export function formatTable(
   rows: Array<Record<string, unknown>>,
   headers: string[],

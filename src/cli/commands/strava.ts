@@ -25,6 +25,11 @@ const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/callback`;
 const AUTHORIZE_URL = "https://www.strava.com/oauth/authorize";
 const TOKEN_URL = "https://www.strava.com/oauth/token";
 
+/**
+ * Initiates Strava OAuth authorization flow or exchanges an authorization code for tokens.
+ *
+ * @param args - CLI authentication arguments. If `args.code` is provided, exchanges it (accepting either a raw code or a full redirect URL) for tokens and saves them; otherwise requires `args.clientId` and `args.clientSecret`, saves a configuration, and prints an authorization URL with step‑by‑step instructions.
+ */
 export async function runAuth(args: AuthArgs): Promise<void> {
   // If code is provided, exchange it for tokens
   if (args.code) {
@@ -115,13 +120,26 @@ export async function runAuth(args: AuthArgs): Promise<void> {
 
 // ============================================================================
 // Sync Command
-// ============================================================================
+/**
+ * Produce a SQL literal for a string value.
+ *
+ * @param str - The input string; `null` or `undefined` are treated as SQL NULL.
+ * @returns `NULL` if `str` is `null` or `undefined`; otherwise the input wrapped in single quotes with any internal single quotes doubled (SQL-escaped string literal).
+ */
 
 function escapeString(str: string | null | undefined): string {
   if (str == null) return "NULL";
   return `'${str.replace(/'/g, "''")}'`;
 }
 
+/**
+ * Insert or replace a Strava activity row into the local `activities` table.
+ *
+ * The full activity object is saved in the `raw_json` column and `synced_at` is set to the current timestamp.
+ * Numeric fields that are null or undefined are stored as SQL NULL; string fields and the JSON payload are escaped for SQL insertion.
+ *
+ * @param activity - The Strava activity to persist (will be stored and indexed by `id`)
+ */
 function insertActivity(activity: StravaActivity): void {
   const sql = `
     INSERT OR REPLACE INTO activities (
@@ -161,6 +179,18 @@ function insertActivity(activity: StravaActivity): void {
   execute(sql);
 }
 
+/**
+ * Inserts or replaces an athlete row in the local database.
+ *
+ * @param athlete - Athlete data to persist. Fields:
+ *   - `id`: Strava athlete identifier
+ *   - `firstname`: Athlete's first name
+ *   - `lastname`: Athlete's last name
+ *   - `weight` (optional): Athlete weight (if available)
+ *   - `ftp` (optional): Athlete functional threshold power (if available)
+ *
+ * This stores the provided fields, the full athlete object as `raw_json`, and sets `updated_at` to the current time.
+ */
 function insertAthlete(athlete: {
   id: number;
   firstname: string;
@@ -183,6 +213,18 @@ function insertAthlete(athlete: {
   execute(sql);
 }
 
+/**
+ * Synchronizes Strava activities into the local SQLite database.
+ *
+ * Performs authentication either with provided access/refresh tokens or via an OAuth browser flow,
+ * fetches the athlete profile and activities for the configured lookback period, inserts or updates athlete and activity rows,
+ * records a sync_log entry, and persists tokens and configuration as needed.
+ *
+ * @param args - Synchronization options. May include:
+ *   - `accessToken` and `refreshToken`: use token-based auth (no browser).
+ *   - `clientId` and `clientSecret`: create/save configuration when none exists.
+ *   - `days`: number of days to sync (overrides stored config; defaults to 730).
+ */
 export async function runSync(args: SyncArgs): Promise<void> {
   log.box("Endurance Coach - Strava Sync");
 
@@ -316,7 +358,12 @@ export async function runSync(args: SyncArgs): Promise<void> {
 
 // ============================================================================
 // Activity Details Command
-// ============================================================================
+/**
+ * Fetches lap segments for a Strava activity and writes the result as pretty-printed JSON to stdout.
+ *
+ * @param args - Command arguments containing the activity identifier
+ * @param args.id - The Strava activity ID whose laps should be retrieved
+ */
 
 export async function runActivityLaps(args: ActivityLapsArgs): Promise<void> {
   const tokens = await getValidTokens();
