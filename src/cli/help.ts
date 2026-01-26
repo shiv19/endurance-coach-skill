@@ -11,6 +11,7 @@ Usage: npx endurance-coach <command> [options]
 Commands:
   sync              Sync activities from Strava
   auth              Get Strava authorization URL or exchange code for tokens
+  activity <id>     Fetch detailed activity data from Strava
   schema            Print the YAML v2.0 plan format reference
   validate <file>   Validate a training plan (YAML recommended)
   expand <file>     Expand a compact YAML plan to full format
@@ -40,6 +41,9 @@ Sync Options:
   --client-id=ID        Strava API client ID (for OAuth flow)
   --client-secret=SEC   Strava API client secret (for OAuth flow)
   --days=N              Days of history to sync (default: 730)
+
+Activity Options:
+  --include-all-efforts  Include all segment efforts (default: false)
 
 Expand Options:
   --output, -o FILE     Output file (default: stdout)
@@ -105,6 +109,9 @@ Examples:
   npx endurance-coach sync
   # sync last 7 days only
   npx endurance-coach sync --days=7
+
+  # Fetch detailed activity data (includes laps)
+  npx endurance-coach activity 123456789 --include-all-efforts
 
   # Interactive auth flow (opens browser)
   npx endurance-coach sync --client-id=12345 --client-secret=abc123

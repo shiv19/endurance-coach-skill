@@ -12,9 +12,9 @@ import { log } from "../../lib/logging.js";
 import { migrate } from "../../db/migrate.js";
 import { execute, initDatabase } from "../../db/client.js";
 import { getValidTokens } from "../../strava/oauth.js";
-import { getAllActivities, getAthlete } from "../../strava/api.js";
+import { getActivityDetails, getAllActivities, getAthlete } from "../../strava/api.js";
 import type { StravaActivity, StravaTokenResponse } from "../../strava/types.js";
-import type { AuthArgs, SyncArgs } from "../args.js";
+import type { ActivityDetailsArgs, AuthArgs, SyncArgs } from "../args.js";
 
 // ============================================================================
 // Auth Command (for headless/Claude environments)
@@ -312,4 +312,14 @@ export async function runSync(args: SyncArgs): Promise<void> {
 
   log.info(`Database: ${getDbPath()}`);
   log.ready(`Query with: sqlite3 -json "${getDbPath()}" "SELECT * FROM weekly_volume"`);
+}
+
+// ============================================================================
+// Activity Details Command
+// ============================================================================
+
+export async function runActivityDetails(args: ActivityDetailsArgs): Promise<void> {
+  const tokens = await getValidTokens();
+  const activity = await getActivityDetails(tokens, args.id, args.includeAllEfforts);
+  console.log(JSON.stringify(activity, null, 2));
 }

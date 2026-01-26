@@ -83,6 +83,18 @@ Options:
 - `--distribution-weeks N` (default: 12)
 - `--json`
 
+## Activity Details (Laps/Analysis)
+
+```bash
+npx -y endurance-coach@latest activity <id> --include-all-efforts
+```
+
+Fetches the complete activity representation from Strava, including lap data, metric splits, and segment efforts. This is essential for detailed lap-by-lap interval analysis.
+
+Options:
+
+- `--include-all-efforts` (Includes segment efforts)
+
 ## Advanced: Raw SQL
 
 ```bash

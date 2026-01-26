@@ -1,6 +1,6 @@
 import type { Tokens } from "../lib/config.js";
 import { log } from "../lib/logging.js";
-import type { StravaActivity, StravaAthlete } from "./types.js";
+import type { StravaActivity, StravaAthlete, StravaDetailedActivity } from "./types.js";
 
 const API_BASE = "https://www.strava.com/api/v3";
 
@@ -56,6 +56,27 @@ export async function getActivities(
 
   if (!response.ok) {
     throw new Error(`Failed to fetch activities: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getActivityDetails(
+  tokens: Tokens,
+  id: number,
+  includeAllEfforts?: boolean
+): Promise<StravaDetailedActivity> {
+  const url = new URL(`${API_BASE}/activities/${id}`);
+  if (includeAllEfforts) {
+    url.searchParams.set("include_all_efforts", "true");
+  }
+
+  const response = await fetchWithRetry(url.toString(), {
+    headers: { Authorization: `Bearer ${tokens.access_token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch activity details: ${response.statusText}`);
   }
 
   return response.json();

@@ -75,6 +75,12 @@ export interface AuthArgs {
   code?: string;
 }
 
+export interface ActivityDetailsArgs {
+  command: "activity";
+  id: number;
+  includeAllEfforts?: boolean;
+}
+
 export interface HelpArgs {
   command: "help";
 }
@@ -132,6 +138,7 @@ export type CliArgs =
   | HrZonesArgs
   | QueryArgs
   | AuthArgs
+  | ActivityDetailsArgs
   | HelpArgs
   | ModifyArgs
   | ValidateArgs
@@ -365,6 +372,35 @@ export function parseArgs(): CliArgs {
     }
 
     return authArgs;
+  }
+
+  if (args[0] === "activity") {
+    if (!args[1]) {
+      log.error("activity command requires an activity ID");
+      process.exit(1);
+    }
+
+    const id = parseInt(args[1], 10);
+    if (Number.isNaN(id)) {
+      log.error(`Invalid activity ID: ${args[1]}`);
+      process.exit(1);
+    }
+
+    const activityArgs: ActivityDetailsArgs = {
+      command: "activity",
+      id,
+    };
+
+    for (let i = 2; i < args.length; i++) {
+      if (args[i] === "--include-all-efforts") {
+        activityArgs.includeAllEfforts = true;
+      } else if (args[i].startsWith("--include-all-efforts=")) {
+        const value = args[i].split("=")[1];
+        activityArgs.includeAllEfforts = value === "true";
+      }
+    }
+
+    return activityArgs;
   }
 
   if (args[0] === "validate") {
