@@ -2,21 +2,10 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { StatsArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+import { printSection } from "../utils/printSection.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_LONGEST_WEEKS = 12;
-
-/**
- * Print a titled console section with the provided output.
- *
- * @param title - The section title printed as a header
- * @param output - Text to trim and print; if the trimmed text is empty, prints "(no results)"
- */
-function printSection(title: string, output: string): void {
-  const trimmed = output.trim();
-  console.log(`\n# ${title}`);
-  console.log(trimmed ? trimmed : "(no results)");
-}
 
 /**
  * Generate activity statistics over a configurable lookback window and print them to stdout as either JSON or formatted tables.

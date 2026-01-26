@@ -614,7 +614,7 @@ function tryLoadTemplateFromFile(
 ): { error?: string } | null {
   // Try to find template file in user templates directory
   // Check all sport subdirectories
-  const sports = ["run", "bike", "swim", "strength", "brick"];
+  const sports = [...SPORT_VALUES];
 
   for (const sport of sports) {
     const filePath = join(userTemplatesDir, sport, `${templateId}.yaml`);

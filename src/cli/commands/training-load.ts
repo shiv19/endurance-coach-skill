@@ -2,23 +2,9 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { TrainingLoadArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+import { printSection } from "../utils/printSection.js";
 
 const DEFAULT_WEEKS = 12;
-
-/**
- * Print a titled console section with the given output.
- *
- * Trims `output`, prints a header line `# <title>`, then prints the trimmed content or
- * "(no results)" when the trimmed output is empty.
- *
- * @param title - Section title printed after the `#` prefix
- * @param output - Section content; whitespace-only content is treated as empty
- */
-function printSection(title: string, output: string): void {
-  const trimmed = output.trim();
-  console.log(`\n# ${title}`);
-  console.log(trimmed ? trimmed : "(no results)");
-}
 
 /**
  * Initialize the database and print weekly aggregated training load for the last N weeks.

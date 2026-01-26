@@ -2,23 +2,10 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { SchedulePreferencesArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+import { printSection } from "../utils/printSection.js";
 
 const DEFAULT_RIDE_MINUTES = 90;
 const DEFAULT_RUN_MINUTES = 60;
-
-/**
- * Print a titled console section with the provided content, or a placeholder when the content is empty.
- *
- * The output is trimmed; if the trimmed content is empty, the literal "(no results)" is printed.
- *
- * @param title - The section title printed as a heading
- * @param output - The section body text to print; trimmed before printing and replaced with "(no results)" if empty
- */
-function printSection(title: string, output: string): void {
-  const trimmed = output.trim();
-  console.log(`\n# ${title}`);
-  console.log(trimmed ? trimmed : "(no results)");
-}
 
 /**
  * Generate and print preferred activity days based on minimum duration thresholds.

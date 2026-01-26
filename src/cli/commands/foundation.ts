@@ -2,22 +2,9 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { FoundationArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+import { printSection } from "../utils/printSection.js";
 
 const DEFAULT_TOP_WEEKS = 5;
-
-/**
- * Print a titled console section with trimmed content or a placeholder when empty.
- *
- * Trims whitespace from `output`, logs a header built from `title`, then logs the trimmed content or the string "(no results)" when the trimmed output is empty.
- *
- * @param title - Section title to display as a header
- * @param output - Raw section content; leading and trailing whitespace will be removed before printing
- */
-function printSection(title: string, output: string): void {
-  const trimmed = output.trim();
-  console.log(`\n# ${title}`);
-  console.log(trimmed ? trimmed : "(no results)");
-}
 
 /**
  * Collects foundation analytics from the activities database and writes summarized metrics to the console.

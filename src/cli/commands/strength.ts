@@ -2,24 +2,13 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { StrengthArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+import { printSection } from "../utils/printSection.js";
 
 const DEFAULT_MONTHS = 6;
 const DEFAULT_LONG_MONTHS = 12;
 const DEFAULT_EASY_HR_MAX = 145;
 const DEFAULT_LONG_MINUTES = 60;
 const DEFAULT_YEARS = 2;
-
-/**
- * Print a titled section to the console containing the given content.
- *
- * @param title - The section title to display as a header.
- * @param output - The section content; whitespace is trimmed. If the trimmed content is empty, "(no results)" is printed.
- */
-function printSection(title: string, output: string): void {
-  const trimmed = output.trim();
-  console.log(`\n# ${title}`);
-  console.log(trimmed ? trimmed : "(no results)");
-}
 
 /**
  * Generates strength-related analytics from stored activities and prints them as tables or JSON.

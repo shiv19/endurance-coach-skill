@@ -2,21 +2,10 @@ import { initDatabase, queryJson } from "../../db/client.js";
 import type { HrZonesArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
+import { printSection } from "../utils/printSection.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_DISTRIBUTION_WEEKS = 12;
-
-/**
- * Prints a console section header and the trimmed output, or "(no results)" when the output is empty.
- *
- * @param title - The section title to print as a header
- * @param output - The text to print under the header; whitespace is trimmed before printing
- */
-function printSection(title: string, output: string): void {
-  const trimmed = output.trim();
-  console.log(`\n# ${title}`);
-  console.log(trimmed ? trimmed : "(no results)");
-}
 
 /**
  * Generate and output heart-rate zone reports grouped by sport.
