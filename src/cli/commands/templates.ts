@@ -785,7 +785,7 @@ export function runTemplates(args: TemplatesArgs): void {
       }
     } else {
       // List all templates
-      const sportFilter = args.sport as "run" | "bike" | "swim" | undefined;
+      const sportFilter = args.sport as Sport | undefined;
       const typeFilter = args.type;
       const sourceFilter = args.source;
       const verbose = args.verbose;

@@ -273,7 +273,7 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
       messageIndex: stepIndex,
       wktStepName: intervalSet.name || "Intervals",
       durationType: "repeatUntilStepsCmplt",
-      durationValue: repeatFromIndex,
+      durationValue: repeatFromIndex + 1,
       targetType: "open",
       targetValue: intervalSet.repeats,
       intensity: "interval",
