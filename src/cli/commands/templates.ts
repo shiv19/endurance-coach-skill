@@ -16,7 +16,7 @@ import { join } from "node:path";
 // MARK: Helper Types and Constants
 // ============================================================================
 
-const SPORT_VALUES = ["run", "bike", "swim", "strength", "brick", "race", "rest"] as const;
+const SPORT_VALUES = ["run", "bike", "swim", "strength", "brick"] as const;
 const CATEGORY_VALUES = [
   "rest",
   "recovery",
@@ -102,8 +102,7 @@ function handleCreate(args: TemplatesArgs): void {
   const existingTemplates = loadTemplates({ includeUserTemplates: false });
 
   // Determine output path (rest templates go in run/ directory)
-  const sportDir = sport === "rest" ? "run" : sport;
-  const outputPath = join(templatesDir, sportDir, `${templateId}.yaml`);
+  const outputPath = join(templatesDir, sport, `${templateId}.yaml`);
 
   // Check if template already exists
   const templateExists = existsSync(outputPath);
@@ -134,7 +133,7 @@ function handleCreate(args: TemplatesArgs): void {
   }
 
   // Create output directory if needed
-  const outputDir = join(templatesDir, sportDir);
+  const outputDir = join(templatesDir, sport);
   if (!args.dryRun && !existsSync(outputDir)) {
     mkdirSync(outputDir, { recursive: true });
   }
@@ -610,11 +609,10 @@ function tryLoadTemplateFromFile(
 ): { error?: string } | null {
   // Try to find template file in user templates directory
   // Check all sport subdirectories
-  const sports = ["run", "bike", "swim", "strength", "brick", "rest"];
+  const sports = ["run", "bike", "swim", "strength", "brick"];
 
   for (const sport of sports) {
-    const sportDir = sport === "rest" ? "run" : sport;
-    const filePath = join(userTemplatesDir, sportDir, `${templateId}.yaml`);
+    const filePath = join(userTemplatesDir, sport, `${templateId}.yaml`);
 
     if (existsSync(filePath)) {
       try {
