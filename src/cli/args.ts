@@ -176,7 +176,12 @@ export function parseArgs(): CliArgs {
       } else if (arg.startsWith("--refresh-token=")) {
         syncArgs.refreshToken = arg.split("=")[1];
       } else if (arg.startsWith("--days=")) {
-        syncArgs.days = parseInt(arg.split("=")[1]);
+        const parsed = parseInt(arg.split("=")[1], 10);
+        if (Number.isNaN(parsed)) {
+          log.error("Invalid --days value: must be a number");
+          process.exit(1);
+        }
+        syncArgs.days = parsed;
       }
     }
 
@@ -217,15 +222,15 @@ export function parseArgs(): CliArgs {
 
     for (let i = 1; i < args.length; i++) {
       if (args[i] === "--weeks") {
-        statsArgs.weeks = parseInt(args[i + 1]);
+        statsArgs.weeks = parseInt(args[i + 1], 10);
         i++;
       } else if (args[i].startsWith("--weeks=")) {
-        statsArgs.weeks = parseInt(args[i].split("=")[1]);
+        statsArgs.weeks = parseInt(args[i].split("=")[1], 10);
       } else if (args[i] === "--longest-weeks") {
-        statsArgs.longestWeeks = parseInt(args[i + 1]);
+        statsArgs.longestWeeks = parseInt(args[i + 1], 10);
         i++;
       } else if (args[i].startsWith("--longest-weeks=")) {
-        statsArgs.longestWeeks = parseInt(args[i].split("=")[1]);
+        statsArgs.longestWeeks = parseInt(args[i].split("=")[1], 10);
       }
     }
 
@@ -528,7 +533,12 @@ export function parseArgs(): CliArgs {
         templatesArgs.category = args[i].split("=")[1];
       } else if (args[i].startsWith("--template-file=")) {
         templatesArgs.templateFile = args[i].split("=")[1];
-      } else if (!args[i].startsWith("-") && !templatesArgs.show && !templatesArgs.create) {
+      } else if (
+        !args[i].startsWith("-") &&
+        !templatesArgs.show &&
+        !templatesArgs.create &&
+        !templatesArgs.validate
+      ) {
         // Treat as template ID for 'show' subcommand
         templatesArgs.show = args[i];
       }
