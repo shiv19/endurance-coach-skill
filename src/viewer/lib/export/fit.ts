@@ -403,7 +403,7 @@ export async function generateFit(workout: Workout, settings: Settings): Promise
   if (workout.sport === "swim") {
     const isYards = settings.units.swim === "yards";
     const poolLengthMeters = isYards ? 22.86 : 25;
-    workoutMessage.poolLength = Math.round(poolLengthMeters * 100) / 100;
+    workoutMessage.poolLength = Math.round(poolLengthMeters * 100);
     workoutMessage.poolLengthUnit = isYards ? "statute" : "metric";
   }
 
