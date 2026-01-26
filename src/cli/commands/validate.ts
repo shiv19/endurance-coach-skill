@@ -46,7 +46,9 @@ export function runValidate(args: ValidateArgs): void {
       planData = JSON.parse(planContent);
     }
   } catch (err) {
-    log.error(`Input file is not valid ${isCompact ? "YAML" : "JSON"}`);
+    const fileType =
+      args.inputFile.endsWith(".yaml") || args.inputFile.endsWith(".yml") ? "YAML" : "JSON";
+    log.error(`Input file is not valid ${fileType}`);
     process.exit(1);
   }
 

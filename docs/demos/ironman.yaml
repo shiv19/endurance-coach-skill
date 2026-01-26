@@ -289,7 +289,7 @@ weeks:
     focus: "Reduce volume, maintain intensity"
     workouts:
       Mon: swim.threshold(50)
-      Tue: [bike.tempo(75), "run.strides(35, 6)"]
+      Tue: ["bike.tempo(75)", "run.strides(35, 6)"]
       Wed: swim.speed(45)
       Thu: run.intervals.800(6)
       Fri: run.rest
