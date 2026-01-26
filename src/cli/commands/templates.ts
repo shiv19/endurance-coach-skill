@@ -70,7 +70,7 @@ function handleCreate(args: TemplatesArgs): void {
     );
   }
 
-  const templateId = args.create;
+  let templateId = args.create;
   const sport = args.type as Sport;
 
   // Validate template ID format
@@ -93,6 +93,10 @@ function handleCreate(args: TemplatesArgs): void {
   if (args.category && !CATEGORY_VALUES.includes(args.category as Category)) {
     const validCategories = CATEGORY_VALUES.join(", ");
     throw new Error(`Invalid category: ${args.category}\nValid categories: ${validCategories}`);
+  }
+
+  if (!templateId.startsWith(`${sport}.`)) {
+    templateId = `${sport}.${templateId}`;
   }
 
   // Determine templates directory
