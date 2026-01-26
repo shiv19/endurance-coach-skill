@@ -25,7 +25,7 @@ Keep this skill lean. When you need specifics, read the single-source references
 The athlete's training data is stored in SQLite at `~/.endurance-coach/coach.db`.
 
 - Use the assessment commands in @reference/queries.md for standard analysis.
-- Use `activity <id>` for detailed lap-by-lap interval analysis (fetches from Strava).
+- Use `activity <id> --laps` for detailed lap-by-lap interval analysis (fetches from Strava).
 - Use @reference/schema.md when forming custom queries.
 - Use `query` only for advanced, ad-hoc SQL.
 
@@ -129,7 +129,7 @@ Lean flow:
 ## Critical Reminders
 
 - **Never skip athlete validation** - Present your assessment and get confirmation before writing the plan
-- **Lap-by-Lap Analysis** - For interval sessions, use `activity <id>` to check target adherence and recovery quality.
+- **Lap-by-Lap Analysis** - For interval sessions, use `activity <id> --laps` to check target adherence and recovery quality.
 - **Distinguish foundation from form** - Recent breaks matter more than historical races
 - **Zones + paces are required** for the templates you use
 - **Output YAML, then render HTML** using `npx -y endurance-coach@latest render`

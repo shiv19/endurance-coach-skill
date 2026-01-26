@@ -75,10 +75,10 @@ export interface AuthArgs {
   code?: string;
 }
 
-export interface ActivityDetailsArgs {
+export interface ActivityLapsArgs {
   command: "activity";
   id: number;
-  includeAllEfforts?: boolean;
+  laps: true;
 }
 
 export interface HelpArgs {
@@ -138,7 +138,7 @@ export type CliArgs =
   | HrZonesArgs
   | QueryArgs
   | AuthArgs
-  | ActivityDetailsArgs
+  | ActivityLapsArgs
   | HelpArgs
   | ModifyArgs
   | ValidateArgs
@@ -386,20 +386,23 @@ export function parseArgs(): CliArgs {
       process.exit(1);
     }
 
-    const activityArgs: ActivityDetailsArgs = {
-      command: "activity",
-      id,
-    };
-
+    let laps = false;
     for (let i = 2; i < args.length; i++) {
-      if (args[i] === "--include-all-efforts") {
-        activityArgs.includeAllEfforts = true;
-      } else if (args[i].startsWith("--include-all-efforts=")) {
-        const value = args[i].split("=")[1];
-        activityArgs.includeAllEfforts = value === "true";
+      if (args[i] === "--laps") {
+        laps = true;
       }
     }
 
+    if (!laps) {
+      log.error("activity command requires a subcommand flag like --laps");
+      process.exit(1);
+    }
+
+    const activityArgs: ActivityLapsArgs = {
+      command: "activity",
+      id,
+      laps: true,
+    };
     return activityArgs;
   }
 

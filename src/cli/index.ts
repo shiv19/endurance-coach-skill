@@ -8,7 +8,7 @@ import { runRender } from "./commands/render.js";
 import { runValidate } from "./commands/validate.js";
 import { runExpand } from "./commands/expand.js";
 import { runTemplates } from "./commands/templates.js";
-import { runActivityDetails, runAuth, runSync } from "./commands/strava.js";
+import { runActivityLaps, runAuth, runSync } from "./commands/strava.js";
 import { runModify } from "./commands/modify.js";
 import { runStats } from "./commands/stats.js";
 import { runTrainingLoad } from "./commands/training-load.js";
@@ -46,7 +46,7 @@ async function main(): Promise<void> {
       await runAuth(args);
       break;
     case "activity":
-      await runActivityDetails(args);
+      await runActivityLaps(args);
       break;
     case "sync":
       await runSync(args);

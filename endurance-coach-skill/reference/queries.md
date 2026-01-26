@@ -86,14 +86,10 @@ Options:
 ## Activity Details (Laps/Analysis)
 
 ```bash
-npx -y endurance-coach@latest activity <id> --include-all-efforts
+npx -y endurance-coach@latest activity <id> --laps
 ```
 
-Fetches the complete activity representation from Strava, including lap data, metric splits, and segment efforts. This is essential for detailed lap-by-lap interval analysis.
-
-Options:
-
-- `--include-all-efforts` (Includes segment efforts)
+Fetches lap data from Strava for detailed interval analysis and pacing consistency.
 
 ## Advanced: Raw SQL
 
