@@ -838,10 +838,7 @@ export function runTemplates(args: TemplatesArgs): void {
       const sourceWidth = 10;
       const usageWidth = Math.max(18, ...usageExamples.map((example) => example.length));
 
-      console.log(
-        `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Usage".padEnd(usageWidth))}`
-      );
-      const separatorRow =
+      let separatorRow =
         "─".repeat(idWidth) +
         "──" +
         "─".repeat(nameWidth) +
@@ -853,7 +850,22 @@ export function runTemplates(args: TemplatesArgs): void {
         "─".repeat(sourceWidth) +
         "──" +
         "─".repeat(usageWidth);
-      console.log(separatorRow);
+      if (verbose) {
+        const typeWidth = 12;
+        const zoneWidth = 8;
+
+        console.log(
+          `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Usage".padEnd(usageWidth))}  ${colors.bold("Type".padEnd(12))}  ${colors.bold("Zone".padEnd(8))}`
+        );
+        const verboseSeparator =
+          separatorRow + "──" + "─".repeat(typeWidth) + "──" + "─".repeat(zoneWidth);
+        console.log(verboseSeparator);
+      } else {
+        console.log(
+          `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Usage".padEnd(usageWidth))}`
+        );
+        console.log(separatorRow);
+      }
 
       // Build data rows
       for (const [index, t] of list.entries()) {
@@ -879,16 +891,6 @@ export function runTemplates(args: TemplatesArgs): void {
             .substring(0, zoneWidth)
             .padEnd(zoneWidth);
           cells.push(colors.dim(typeDisplay), colors.dim(zoneDisplay));
-
-          // Add verbose headers if not already shown
-          if (list.indexOf(t) === 0) {
-            console.log(
-              `${colors.bold("ID".padEnd(idWidth))}  ${colors.bold("Name".padEnd(nameWidth))}  ${colors.bold("Sport".padEnd(sportWidth))}  ${colors.bold("Category".padEnd(categoryWidth))}  ${colors.bold("Source".padEnd(sourceWidth))}  ${colors.bold("Usage".padEnd(usageWidth))}  ${colors.bold("Type".padEnd(12))}  ${colors.bold("Zone".padEnd(8))}`
-            );
-            const verboseSeparator =
-              separatorRow + "──" + "─".repeat(typeWidth) + "──" + "─".repeat(zoneWidth);
-            console.log(verboseSeparator);
-          }
         }
 
         console.log(cells.join("  "));
@@ -906,6 +908,9 @@ export function runTemplates(args: TemplatesArgs): void {
         `  ${colors.green("endurance-coach templates validate <id>")}  Validate a template by ID`
       );
       console.log(`  ${colors.green("endurance-coach templates list")}        List all templates`);
+      console.log(
+        `  ${colors.green("endurance-coach templates list --verbose")}  List templates with usage example`
+      );
       console.log(
         `  ${colors.green("endurance-coach templates list --sport=<sport>")}  Filter by sport`
       );

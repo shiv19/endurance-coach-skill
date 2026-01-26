@@ -157,6 +157,9 @@ To add a custom template by hand:
 # List all templates
 npx -y endurance-coach@latest templates
 
+# List templates with usage examples
+npx -y endurance-coach@latest templates --verbose
+
 # Filter by sport
 npx -y endurance-coach@latest templates list --sport run
 npx -y endurance-coach@latest templates list --sport swim
