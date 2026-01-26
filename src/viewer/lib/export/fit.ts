@@ -160,6 +160,9 @@ function parsePaceToSpeedMps(pace: string): number | null {
   }
 
   const totalSeconds = minutes * 60 + seconds;
+  if (totalSeconds === 0) {
+    return null;
+  }
   const unit = (match[3] ?? "km").toLowerCase();
   const meters = unit === "mi" ? 1609.34 : 1000;
 
