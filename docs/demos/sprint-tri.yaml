@@ -64,36 +64,36 @@ weeks:
     focus: "Establish training rhythm, heavy focus on swim technique"
     workouts:
       Mon: swim.technique(35)
-      Tue: easy(35)
+      Tue: run.easy(35)
       Wed: bike.endurance(45)
       Thu: swim.technique(40)
       Fri: strength.triathlon(30)
       Sat: bike.endurance(70)
-      Sun: long(45)
+      Sun: run.long(45)
 
   - week: 2
     phase: Base
     focus: "Progress swim technique, add first brick workout"
     workouts:
       Mon: swim.technique(40)
-      Tue: strides(35, 4)
+      Tue: run.strides(35, 4)
       Wed: bike.endurance(50)
       Thu: swim.endurance(45)
       Fri: strength.triathlon(35)
       Sat: brick.sprint
-      Sun: long(50)
+      Sun: run.long(50)
 
   - week: 3
     phase: Base
     focus: "Peak base week - highest volume before recovery week"
     workouts:
       Mon: swim.threshold(45)
-      Tue: tempo(40)
+      Tue: run.tempo(40)
       Wed: bike.endurance(55)
       Thu: swim.endurance(50)
       Fri: strength.triathlon(30)
       Sat: brick.sprint
-      Sun: long(55)
+      Sun: run.long(55)
 
   # Recovery Phase - Week 4
   - week: 4
@@ -101,13 +101,13 @@ weeks:
     focus: "Active recovery - absorb training, stay fresh mentally"
     isRecoveryWeek: true
     workouts:
-      Mon: rest
+      Mon: run.rest
       Tue: swim.easy(35)
       Wed: bike.easy(35)
-      Thu: recovery(25)
-      Fri: rest
+      Thu: run.recovery(25)
+      Fri: run.rest
       Sat: bike.endurance(50)
-      Sun: strides(35, 6)
+      Sun: run.strides(35, 6)
 
   # Build Phase - Weeks 5-7
   - week: 5
@@ -115,36 +115,36 @@ weeks:
     focus: "Begin race-specific work, increase intensity"
     workouts:
       Mon: swim.threshold(45)
-      Tue: threshold(40)
+      Tue: run.threshold(40)
       Wed: bike.tempo(55)
       Thu: swim.endurance(50)
       Fri: strength.triathlon(30)
       Sat: brick.sprint
-      Sun: long(50)
+      Sun: run.long(50)
 
   - week: 6
     phase: Build
     focus: "Peak build week - highest quality work"
     workouts:
       Mon: swim.threshold(50)
-      Tue: tempo(45)
+      Tue: run.tempo(45)
       Wed: bike.tempo(60)
       Thu: swim.endurance(45)
       Fri: strength.light(25)
       Sat: brick.sprint
-      Sun: recovery(40)
+      Sun: run.recovery(40)
 
   - week: 7
     phase: Build
     focus: "Final build week, maintain fitness, start freshening"
     workouts:
       Mon: swim.threshold(45)
-      Tue: tempo(40)
+      Tue: run.tempo(40)
       Wed: bike.endurance(50)
       Thu: swim.endurance(40)
-      Fri: rest
+      Fri: run.rest
       Sat: brick.sprint
-      Sun: easy(30)
+      Sun: run.easy(30)
 
   # Taper - Week 8
   - week: 8
@@ -153,12 +153,12 @@ weeks:
     isRecoveryWeek: true
     workouts:
       Mon: swim.easy(30)
-      Tue: strides(25, 4)
+      Tue: run.strides(25, 4)
       Wed: bike.easy(30)
-      Thu: rest
+      Thu: run.rest
       Fri: swim.easy(20)
-      Sat: strides(15, 4)
-      Sun: rest
+      Sat: run.strides(15, 4)
+      Sun: run.rest
 
 raceStrategy:
   goalTime: "1:25:00 - 1:35:00"

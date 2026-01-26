@@ -51,20 +51,20 @@ weeks:
     phase: Base
     focus: "Build consistency"
     workouts:
-      Mon: tempo(20)
-      Tue: rest
-      Wed: easy(35)
-      Thu: strides(40, 6)
-      Fri: rest
-      Sat: long(60)
-      Sun: rest
+      Mon: run.tempo(20)
+      Tue: run.rest
+      Wed: run.easy(35)
+      Thu: run.strides(40, 6)
+      Fri: run.rest
+      Sat: run.long(60)
+      Sun: run.rest
 \`\`\`
 
 ## Workout Templates
 
-**Run** (default): easy(mins), recovery(mins), long(mins), tempo(mins),
-threshold(mins), progression(mins), fartlek(mins), strides(mins, count),
-intervals.400(reps), intervals.800(reps), intervals.1k(reps), hills(reps), rest
+**Run**: run.easy(mins), run.recovery(mins), run.long(mins), run.tempo(mins),
+run.threshold(mins), run.progression(mins), run.fartlek(mins), run.strides(mins, count),
+run.intervals.400(reps), run.intervals.800(reps), run.intervals.1k(reps), run.hills(reps), run.rest
 
 **Swim**: swim.easy(mins), swim.technique(mins), swim.aerobic(reps),
 swim.threshold(reps), swim.vo2max(reps), swim.openwater(mins), swim.rest

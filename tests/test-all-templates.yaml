@@ -162,9 +162,9 @@ weeks:
     phase: Testing Phase
     workouts:
       Mon: brick.sprint(45, 15, 10)
-      Tue: brick.rest
+      Tue: run.rest
       Wed: brick.olympic(75, 30, 15)
-      Thu: brick.rest
+      Thu: run.rest
       Fri: brick.halfironman(3, 45)
-      Sat: brick.rest
+      Sat: run.rest
       Sun: brick.ironman(5, 60)

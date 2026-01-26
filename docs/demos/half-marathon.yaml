@@ -61,103 +61,103 @@ weeks:
     phase: Base
     focus: "Establish baseline"
     workouts:
-      Mon: easy(40)
-      Tue: easy(35)
-      Wed: strides(40, 4)
-      Sat: long(60)
-      Sun: recovery(30)
+      Mon: run.easy(40)
+      Tue: run.easy(35)
+      Wed: run.strides(40, 4)
+      Sat: run.long(60)
+      Sun: run.recovery(30)
 
   - week: 2
     phase: Base
     focus: "Build volume"
     workouts:
-      Mon: easy(45)
-      Tue: easy(35)
-      Wed: strides(40, 6)
-      Sat: long(70)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.easy(35)
+      Wed: run.strides(40, 6)
+      Sat: run.long(70)
+      Sun: run.recovery(30)
 
   - week: 3
     phase: Base
     focus: "Continue building"
     workouts:
-      Mon: easy(45)
-      Tue: easy(40)
-      Wed: fartlek(45)
-      Sat: long(75)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.easy(40)
+      Wed: run.fartlek(45)
+      Sat: run.long(75)
+      Sun: run.recovery(30)
 
   - week: 4
     phase: Base
     focus: "Recovery week"
     isRecoveryWeek: true
     workouts:
-      Mon: easy(35)
-      Wed: strides(35, 4)
-      Sat: long(60)
-      Sun: recovery(25)
+      Mon: run.easy(35)
+      Wed: run.strides(35, 4)
+      Sat: run.long(60)
+      Sun: run.recovery(25)
 
   # Build 1 Phase
   - week: 5
     phase: Build 1
     focus: "Introduce tempo"
     workouts:
-      Mon: easy(45)
-      Tue: tempo(20)
-      Wed: easy(40)
-      Sat: long(80)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.tempo(20)
+      Wed: run.easy(40)
+      Sat: run.long(80)
+      Sun: run.recovery(30)
 
   - week: 6
     phase: Build 1
     focus: "Increase tempo duration"
     workouts:
-      Mon: easy(45)
-      Tue: tempo(25)
-      Wed: easy(40)
-      Sat: long(85)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.tempo(25)
+      Wed: run.easy(40)
+      Sat: run.long(85)
+      Sun: run.recovery(30)
 
   - week: 7
     phase: Build 1
     focus: "Build endurance"
     workouts:
-      Mon: easy(45)
-      Tue: threshold(20)
-      Wed: easy(40)
-      Sat: long(90)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.threshold(20)
+      Wed: run.easy(40)
+      Sat: run.long(90)
+      Sun: run.recovery(30)
 
   # Build 2 Phase
   - week: 8
     phase: Build 2
     focus: "Race-specific work"
     workouts:
-      Mon: easy(45)
-      Tue: intervals.1k(4)
-      Wed: easy(40)
-      Sat: long(100)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.intervals.1k(4)
+      Wed: run.easy(40)
+      Sat: run.long(100)
+      Sun: run.recovery(30)
 
   - week: 9
     phase: Build 2
     focus: "Peak volume"
     workouts:
-      Mon: easy(50)
-      Tue: tempo(30)
-      Wed: easy(45)
-      Sat: long(110)
-      Sun: recovery(35)
+      Mon: run.easy(50)
+      Tue: run.tempo(30)
+      Wed: run.easy(45)
+      Sat: run.long(110)
+      Sun: run.recovery(35)
 
   - week: 10
     phase: Build 2
     focus: "Race simulation"
     workouts:
-      Mon: easy(45)
-      Tue: intervals.mile(3)
-      Wed: easy(40)
-      Sat: progression(90)
-      Sun: recovery(30)
+      Mon: run.easy(45)
+      Tue: run.intervals.mile(3)
+      Wed: run.easy(40)
+      Sat: run.progression(90)
+      Sun: run.recovery(30)
 
   # Taper Phase
   - week: 11
@@ -165,21 +165,21 @@ weeks:
     focus: "Begin taper"
     isRecoveryWeek: true
     workouts:
-      Mon: easy(40)
-      Tue: tempo(20)
-      Wed: easy(35)
-      Sat: long(70)
-      Sun: recovery(25)
+      Mon: run.easy(40)
+      Tue: run.tempo(20)
+      Wed: run.easy(35)
+      Sat: run.long(70)
+      Sun: run.recovery(25)
 
   - week: 12
     phase: Taper
     focus: "Race week!"
     isRecoveryWeek: true
     workouts:
-      Mon: easy(30)
-      Wed: strides(25, 6)
-      Thu: recovery(20)
-      Sun: rest
+      Mon: run.easy(30)
+      Wed: run.strides(25, 6)
+      Thu: run.recovery(20)
+      Sun: run.rest
 
 raceStrategy:
   goalTime: "1:45:00"

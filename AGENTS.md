@@ -226,9 +226,9 @@ athlete:
 weeks:
   - week: 1
     workouts:
-      Mon: tempo(20)
-      Tue: easy(35)
-      Wed: rest
+      Mon: run.tempo(20)
+      Tue: run.easy(35)
+      Wed: run.rest
 ```
 
 ### Template System
