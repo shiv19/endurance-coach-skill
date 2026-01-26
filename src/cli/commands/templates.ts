@@ -70,6 +70,7 @@ function handleCreate(args: TemplatesArgs): void {
     );
   }
 
+  const originalTemplateId = args.create;
   let templateId = args.create;
   const sport = args.type as Sport;
 
@@ -107,7 +108,7 @@ function handleCreate(args: TemplatesArgs): void {
 
   // Determine output path (rest templates go in run/ directory)
   const outputSportDir = sport;
-  const outputPath = join(templatesDir, outputSportDir, `${templateId}.yaml`);
+  const outputPath = join(templatesDir, outputSportDir, `${originalTemplateId}.yaml`);
 
   // Check if template already exists
   const templateExists = existsSync(outputPath);

@@ -47,7 +47,7 @@ describe("templates create command", () => {
       expect(existsSync(filePath)).toBe(true);
 
       const content = readFileSync(filePath, "utf-8");
-      expect(content).toContain("id: my_custom_workout");
+      expect(content).toContain("id: run.my_custom_workout");
       expect(content).toContain("sport: run");
       expect(content).toContain("type: endurance");
       expect(content).toContain("category: endurance");
@@ -197,7 +197,7 @@ humanReadable: |
       expect(existsSync(filePath)).toBe(true);
 
       const content = readFileSync(filePath, "utf-8");
-      expect(content).toContain("id: derived_workout");
+      expect(content).toContain("id: run.derived_workout");
       expect(content).toContain("name: Source Workout");
       expect(content).toContain("params:");
       expect(content).toContain("structure:");
