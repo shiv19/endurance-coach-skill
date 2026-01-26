@@ -172,6 +172,9 @@ npx -y endurance-coach@latest templates list --source user
 npx -y endurance-coach@latest templates show run.intervals.400
 npx -y endurance-coach@latest templates show swim.threshold
 
+# Create template scaffold
+npx -y endurance-coach@latest templates create run.newWorkout --type run --category tempo
+
 # Validate a template
 npx -y endurance-coach@latest templates validate run.intervals.400
 ```

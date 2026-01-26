@@ -1,5 +1,6 @@
-import { initDatabase, query, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson } from "../../db/client.js";
 import type { FoundationArgs } from "../args.js";
+import { formatTable } from "../utils/format-table.js";
 
 const DEFAULT_TOP_WEEKS = 5;
 
@@ -25,7 +26,12 @@ export async function runFoundation(args: FoundationArgs): Promise<void> {
       name,
       sport_type,
       ROUND(distance / 1000.0, 1) AS km,
-      ROUND(moving_time / 3600.0, 1) AS hours
+      printf(
+        '%02d:%02d:%02d',
+        CAST(moving_time / 3600 AS INTEGER),
+        CAST((moving_time % 3600) / 60 AS INTEGER),
+        CAST(moving_time % 60 AS INTEGER)
+      ) AS duration
     FROM activities
     WHERE workout_type = 1
     ORDER BY start_date DESC;
@@ -71,8 +77,35 @@ export async function runFoundation(args: FoundationArgs): Promise<void> {
     return;
   }
 
-  printSection("Race history (workout_type = 1)", query(raceHistorySql));
-  printSection("Lifetime peaks by sport", query(lifetimePeaksSql));
-  printSection(`Peak training weeks (top ${topWeeks})`, query(peakWeeksSql));
-  printSection("Training history depth", query(historyDepthSql));
+  const raceHistoryRows = queryJson<Record<string, unknown>>(raceHistorySql);
+  const raceHistoryTable = formatTable(
+    raceHistoryRows,
+    ["Month", "Name", "Sport", "Km", "Duration"],
+    ["month", "name", "sport_type", "km", "duration"]
+  );
+  printSection("Race history (workout_type = 1)", raceHistoryTable);
+
+  const lifetimePeaksRows = queryJson<Record<string, unknown>>(lifetimePeaksSql);
+  const lifetimePeaksTable = formatTable(
+    lifetimePeaksRows,
+    ["Sport", "Max km", "Max hours"],
+    ["sport_type", "max_km", "max_hours"]
+  );
+  printSection("Lifetime peaks by sport", lifetimePeaksTable);
+
+  const peakWeeksRows = queryJson<Record<string, unknown>>(peakWeeksSql);
+  const peakWeeksTable = formatTable(
+    peakWeeksRows,
+    ["Week", "Total hours", "Sessions"],
+    ["week", "total_hours", "sessions"]
+  );
+  printSection(`Peak training weeks (top ${topWeeks})`, peakWeeksTable);
+
+  const historyDepthRows = queryJson<Record<string, unknown>>(historyDepthSql);
+  const historyDepthTable = formatTable(
+    historyDepthRows,
+    ["Sport", "First activity", "Last activity", "Total activities", "Lifetime km"],
+    ["sport_type", "first_activity", "last_activity", "total_activities", "lifetime_km"]
+  );
+  printSection("Training history depth", historyDepthTable);
 }

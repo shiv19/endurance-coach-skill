@@ -97,11 +97,14 @@ Modify Options:
   --output, -o FILE     Output file (default: overwrites plan file)
 
 Examples:
-  # Headless auth flow (for Claude/automated environments)
+  # Headless auth flow (for automated environments)
   npx endurance-coach auth --client-id=12345 --client-secret=abc123
   # User clicks URL, copies code from failed redirect
   npx endurance-coach auth --code=AUTHORIZATION_CODE
+  # syncs last 730 days (2 years) by default
   npx endurance-coach sync
+  # sync last 7 days only
+  npx endurance-coach sync --days=7
 
   # Interactive auth flow (opens browser)
   npx endurance-coach sync --client-id=12345 --client-secret=abc123

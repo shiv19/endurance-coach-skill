@@ -1,5 +1,6 @@
-import { initDatabase, query, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson } from "../../db/client.js";
 import type { StrengthArgs } from "../args.js";
+import { formatTable } from "../utils/format-table.js";
 
 const DEFAULT_MONTHS = 6;
 const DEFAULT_LONG_MONTHS = 12;
@@ -86,11 +87,38 @@ export async function runStrength(args: StrengthArgs): Promise<void> {
     return;
   }
 
-  printSection(`Efficiency (last ${months} months)`, query(efficiencySql));
+  const efficiencyRows = queryJson<Record<string, unknown>>(efficiencySql);
+  const efficiencyTable = formatTable(
+    efficiencyRows,
+    ["Sport", "Avg km", "Avg minutes", "Avg suffer", "Suffer/min", "Avg HR"],
+    ["sport_type", "avg_km", "avg_minutes", "avg_suffer", "suffer_per_minute", "avg_hr"]
+  );
+  printSection(`Efficiency (last ${months} months)`, efficiencyTable);
+
+  const aerobicStrengthRows = queryJson<Record<string, unknown>>(aerobicStrengthSql);
+  const aerobicStrengthTable = formatTable(
+    aerobicStrengthRows,
+    ["Sport", "Easy long sessions", "Avg km", "Avg minutes", "Avg HR"],
+    ["sport_type", "easy_long_sessions", "avg_km", "avg_minutes", "avg_hr"]
+  );
   printSection(
     `Aerobic strength (>${longMinutes} min, HR < ${easyHrMax}, last ${longMonths} months)`,
-    query(aerobicStrengthSql)
+    aerobicStrengthTable
   );
-  printSection("Last activity by sport (last year)", query(lastActivitySql));
-  printSection(`Historical peaks (last ${years} years)`, query(historicalPeaksSql));
+
+  const lastActivityRows = queryJson<Record<string, unknown>>(lastActivitySql);
+  const lastActivityTable = formatTable(
+    lastActivityRows,
+    ["Sport", "Last session", "Days ago", "Total sessions"],
+    ["sport_type", "last_session", "days_ago", "total_sessions_last_year"]
+  );
+  printSection("Last activity by sport (last year)", lastActivityTable);
+
+  const historicalPeaksRows = queryJson<Record<string, unknown>>(historicalPeaksSql);
+  const historicalPeaksTable = formatTable(
+    historicalPeaksRows,
+    ["Sport", "Peak km", "Peak hours", "When achieved"],
+    ["sport_type", "peak_km", "peak_hours", "when_achieved"]
+  );
+  printSection(`Historical peaks (last ${years} years)`, historicalPeaksTable);
 }

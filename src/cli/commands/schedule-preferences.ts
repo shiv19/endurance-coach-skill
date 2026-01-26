@@ -1,5 +1,6 @@
-import { initDatabase, query, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson } from "../../db/client.js";
 import type { SchedulePreferencesArgs } from "../args.js";
+import { formatTable } from "../utils/format-table.js";
 
 const DEFAULT_RIDE_MINUTES = 90;
 const DEFAULT_RUN_MINUTES = 60;
@@ -87,7 +88,15 @@ export async function runSchedulePreferences(args: SchedulePreferencesArgs): Pro
     return;
   }
 
-  printSection(`Preferred long ride days (>${rideMinutes} min)`, query(rideSql));
-  printSection(`Preferred long run days (>${runMinutes} min)`, query(runSql));
-  printSection("Preferred swim days", query(swimSql));
+  const rideRows = queryJson<Record<string, unknown>>(rideSql);
+  const rideTable = formatTable(rideRows, ["Day", "Long rides"], ["day_name", "long_rides"]);
+  printSection(`Preferred long ride days (>${rideMinutes} min)`, rideTable);
+
+  const runRows = queryJson<Record<string, unknown>>(runSql);
+  const runTable = formatTable(runRows, ["Day", "Long runs"], ["day_name", "long_runs"]);
+  printSection(`Preferred long run days (>${runMinutes} min)`, runTable);
+
+  const swimRows = queryJson<Record<string, unknown>>(swimSql);
+  const swimTable = formatTable(swimRows, ["Day", "Swim sessions"], ["day_name", "swim_sessions"]);
+  printSection("Preferred swim days", swimTable);
 }

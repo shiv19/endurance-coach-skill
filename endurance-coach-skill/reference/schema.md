@@ -1,7 +1,5 @@
 # Database Schema Reference (One Table Per Line)
 
-Derived from [src/db/schema.sql](src/db/schema.sql).
-
 ## Tables
 
 - activities: id, name, sport_type, start_date, elapsed_time, moving_time, distance, total_elevation_gain, average_speed, max_speed, average_heartrate, max_heartrate, average_watts, max_watts, weighted_average_watts, kilojoules, suffer_score, average_cadence, calories, description, workout_type, gear_id, raw_json, synced_at

@@ -1,5 +1,6 @@
-import { initDatabase, query, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson } from "../../db/client.js";
 import type { StatsArgs } from "../args.js";
+import { formatTable } from "../utils/format-table.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_LONGEST_WEEKS = 12;
@@ -20,18 +21,25 @@ export async function runStats(args: StatsArgs): Promise<void> {
 
   const weeks = toPositiveInt(args.weeks, DEFAULT_WEEKS);
   const longestWeeks = toPositiveInt(args.longestWeeks, DEFAULT_LONGEST_WEEKS);
+  const days = weeks * 7;
+  const longestDays = longestWeeks * 7;
 
   const weeklyVolumeSql = `
-    SELECT
-      strftime('%Y-W%W', start_date) AS week,
-      sport_type,
-      COUNT(*) AS sessions,
-      ROUND(SUM(moving_time) / 3600.0, 1) AS hours,
-      ROUND(SUM(distance) / 1000.0, 1) AS km
-    FROM activities
-    WHERE start_date >= date('now', '-${weeks} weeks')
-    GROUP BY week, sport_type
-    ORDER BY week DESC, sport_type;
+    SELECT week, sport_type, sessions, hours, km
+    FROM (
+      SELECT
+        strftime('%Y-W%W', start_date) AS week,
+        strftime('%Y', start_date) AS year_num,
+        strftime('%W', start_date) AS week_num,
+        sport_type,
+        COUNT(*) AS sessions,
+        ROUND(SUM(moving_time) / 3600.0, 1) AS hours,
+        ROUND(SUM(distance) / 1000.0, 1) AS km
+      FROM activities
+      WHERE start_date >= date('now', '-${days} days')
+      GROUP BY year_num, week_num, week, sport_type
+    )
+    ORDER BY year_num, week_num, sport_type;
   `;
 
   const longestSessionsSql = `
@@ -39,7 +47,7 @@ export async function runStats(args: StatsArgs): Promise<void> {
       ROUND(MAX(moving_time) / 3600.0, 1) AS longest_hours,
       ROUND(MAX(distance) / 1000.0, 1) AS longest_km
     FROM activities
-    WHERE start_date >= date('now', '-${longestWeeks} weeks')
+    WHERE start_date >= date('now', '-${longestDays} days')
     GROUP BY sport_type;
   `;
 
@@ -49,7 +57,7 @@ export async function runStats(args: StatsArgs): Promise<void> {
       ROUND(AVG(distance) / 1000.0, 1) AS avg_km,
       COUNT(*) AS total_sessions
     FROM activities
-    WHERE start_date >= date('now', '-${weeks} weeks')
+    WHERE start_date >= date('now', '-${days} days')
     GROUP BY sport_type;
   `;
 
@@ -63,7 +71,27 @@ export async function runStats(args: StatsArgs): Promise<void> {
     return;
   }
 
-  printSection(`Weekly volume (last ${weeks} weeks)`, query(weeklyVolumeSql));
-  printSection(`Longest recent sessions (last ${longestWeeks} weeks)`, query(longestSessionsSql));
-  printSection(`Average session duration (last ${weeks} weeks)`, query(averagesSql));
+  const weeklyVolumeRows = queryJson<Record<string, unknown>>(weeklyVolumeSql);
+  const weeklyVolumeTable = formatTable(
+    weeklyVolumeRows,
+    ["Week", "Sport", "Sessions", "Hours", "Km"],
+    ["week", "sport_type", "sessions", "hours", "km"]
+  );
+  printSection(`Weekly volume (last ${weeks} weeks)`, weeklyVolumeTable);
+
+  const longestSessionsRows = queryJson<Record<string, unknown>>(longestSessionsSql);
+  const longestSessionsTable = formatTable(
+    longestSessionsRows,
+    ["Sport", "Longest hours", "Longest km"],
+    ["sport_type", "longest_hours", "longest_km"]
+  );
+  printSection(`Longest recent sessions (last ${longestWeeks} weeks)`, longestSessionsTable);
+
+  const averageSessionRows = queryJson<Record<string, unknown>>(averagesSql);
+  const averageSessionTable = formatTable(
+    averageSessionRows,
+    ["Sport", "Avg minutes", "Avg km", "Total sessions"],
+    ["sport_type", "avg_minutes", "avg_km", "total_sessions"]
+  );
+  printSection(`Average session duration (last ${weeks} weeks)`, averageSessionTable);
 }

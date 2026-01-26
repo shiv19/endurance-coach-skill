@@ -1,5 +1,6 @@
-import { initDatabase, query, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson } from "../../db/client.js";
 import type { HrZonesArgs } from "../args.js";
+import { formatTable } from "../utils/format-table.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_DISTRIBUTION_WEEKS = 12;
@@ -20,6 +21,8 @@ export async function runHrZones(args: HrZonesArgs): Promise<void> {
 
   const weeks = toPositiveInt(args.weeks, DEFAULT_WEEKS);
   const distributionWeeks = toPositiveInt(args.distributionWeeks, DEFAULT_DISTRIBUTION_WEEKS);
+  const days = weeks * 7;
+  const distributionDays = distributionWeeks * 7;
 
   const avgHrSql = `
     SELECT
@@ -29,7 +32,7 @@ export async function runHrZones(args: HrZonesArgs): Promise<void> {
       COUNT(*) AS sessions
     FROM activities
     WHERE average_heartrate IS NOT NULL
-      AND start_date >= date('now', '-${weeks} weeks')
+      AND start_date >= date('now', '-${days} days')
     GROUP BY sport_type;
   `;
 
@@ -42,7 +45,7 @@ export async function runHrZones(args: HrZonesArgs): Promise<void> {
       ROUND(MAX(max_heartrate), 0) AS highest_max_hr
     FROM activities
     WHERE average_heartrate IS NOT NULL
-      AND start_date >= date('now', '-${distributionWeeks} weeks')
+      AND start_date >= date('now', '-${distributionDays} days')
     GROUP BY sport_type;
   `;
 
@@ -55,6 +58,19 @@ export async function runHrZones(args: HrZonesArgs): Promise<void> {
     return;
   }
 
-  printSection(`Average HR by sport (last ${weeks} weeks)`, query(avgHrSql));
-  printSection(`HR distribution (last ${distributionWeeks} weeks)`, query(distributionSql));
+  const avgHrRows = queryJson<Record<string, unknown>>(avgHrSql);
+  const avgHrTable = formatTable(
+    avgHrRows,
+    ["Sport", "Avg HR", "Avg max HR", "Sessions"],
+    ["sport_type", "avg_hr", "avg_max_hr", "sessions"]
+  );
+  printSection(`Average HR by sport (last ${weeks} weeks)`, avgHrTable);
+
+  const distributionRows = queryJson<Record<string, unknown>>(distributionSql);
+  const distributionTable = formatTable(
+    distributionRows,
+    ["Sport", "Min avg HR", "Mean avg HR", "Max avg HR", "Highest max HR"],
+    ["sport_type", "min_avg_hr", "mean_avg_hr", "max_avg_hr", "highest_max_hr"]
+  );
+  printSection(`HR distribution (last ${distributionWeeks} weeks)`, distributionTable);
 }

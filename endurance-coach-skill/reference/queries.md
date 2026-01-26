@@ -91,4 +91,4 @@ npx -y endurance-coach@latest query "SELECT * FROM weekly_volume LIMIT 5" --json
 
 ## Schema Reference
 
-See [endurance-coach-skill/reference/schema.md](endurance-coach-skill/reference/schema.md) for a one-line-per-table schema overview.
+See @reference/schema.md for a one-line-per-table schema overview.
