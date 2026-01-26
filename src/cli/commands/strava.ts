@@ -248,12 +248,22 @@ export async function runSync(args: SyncArgs): Promise<void> {
     };
     saveTokens(tempTokens);
 
-    // Create minimal config if needed
-    if (!configExists()) {
-      // Token-based auth doesn't need client credentials for initial sync
-      // but we need them for token refresh - use placeholders
-      const config = createConfig("token-auth", "token-auth", syncDays);
-      saveConfig(config);
+    // Create config if needed and credentials are provided
+    const hadConfig = configExists();
+    if (!hadConfig) {
+      if (args.clientId && args.clientSecret) {
+        log.info("Saving Strava client credentials for token refresh...");
+        const config = createConfig(args.clientId, args.clientSecret, syncDays);
+        saveConfig(config);
+        log.success("Configuration saved");
+      } else {
+        log.warn(
+          "No Strava client credentials found. Token refresh will fail without a client ID/secret."
+        );
+        log.info(
+          "Provide --client-id and --client-secret or run `auth` to store credentials. Tokens are one-time only."
+        );
+      }
     }
 
     // Initialize database

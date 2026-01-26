@@ -122,7 +122,12 @@ export function runRender(args: RenderArgs): void {
 
   // Replace the plan data in the template
   const planDataRegex = /<script type="application\/json" id="plan-data">[\s\S]*?<\/script>/;
-  const newPlanData = `<script type="application/json" id="plan-data">\n${planJson}\n</script>`;
+  if (!planDataRegex.test(template)) {
+    log.error("Template is missing the plan-data script placeholder.");
+    process.exit(1);
+  }
+  const escapedPlanJson = planJson.replace(/<\/script>/g, "<\\/script>");
+  const newPlanData = `<script type="application/json" id="plan-data">\n${escapedPlanJson}\n</script>`;
   template = template.replace(planDataRegex, newPlanData);
 
   // Output
