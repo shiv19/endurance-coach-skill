@@ -1,21 +1,10 @@
 import { initDatabase, queryJson } from "../../db/client.js";
 import type { SchedulePreferencesArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
+import { toPositiveInt } from "../utils/number-utils.js";
 
 const DEFAULT_RIDE_MINUTES = 90;
 const DEFAULT_RUN_MINUTES = 60;
-
-/**
- * Normalize a numeric input to a positive integer, using a fallback when the input is invalid.
- *
- * @param value - The number to convert; treated as invalid if `undefined`, `NaN`, or less than or equal to zero.
- * @param fallback - The value to return when `value` is invalid.
- * @returns The floor of `value` when `value` is greater than zero, otherwise `fallback`.
- */
-function toPositiveInt(value: number | undefined, fallback: number): number {
-  if (!value || Number.isNaN(value) || value <= 0) return fallback;
-  return Math.floor(value);
-}
 
 /**
  * Print a titled console section with the provided content, or a placeholder when the content is empty.

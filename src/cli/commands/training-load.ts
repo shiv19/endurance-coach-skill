@@ -1,20 +1,9 @@
 import { initDatabase, queryJson } from "../../db/client.js";
 import type { TrainingLoadArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
+import { toPositiveInt } from "../utils/number-utils.js";
 
 const DEFAULT_WEEKS = 12;
-
-/**
- * Normalize a numeric input to a positive integer, using a fallback for invalid values.
- *
- * @param value - The number to coerce; treated as invalid if `undefined`, `NaN`, or <= 0
- * @param fallback - The integer to return when `value` is invalid
- * @returns The integer part of `value` (floor) when `value` > 0, otherwise `fallback`
- */
-function toPositiveInt(value: number | undefined, fallback: number): number {
-  if (!value || Number.isNaN(value) || value <= 0) return fallback;
-  return Math.floor(value);
-}
 
 /**
  * Print a titled console section with the given output.

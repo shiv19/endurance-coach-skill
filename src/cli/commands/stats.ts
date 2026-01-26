@@ -1,21 +1,10 @@
 import { initDatabase, queryJson } from "../../db/client.js";
 import type { StatsArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
+import { toPositiveInt } from "../utils/number-utils.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_LONGEST_WEEKS = 12;
-
-/**
- * Convert an input to a positive integer, falling back when the input is missing or invalid.
- *
- * @param value - The input number to convert; if `undefined`, `NaN`, or <= 0 the `fallback` is used
- * @param fallback - The value returned when `value` is missing or not a positive number
- * @returns `fallback` if `value` is missing, `NaN`, or less than or equal to zero; otherwise the largest integer less than or equal to `value`
- */
-function toPositiveInt(value: number | undefined, fallback: number): number {
-  if (!value || Number.isNaN(value) || value <= 0) return fallback;
-  return Math.floor(value);
-}
 
 /**
  * Print a titled console section with the provided output.

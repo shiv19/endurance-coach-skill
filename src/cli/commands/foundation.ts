@@ -1,20 +1,9 @@
 import { initDatabase, queryJson } from "../../db/client.js";
 import type { FoundationArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
+import { toPositiveInt } from "../utils/number-utils.js";
 
 const DEFAULT_TOP_WEEKS = 5;
-
-/**
- * Normalize a numeric input to a positive integer using a fallback when the input is missing or invalid.
- *
- * @param value - The numeric input to normalize; may be `undefined`, `NaN`, or non-positive
- * @param fallback - The fallback positive integer to return when `value` is missing, `NaN`, or <= 0
- * @returns The floored integer of `value` when `value` is greater than 0, otherwise `fallback`
- */
-function toPositiveInt(value: number | undefined, fallback: number): number {
-  if (!value || Number.isNaN(value) || value <= 0) return fallback;
-  return Math.floor(value);
-}
 
 /**
  * Print a titled console section with trimmed content or a placeholder when empty.

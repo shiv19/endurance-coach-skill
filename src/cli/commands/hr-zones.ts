@@ -1,21 +1,10 @@
 import { initDatabase, queryJson } from "../../db/client.js";
 import type { HrZonesArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
+import { toPositiveInt } from "../utils/number-utils.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_DISTRIBUTION_WEEKS = 12;
-
-/**
- * Normalize a numeric input to a positive integer, falling back when the input is invalid or not greater than zero.
- *
- * @param value - The number to convert; if `undefined`, `NaN`, or `<= 0`, the `fallback` is used
- * @param fallback - The value returned when `value` is invalid or not greater than zero
- * @returns The floored integer value of `value` when greater than zero, otherwise `fallback`
- */
-function toPositiveInt(value: number | undefined, fallback: number): number {
-  if (!value || Number.isNaN(value) || value <= 0) return fallback;
-  return Math.floor(value);
-}
 
 /**
  * Prints a console section header and the trimmed output, or "(no results)" when the output is empty.

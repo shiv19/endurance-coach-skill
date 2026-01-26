@@ -1,24 +1,13 @@
 import { initDatabase, queryJson } from "../../db/client.js";
 import type { StrengthArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
+import { toPositiveInt } from "../utils/number-utils.js";
 
 const DEFAULT_MONTHS = 6;
 const DEFAULT_LONG_MONTHS = 12;
 const DEFAULT_EASY_HR_MAX = 145;
 const DEFAULT_LONG_MINUTES = 60;
 const DEFAULT_YEARS = 2;
-
-/**
- * Converts a number to a positive integer, returning the fallback when the input is missing, NaN, or not greater than zero.
- *
- * @param value - The input number to convert.
- * @param fallback - The value to return when `value` is missing, NaN, or <= 0.
- * @returns The floored integer part of `value` when it is greater than zero, otherwise `fallback`.
- */
-function toPositiveInt(value: number | undefined, fallback: number): number {
-  if (!value || Number.isNaN(value) || value <= 0) return fallback;
-  return Math.floor(value);
-}
 
 /**
  * Print a titled section to the console containing the given content.
