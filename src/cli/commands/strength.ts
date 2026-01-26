@@ -82,12 +82,25 @@ export async function runStrength(args: StrengthArgs): Promise<void> {
   `;
 
   const historicalPeaksSql = `
-    SELECT sport_type,
+    WITH ranked AS (
+      SELECT
+        sport_type,
+        distance,
+        moving_time,
+        start_date,
+        ROW_NUMBER() OVER (
+          PARTITION BY sport_type
+          ORDER BY distance DESC, moving_time DESC, start_date DESC
+        ) AS distance_rank
+      FROM activities
+      WHERE start_date >= date('now', '-${years} years')
+    )
+    SELECT
+      sport_type,
       ROUND(MAX(distance) / 1000.0, 1) AS peak_km,
       ROUND(MAX(moving_time) / 3600.0, 1) AS peak_hours,
-      MAX(start_date) AS when_achieved
-    FROM activities
-    WHERE start_date >= date('now', '-${years} years')
+      MAX(CASE WHEN distance_rank = 1 THEN start_date END) AS when_achieved
+    FROM ranked
     GROUP BY sport_type;
   `;
 
