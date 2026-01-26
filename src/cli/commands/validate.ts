@@ -10,8 +10,19 @@ import { validateWorkoutRefs } from "../../expander/index.js";
 import type { ValidateArgs } from "../args.js";
 
 // ============================================================================
-// Validate Command
+// MARK: Validate Command
 // ============================================================================
+/**
+ * Validate a training plan file in either full or compact mode.
+ *
+ * Reads the file at `args.inputFile`, parses it as YAML when the filename ends with
+ * `.yaml` or `.yml` and as JSON otherwise, and validates the parsed data against
+ * the selected schema (compact or full). On compact validation, also checks workout
+ * template references and emits warnings for reference issues. Logs validation
+ * results and exits the process with code 1 on read, parse, or validation failures.
+ *
+ * @param args - Validation options including `inputFile` (path to the plan) and `compact` (use compact schema when true)
+ */
 
 export function runValidate(args: ValidateArgs): void {
   const isCompact = args.compact;

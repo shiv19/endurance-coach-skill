@@ -13,7 +13,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 // ============================================================================
-// Helper Types and Constants
+// MARK: Helper Types and Constants
 // ============================================================================
 
 const SPORT_VALUES = ["run", "bike", "swim", "strength", "brick", "race", "rest"] as const;
@@ -38,8 +38,29 @@ type Sport = (typeof SPORT_VALUES)[number];
 type Category = (typeof CATEGORY_VALUES)[number];
 
 // ============================================================================
-// Create Command Handler
+// MARK: Create Command Handler
 // ============================================================================
+/**
+ * Create a new workout template file from a generated scaffold or an existing YAML file.
+ *
+ * Validates the provided template ID, sport, and optional category; generates or loads a template,
+ * validates the template schema, and writes the resulting YAML file into the user's templates
+ * directory (unless running in dry-run mode).
+ *
+ * @param args - Command arguments. Important properties:
+ *   - create: template ID to create
+ *   - type: sport for the template (e.g., "run", "bike", "swim", "strength", "rest")
+ *   - category: optional template category (defaults to "endurance")
+ *   - templateFile: optional path to an existing YAML template to import
+ *   - overwrite: whether to replace an existing template file
+ *   - dryRun: if true, prints the generated YAML instead of writing the file
+ *   - userTemplatesDir: optional custom templates directory
+ *   - example: if true, generate an example-filled scaffold
+ *
+ * @throws Error if the template ID is missing or malformed, the sport or category is invalid,
+ * if a template file already exists and overwrite is not set, if validation of the template fails,
+ * or if file I/O operations fail when creating or writing the template.
+ */
 
 function handleCreate(args: TemplatesArgs): void {
   // Validate required arguments
@@ -133,6 +154,16 @@ function handleCreate(args: TemplatesArgs): void {
   }
 }
 
+/**
+ * Load a workout template from a YAML file and apply command-line overrides.
+ *
+ * @param filePath - Path to the YAML template file to load
+ * @param templateId - Template ID to set on the loaded template (overrides the file's id)
+ * @param sport - Sport to set on the loaded template (overrides the file's sport)
+ * @returns The validated WorkoutTemplate with `id` and `sport` set to the provided values
+ * @throws Error if the file does not exist
+ * @throws Error if the file contains invalid YAML or fails schema validation
+ */
 function loadTemplateFromFile(filePath: string, templateId: string, sport: Sport): WorkoutTemplate {
   if (!existsSync(filePath)) {
     throw new Error(`Template file not found: ${filePath}`);
@@ -156,6 +187,15 @@ function loadTemplateFromFile(filePath: string, templateId: string, sport: Sport
   }
 }
 
+/**
+ * Create a WorkoutTemplate scaffold for the given template id, sport, and category.
+ *
+ * @param templateId - Template identifier (also used to generate a title-cased `name`)
+ * @param sport - Sport for the template (e.g., "run", "bike")
+ * @param category - Template category/type (e.g., "endurance", "intervals")
+ * @param example - When true, return a populated example template; when false, return a minimal scaffold
+ * @returns A WorkoutTemplate object: a populated example if `example` is true, otherwise a minimal scaffold containing `id`, `name`, `sport`, `type`, `category`, and `humanReadable`
+ */
 function generateTemplateScaffold(
   templateId: string,
   sport: Sport,
@@ -178,6 +218,13 @@ function generateTemplateScaffold(
   return baseTemplate;
 }
 
+/**
+ * Produce an example workout template by populating a base template with
+ * category-specific parameters, structure, and metadata.
+ *
+ * @param baseTemplate - The base WorkoutTemplate to extend; its `sport` and `category` determine the example content.
+ * @returns A WorkoutTemplate extended from `baseTemplate` with example/default `params`, `structure`, `humanReadable`, and other metadata appropriate for the template's category.
+ */
 function generateExampleTemplate(baseTemplate: WorkoutTemplate): WorkoutTemplate {
   const { sport, category } = baseTemplate;
 
@@ -401,6 +448,13 @@ Take the day off. Focus on recovery, sleep, and nutrition.
   }
 }
 
+/**
+ * Build a human-readable header and placeholder description for a template based on sport and category.
+ *
+ * @param sport - Sport identifier (e.g., "run", "bike", "swim")
+ * @param category - Template category (e.g., "endurance", "intervals", "rest")
+ * @returns A formatted description string. For `category === "rest"` this contains a REST DAY notice; otherwise it contains an uppercase header combining category and sport with a placeholder description.
+ */
 function generateHumanReadable(sport: Sport, category: Category): string {
   const sportLabel = toTitleCase(sport);
   const categoryLabel = toTitleCase(category);
@@ -421,6 +475,12 @@ Edit this file to customize workout details.
 `;
 }
 
+/**
+ * Convert a string to title case by capitalizing the first letter of each word.
+ *
+ * @param str - The input string to convert
+ * @returns The input string with each word's first letter capitalized and the rest lowercased
+ */
 function toTitleCase(str: string): string {
   return str
     .toLowerCase()
@@ -430,8 +490,22 @@ function toTitleCase(str: string): string {
 }
 
 // ============================================================================
-// Validate Command Handler
-// ============================================================================
+// MARK: Validate Command Handler
+/**
+ * Validate a template identified by `args.validate`, print a detailed validation
+ * summary to stdout, and surface any schema or YAML errors.
+ *
+ * Loads both builtin and user templates (using `args.userTemplatesDir` if present),
+ * attempts to locate the requested template, and if found runs schema validation
+ * then prints source, file path (for user templates), sport, category, type,
+ * optional target zone/RPE, parameters (with required/default info and descriptions),
+ * and a confirmation that validation checks passed.
+ *
+ * @param args - Command arguments; must include `validate` (the template ID). If provided,
+ *               `userTemplatesDir` is used to include user templates when loading.
+ * @throws If `args.validate` is not provided, if the template cannot be found,
+ *         or if the template file contains YAML parsing or schema validation errors.
+ */
 
 function handleValidate(args: TemplatesArgs): void {
   if (!args.validate) {
@@ -523,6 +597,13 @@ function handleValidate(args: TemplatesArgs): void {
   console.log(`  ${colors.dim("•")} Parameter definitions valid`);
 }
 
+/**
+ * Searches the user's templates directory for a YAML file matching `templateId` across sport subdirectories and validates it.
+ *
+ * @param templateId - The template identifier (filename without extension) to look up.
+ * @param userTemplatesDir - Root path of the user's templates directory containing sport subfolders (e.g., run, bike).
+ * @returns An object `{ error: string }` containing a formatted validation or parse error if a matching file exists but fails validation or YAML parsing; `null` if no matching user template file is found or if a matching file is found and validates successfully.
+ */
 function tryLoadTemplateFromFile(
   templateId: string,
   userTemplatesDir: string
@@ -569,8 +650,19 @@ function tryLoadTemplateFromFile(
 }
 
 // ============================================================================
-// Templates Command
+// MARK: Templates Command
 // ============================================================================
+/**
+ * Dispatches the "templates" CLI command: handles validate, create, show, and list subcommands.
+ *
+ * Processes the provided CLI arguments to run the appropriate templates subcommand:
+ * - validate: validate a template by ID
+ * - create: create or scaffold a new template
+ * - show: display detailed metadata and usage for a specific template
+ * - list: list available templates with optional filtering and verbose output
+ *
+ * @param args - Parsed templates command arguments (subcommand selector, filters, flags, and options)
+ */
 
 export function runTemplates(args: TemplatesArgs): void {
   try {

@@ -14,8 +14,14 @@ import type { RenderArgs } from "../args.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ============================================================================
-// Render Command
+// MARK: Render Command
 // ============================================================================
+/**
+ * Locate the `plan-viewer.html` template by checking multiple candidate locations and return the first readable path.
+ *
+ * @returns The filesystem path to the first readable `plan-viewer.html` template.
+ * @throws Error if no template file is found in any of the checked locations.
+ */
 
 export function getTemplatePath(): string {
   // Look for template in multiple locations
@@ -37,6 +43,15 @@ export function getTemplatePath(): string {
   throw new Error("Could not find plan-viewer.html template");
 }
 
+/**
+ * Render a training plan file into the plan-viewer HTML template.
+ *
+ * Reads the specified input plan (compact YAML or full JSON), validates and expands it as needed,
+ * injects the resulting plan JSON into the plan-viewer template, and writes the rendered HTML
+ * to the given output file or stdout when no output file is provided.
+ *
+ * @param args - Rendering arguments containing the input file path and optional output file path.
+ */
 export function runRender(args: RenderArgs): void {
   log.start("Rendering training plan...");
 

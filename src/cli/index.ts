@@ -18,7 +18,7 @@ import { runSchedulePreferences } from "./commands/schedule-preferences.js";
 import { runHrZones } from "./commands/hr-zones.js";
 
 // ============================================================================
-// Proxy Configuration
+// MARK: Proxy Configuration
 // ============================================================================
 
 // Configure proxy for fetch() if HTTP_PROXY or HTTPS_PROXY is set
@@ -32,8 +32,14 @@ if (proxyUrl) {
 }
 
 // ============================================================================
-// Main Dispatcher
+// MARK: Main Dispatcher
 // ============================================================================
+/**
+ * Parse command-line arguments and dispatch to the matching CLI command handler.
+ *
+ * The function selects and invokes the appropriate command implementation based on
+ * the parsed `args.command` value; some handlers are awaited when asynchronous.
+ */
 
 async function main(): Promise<void> {
   const args = parseArgs();

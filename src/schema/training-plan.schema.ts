@@ -8,7 +8,7 @@
 import { z } from "zod";
 
 // ============================================================================
-// Core Types
+// MARK: Core Types
 // ============================================================================
 
 export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick", "race", "rest"]);
@@ -60,7 +60,7 @@ export const UnitPreferencesSchema = z.object({
 });
 
 // ============================================================================
-// Workout Structure (for Zwift/Garmin export)
+// MARK: Workout Structure (for Zwift/Garmin export)
 // ============================================================================
 
 export const IntensityTargetSchema = z.object({
@@ -107,7 +107,7 @@ export const StructuredWorkoutSchema = z.object({
 });
 
 // ============================================================================
-// Daily Workout
+// MARK: Daily Workout
 // ============================================================================
 
 export const HRRangeSchema = z.object({
@@ -162,7 +162,7 @@ export const WorkoutSchema = z.object({
 });
 
 // ============================================================================
-// Training Week
+// MARK: Training Week
 // ============================================================================
 
 export const TrainingDaySchema = z.object({
@@ -198,7 +198,7 @@ export const TrainingWeekSchema = z.object({
 });
 
 // ============================================================================
-// Training Zones
+// MARK: Training Zones
 // ============================================================================
 
 export const HeartRateZoneSchema = z.object({
@@ -279,7 +279,7 @@ export const AthleteZonesSchema = z.object({
 });
 
 // ============================================================================
-// Athlete Assessment
+// MARK: Athlete Assessment
 // ============================================================================
 
 // Foundation level - flexible to support various descriptors
@@ -327,7 +327,7 @@ export const AthleteAssessmentSchema = z.object({
 });
 
 // ============================================================================
-// Training Phases
+// MARK: Training Phases
 // ============================================================================
 
 export const WeeklyHoursRangeSchema = z.object({
@@ -346,7 +346,7 @@ export const TrainingPhaseSchema = z.object({
 });
 
 // ============================================================================
-// Race Strategy
+// MARK: Race Strategy
 // ============================================================================
 
 export const EventDistancesSchema = z.object({
@@ -381,7 +381,7 @@ export const RaceDaySchema = z.record(z.string(), z.any());
 export const RaceStrategySchema = z.record(z.string(), z.any());
 
 // ============================================================================
-// Plan Metadata
+// MARK: Plan Metadata
 // ============================================================================
 
 export const PlanMetaSchema = z.object({
@@ -398,7 +398,7 @@ export const PlanMetaSchema = z.object({
 });
 
 // ============================================================================
-// Complete Training Plan
+// MARK: Complete Training Plan
 // ============================================================================
 
 export const TrainingPlanSchema = z.object({
@@ -413,7 +413,7 @@ export const TrainingPlanSchema = z.object({
 });
 
 // ============================================================================
-// Validation Functions
+// MARK: Validation Functions
 // ============================================================================
 
 export type ValidationResult =

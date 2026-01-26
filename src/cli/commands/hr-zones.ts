@@ -5,17 +5,42 @@ import { formatTable } from "../utils/format-table.js";
 const DEFAULT_WEEKS = 8;
 const DEFAULT_DISTRIBUTION_WEEKS = 12;
 
+/**
+ * Normalize a numeric input to a positive integer, falling back when the input is invalid or not greater than zero.
+ *
+ * @param value - The number to convert; if `undefined`, `NaN`, or `<= 0`, the `fallback` is used
+ * @param fallback - The value returned when `value` is invalid or not greater than zero
+ * @returns The floored integer value of `value` when greater than zero, otherwise `fallback`
+ */
 function toPositiveInt(value: number | undefined, fallback: number): number {
   if (!value || Number.isNaN(value) || value <= 0) return fallback;
   return Math.floor(value);
 }
 
+/**
+ * Prints a console section header and the trimmed output, or "(no results)" when the output is empty.
+ *
+ * @param title - The section title to print as a header
+ * @param output - The text to print under the header; whitespace is trimmed before printing
+ */
 function printSection(title: string, output: string): void {
   const trimmed = output.trim();
   console.log(`\n# ${title}`);
   console.log(trimmed ? trimmed : "(no results)");
 }
 
+/**
+ * Generate and output heart-rate zone reports grouped by sport.
+ *
+ * Computes average and distribution statistics for activities over configurable
+ * time windows and either prints formatted tables to stdout or emits a JSON
+ * object when `args.json` is true.
+ *
+ * @param args - Command arguments. Recognized fields:
+ *   - `weeks`: number of weeks for the average HR window (defaults to 8 when omitted or invalid)
+ *   - `distributionWeeks`: number of weeks for the distribution window (defaults to 12 when omitted or invalid)
+ *   - `json`: when true, output JSON with `averageHeartRate` and `distribution` instead of human-readable tables
+ */
 export async function runHrZones(args: HrZonesArgs): Promise<void> {
   await initDatabase();
 

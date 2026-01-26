@@ -7,7 +7,7 @@
 import { z } from "zod";
 
 // ============================================================================
-// Core Types
+// MARK: Core Types
 // ============================================================================
 
 export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick", "race", "rest"]);
@@ -19,7 +19,7 @@ export const DistanceUnitSchema = z.enum(["km", "mi"]);
 export const DayOfWeekSchema = z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
 
 // ============================================================================
-// Athlete Configuration
+// MARK: Athlete Configuration
 // ============================================================================
 
 /**
@@ -107,7 +107,7 @@ export const CompactAthleteSchema = z.object({
 });
 
 // ============================================================================
-// Training Phases
+// MARK: Training Phases
 // ============================================================================
 
 /**
@@ -126,7 +126,7 @@ export const CompactPhaseSchema = z.object({
 });
 
 // ============================================================================
-// Weekly Schedule
+// MARK: Weekly Schedule
 // ============================================================================
 
 /**
@@ -163,7 +163,7 @@ export const CompactWeekSchema = z.object({
 });
 
 // ============================================================================
-// Assessment (Optional)
+// MARK: Assessment (Optional)
 // ============================================================================
 
 export const CompactAssessmentEntrySchema = z.object({
@@ -206,7 +206,7 @@ export const CompactAssessmentSchema = z.object({
 });
 
 // ============================================================================
-// Race Strategy
+// MARK: Race Strategy
 // ============================================================================
 
 export const CompactRaceStrategySchema = z.object({
@@ -223,7 +223,7 @@ export const CompactRaceStrategySchema = z.object({
 });
 
 // ============================================================================
-// Complete Compact Plan
+// MARK: Complete Compact Plan
 // ============================================================================
 
 export const CompactPlanSchema = z
@@ -266,7 +266,7 @@ export const CompactPlanSchema = z
   );
 
 // ============================================================================
-// Validation Functions
+// MARK: Validation Functions
 // ============================================================================
 
 export type CompactValidationResult =
@@ -320,7 +320,7 @@ export function formatCompactValidationErrors(errors: CompactValidationError[]):
 }
 
 // ============================================================================
-// Type Exports
+// MARK: Type Exports
 // ============================================================================
 
 export type CompactPlan = z.infer<typeof CompactPlanSchema>;

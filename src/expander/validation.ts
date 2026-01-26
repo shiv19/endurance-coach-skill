@@ -8,7 +8,7 @@
 import type { TemplateRegistry } from "../templates/index.js";
 
 // ============================================================================
-// Error Classes
+// MARK: Error Classes
 // ============================================================================
 
 /**
@@ -43,12 +43,13 @@ export class UnknownTemplateError extends Error {
 }
 
 // ============================================================================
-// Fuzzy Matching Functions
+// MARK: Fuzzy Matching Functions
 // ============================================================================
 
 /**
- * Calculate Levenshtein distance between two strings.
- * Lower distance = more similar.
+ * Compute the Levenshtein distance between two strings.
+ *
+ * @returns The integer edit distance between `a` and `b` (0 when the strings are identical).
  */
 export function levenshteinDistance(a: string, b: string): number {
   const m = a.length;
@@ -80,7 +81,13 @@ export function levenshteinDistance(a: string, b: string): number {
 }
 
 /**
- * Calculate normalized similarity score (0-1, where 1 is identical).
+ * Compute a normalized similarity score between two strings (1.0 = identical, 0.0 = completely different).
+ *
+ * Comparison is case-insensitive.
+ *
+ * @param a - The first string to compare
+ * @param b - The second string to compare
+ * @returns A number between 0 and 1 representing similarity; `1` if the strings are identical. Returns `1` when both inputs are empty.
  */
 export function similarityScore(a: string, b: string): number {
   const maxLen = Math.max(a.length, b.length);
@@ -90,8 +97,12 @@ export function similarityScore(a: string, b: string): number {
 }
 
 /**
- * Find templates similar to given template ID.
- * Returns up to `maxSuggestions` templates sorted by similarity.
+ * Suggests template IDs from the registry that are most similar to the provided template ID.
+ *
+ * @param templateId - The template identifier to match against the registry
+ * @param templates - The template registry to search
+ * @param maxSuggestions - Maximum number of suggestions to return (default: 5)
+ * @returns An array of template IDs ordered from most to least similar (up to `maxSuggestions`)
  */
 export function findSimilarTemplates(
   templateId: string,
@@ -115,8 +126,9 @@ export function findSimilarTemplates(
 }
 
 /**
- * Validate that a template exists and throw an error if not.
- * Includes fuzzy matching suggestions for helpful error messages.
+ * Ensures a template with the given ID exists in the provided registry.
+ *
+ * @throws UnknownTemplateError - if the template is not found; the error includes fuzzy-match suggestions for possible template IDs.
  */
 export function validateTemplateExists(templateId: string, templates: TemplateRegistry): void {
   if (templates.has(templateId)) {
@@ -128,7 +140,7 @@ export function validateTemplateExists(templateId: string, templates: TemplateRe
 }
 
 // ============================================================================
-// Enhanced Plan Validation
+// MARK: Enhanced Plan Validation
 // ============================================================================
 
 /**
@@ -142,6 +154,17 @@ export interface TemplateValidationError {
   suggestions: string[];
 }
 
+/**
+ * Collects unknown template references from a compact plan and returns detailed validation errors.
+ *
+ * Iterates the plan's weeks and workouts, identifies template references that are not present in the provided
+ * TemplateRegistry, and returns an array of TemplateValidationError objects containing the week, day, original
+ * reference, the extracted template ID, and suggested similar template IDs.
+ *
+ * @param compactPlan - Plan object with a `weeks` array; each week contains a `week` number and `workouts` mapping days to a template ref or array of refs.
+ * @param templates - TemplateRegistry used to check whether a referenced template ID exists and to derive suggestions for unknown IDs.
+ * @returns An array of TemplateValidationError objects describing each unknown template reference found in the plan.
+ */
 export function validatePlanTemplates(
   compactPlan: {
     weeks: Array<{ week: number; workouts: Record<string, string | string[]> }>;
@@ -175,7 +198,13 @@ export function validatePlanTemplates(
 }
 
 /**
- * Format validation errors into a human-readable message.
+ * Render a list of template validation errors into a concise, human-readable report.
+ *
+ * The returned string lists each unknown reference with its week, day, and original ref,
+ * and includes suggested template IDs when available. If `errors` is empty, returns an empty string.
+ *
+ * @param errors - Array of template validation errors to format
+ * @returns A multi-line message describing each unknown reference and any suggestions, or an empty string if there are no errors
  */
 export function formatValidationErrors(errors: TemplateValidationError[]): string {
   if (errors.length === 0) return "";
