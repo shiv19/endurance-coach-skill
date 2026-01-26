@@ -10,7 +10,8 @@ import { validateWorkoutRefs } from "../../expander/index.js";
 import type { ValidateArgs } from "../args.js";
 
 // ============================================================================
-// Validate Command
+// MARK: Validate Command
+// ============================================================================
 /**
  * Validate a training plan file in either full or compact mode.
  *

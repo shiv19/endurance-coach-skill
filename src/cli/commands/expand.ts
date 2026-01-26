@@ -9,7 +9,8 @@ import { expandPlan, validateWorkoutRefs } from "../../expander/index.js";
 import type { ExpandArgs } from "../args.js";
 
 // ============================================================================
-// Expand Command
+// MARK: Expand Command
+// ============================================================================
 /**
  * Executes the Expand command to transform a compact plan into an expanded plan.
  *

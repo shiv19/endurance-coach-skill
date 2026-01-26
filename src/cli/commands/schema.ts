@@ -1,5 +1,6 @@
 // ============================================================================
-// Schema Command
+// MARK: Schema Command
+// ============================================================================
 /**
  * Prints the YAML v2.0 Training Plan Format, a complete example, workout templates, zone auto-calculation notes, and example CLI commands to the console.
  *

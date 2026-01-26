@@ -1,5 +1,6 @@
 // ============================================================================
-// Help Command
+// MARK: Help Command
+// ============================================================================
 /**
  * Print the CLI usage, command reference, options, auth flow, and examples for the Endurance Coach tools to the console.
  *

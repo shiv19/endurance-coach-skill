@@ -13,7 +13,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 // ============================================================================
-// Helper Types and Constants
+// MARK: Helper Types and Constants
 // ============================================================================
 
 const SPORT_VALUES = ["run", "bike", "swim", "strength", "brick", "race", "rest"] as const;
@@ -38,7 +38,8 @@ type Sport = (typeof SPORT_VALUES)[number];
 type Category = (typeof CATEGORY_VALUES)[number];
 
 // ============================================================================
-// Create Command Handler
+// MARK: Create Command Handler
+// ============================================================================
 /**
  * Create a new workout template file from a generated scaffold or an existing YAML file.
  *
@@ -489,7 +490,7 @@ function toTitleCase(str: string): string {
 }
 
 // ============================================================================
-// Validate Command Handler
+// MARK: Validate Command Handler
 /**
  * Validate a template identified by `args.validate`, print a detailed validation
  * summary to stdout, and surface any schema or YAML errors.
@@ -649,7 +650,8 @@ function tryLoadTemplateFromFile(
 }
 
 // ============================================================================
-// Templates Command
+// MARK: Templates Command
+// ============================================================================
 /**
  * Dispatches the "templates" CLI command: handles validate, create, show, and list subcommands.
  *

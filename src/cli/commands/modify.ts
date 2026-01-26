@@ -3,7 +3,7 @@ import type { TrainingPlan, TrainingDay, Workout } from "../../schema/training-p
 import type { ModifyArgs } from "../args.js";
 
 // ============================================================================
-// Modify Command Types
+// MARK: Modify Command Types
 // ============================================================================
 
 interface PlanChanges {
@@ -24,7 +24,7 @@ export interface ModifyOptions {
 }
 
 // ============================================================================
-// Helper Functions
+// MARK: Helper Functions
 // ============================================================================
 
 /**
@@ -237,7 +237,8 @@ function applyChangesToPlan(plan: TrainingPlan, changes: PlanChanges): TrainingP
 }
 
 // ============================================================================
-// Modify Command
+// MARK: Modify Command
+// ============================================================================
 /**
  * Modify a training plan using changes and completed flags extracted from a backup file and persist the updated plan.
  *

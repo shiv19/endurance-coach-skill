@@ -14,7 +14,8 @@ import type { RenderArgs } from "../args.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ============================================================================
-// Render Command
+// MARK: Render Command
+// ============================================================================
 /**
  * Locate the `plan-viewer.html` template by checking multiple candidate locations and return the first readable path.
  *

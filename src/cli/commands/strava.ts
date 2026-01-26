@@ -17,7 +17,7 @@ import type { StravaActivity, StravaTokenResponse } from "../../strava/types.js"
 import type { ActivityLapsArgs, AuthArgs, SyncArgs } from "../args.js";
 
 // ============================================================================
-// Auth Command (for headless/Claude environments)
+// MARK: Auth Command (for headless/Claude environments)
 // ============================================================================
 
 const REDIRECT_PORT = 8765;
@@ -119,7 +119,8 @@ export async function runAuth(args: AuthArgs): Promise<void> {
 }
 
 // ============================================================================
-// Sync Command
+// MARK: Sync Command
+// ============================================================================
 /**
  * Produce a SQL literal for a string value.
  *
@@ -357,7 +358,7 @@ export async function runSync(args: SyncArgs): Promise<void> {
 }
 
 // ============================================================================
-// Activity Details Command
+// MARK: Activity Details Command
 /**
  * Fetches lap segments for a Strava activity and writes the result as pretty-printed JSON to stdout.
  *

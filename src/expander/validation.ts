@@ -8,7 +8,7 @@
 import type { TemplateRegistry } from "../templates/index.js";
 
 // ============================================================================
-// Error Classes
+// MARK: Error Classes
 // ============================================================================
 
 /**
@@ -43,7 +43,7 @@ export class UnknownTemplateError extends Error {
 }
 
 // ============================================================================
-// Fuzzy Matching Functions
+// MARK: Fuzzy Matching Functions
 // ============================================================================
 
 /**
@@ -140,7 +140,7 @@ export function validateTemplateExists(templateId: string, templates: TemplateRe
 }
 
 // ============================================================================
-// Enhanced Plan Validation
+// MARK: Enhanced Plan Validation
 // ============================================================================
 
 /**

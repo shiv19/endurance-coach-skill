@@ -2,7 +2,8 @@ import { initDatabase, query, queryJson } from "../../db/client.js";
 import type { QueryArgs } from "../args.js";
 
 // ============================================================================
-// Query Command
+// MARK: Query Command
+// ============================================================================
 /**
  * Executes a SQL statement against the initialized database and prints the result.
  *

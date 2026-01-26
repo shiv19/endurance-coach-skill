@@ -7,7 +7,7 @@ import { expandPlan } from "../../src/expander/expander.js";
 import { loadTemplates } from "../../src/templates/index.js";
 
 // ============================================================================
-// Helper Functions (defined outside describe blocks for shared access)
+// MARK: Helper Functions (defined outside describe blocks for shared access)
 // ============================================================================
 
 const createWeek = (weekNum: number, phase: string, baseWorkouts: Record<string, string> = {}) => {
@@ -37,7 +37,7 @@ const generate4WeekPlan = (phase: string = "Base") => {
 };
 
 // ============================================================================
-// Tests
+// MARK: Tests
 // ============================================================================
 
 describe("Training Start Date Calculation", () => {

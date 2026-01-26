@@ -9,7 +9,7 @@
  */
 
 // ============================================================================
-// Core Types
+// MARK: Core Types
 // ============================================================================
 
 export type Sport = "swim" | "bike" | "run" | "strength" | "brick" | "race" | "rest";
@@ -71,7 +71,7 @@ export const defaultPreferences: UnitPreferences = {
 };
 
 // ============================================================================
-// Workout Structure (for Zwift/Garmin export)
+// MARK: Workout Structure (for Zwift/Garmin export)
 // ============================================================================
 
 export interface IntensityTarget {
@@ -118,7 +118,7 @@ export interface StructuredWorkout {
 }
 
 // ============================================================================
-// Daily Workout
+// MARK: Daily Workout
 // ============================================================================
 
 export interface Workout {
@@ -156,7 +156,7 @@ export interface Workout {
 }
 
 // ============================================================================
-// Training Week
+// MARK: Training Week
 // ============================================================================
 
 export interface TrainingDay {
@@ -190,7 +190,7 @@ export interface TrainingWeek {
 }
 
 // ============================================================================
-// Training Zones
+// MARK: Training Zones
 // ============================================================================
 
 export interface HeartRateZones {
@@ -255,7 +255,7 @@ export interface AthleteZones {
 }
 
 // ============================================================================
-// Athlete Assessment
+// MARK: Athlete Assessment
 // ============================================================================
 
 export interface AthleteAssessment {
@@ -293,7 +293,7 @@ export interface AthleteAssessment {
 }
 
 // ============================================================================
-// Training Phases
+// MARK: Training Phases
 // ============================================================================
 
 export interface TrainingPhase {
@@ -307,7 +307,7 @@ export interface TrainingPhase {
 }
 
 // ============================================================================
-// Race Strategy
+// MARK: Race Strategy
 // ============================================================================
 
 export interface RaceStrategy {
@@ -349,7 +349,7 @@ export interface RaceStrategy {
 }
 
 // ============================================================================
-// Complete Training Plan
+// MARK: Complete Training Plan
 // ============================================================================
 
 /**
@@ -417,7 +417,7 @@ export interface TrainingPlan {
 }
 
 // ============================================================================
-// Example/Template
+// MARK: Example/Template
 // ============================================================================
 
 export const exampleWorkout: Workout = {

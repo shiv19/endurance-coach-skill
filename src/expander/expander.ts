@@ -26,7 +26,7 @@ import type {
 import { validateTemplateExists } from "./validation.js";
 
 // ============================================================================
-// Date Utilities
+// MARK: Date Utilities
 // ============================================================================
 
 /**
@@ -124,7 +124,7 @@ function getDayOffset(dayAbbrev: string, firstDayOfWeek: "monday" | "sunday"): n
 }
 
 // ============================================================================
-// Workout Expansion
+// MARK: Workout Expansion
 // ============================================================================
 
 /**
@@ -237,7 +237,7 @@ function buildParamContext(
 }
 
 // ============================================================================
-// Week Expansion
+// MARK: Week Expansion
 // ============================================================================
 
 /**
@@ -319,7 +319,7 @@ function expandWeek(
 }
 
 // ============================================================================
-// Phase Expansion
+// MARK: Phase Expansion
 // ============================================================================
 
 /**
@@ -344,7 +344,7 @@ function expandPhases(compact: CompactPlan): ExpandedPhase[] {
 }
 
 // ============================================================================
-// Main Expander
+// MARK: Main Expander
 // ============================================================================
 
 /**
@@ -359,6 +359,7 @@ function expandPhases(compact: CompactPlan): ExpandedPhase[] {
  * @param options - Expansion behavior overrides
  * @param options.startDate - If provided, use this date as the plan start date; otherwise the function will use an explicit athlete startDate if present or compute a start date from the athlete's eventDate and total weeks
  * @returns The expanded plan containing version, meta, preferences, zones, phases, weeks, and optional raceStrategy, assessment, athleteNotes, and athletePaces.
+ * */
 export function expandPlan(
   compact: CompactPlan,
   templates: TemplateRegistry,

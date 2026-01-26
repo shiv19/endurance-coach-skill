@@ -1,7 +1,7 @@
 import { log } from "../lib/logging.js";
 
 // ============================================================================
-// Argument Type Interfaces
+// MARK: Argument Type Interfaces
 // ============================================================================
 
 export interface SyncArgs {
@@ -147,7 +147,8 @@ export type CliArgs =
   | TemplatesArgs;
 
 // ============================================================================
-// Argument Parsing
+// MARK: Argument Parsing
+// ============================================================================
 /**
  * Parse command-line arguments from process.argv and produce the corresponding CLI command object.
  *

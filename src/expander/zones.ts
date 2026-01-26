@@ -15,7 +15,7 @@ import type {
 } from "./types.js";
 
 // ============================================================================
-// Heart Rate Zone Calculation
+// MARK: Heart Rate Zone Calculation
 // ============================================================================
 
 /**
@@ -55,7 +55,7 @@ export function calculateHRZones(config: HRZoneConfig): ExpandedHRZones {
 }
 
 // ============================================================================
-// Pace Zone Calculation
+// MARK: Pace Zone Calculation
 // ============================================================================
 
 /**
@@ -132,7 +132,7 @@ export function calculatePaceZones(thresholdPace: string): ExpandedPaceZones {
 }
 
 // ============================================================================
-// Combined Zone Calculation
+// MARK: Combined Zone Calculation
 // ============================================================================
 
 /**
@@ -167,7 +167,7 @@ export function calculateAthleteZones(
 }
 
 // ============================================================================
-// Utility Functions
+// MARK: Utility Functions
 // ============================================================================
 
 /**
