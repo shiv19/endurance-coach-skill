@@ -186,7 +186,7 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
   let stepIndex = 0;
 
   // Helper to add a step
-  const addStep = (step: WorkoutStep, isPartOfRepeat = false) => {
+  const addStep = (step: WorkoutStep) => {
     const durationType = getDurationType(step.duration?.unit ?? "minutes");
     const durationValue = getDurationValue(
       step.duration?.value ?? 0,
@@ -265,7 +265,7 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
 
     // Add the child steps
     for (const childStep of intervalSet.steps) {
-      addStep(childStep, true);
+      addStep(childStep);
     }
 
     // Create the repeat step (must follow the block)

@@ -103,9 +103,6 @@ function handleCreate(args: TemplatesArgs): void {
   // Determine templates directory
   const templatesDir = args.userTemplatesDir || getUserTemplatesDir();
 
-  // Load existing user templates to check for duplicates
-  const existingTemplates = loadTemplates({ includeUserTemplates: false });
-
   // Determine output path (rest templates go in run/ directory)
   const outputSportDir = sport;
   const outputPath = join(templatesDir, outputSportDir, `${originalTemplateId}.yaml`);
@@ -183,7 +180,7 @@ function loadTemplateFromFile(filePath: string, templateId: string, sport: Sport
     template.id = templateId;
     template.sport = sport;
 
-    return template;
+    return validateTemplateOrThrow(template) as WorkoutTemplate;
   } catch (error) {
     if (error instanceof Error && (error as any).name === "YAMLParseError") {
       throw new Error(`Invalid YAML in template file: ${filePath}\n${error.message}`);
