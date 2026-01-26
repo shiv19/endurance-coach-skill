@@ -35,9 +35,6 @@ type: endurance
 category: endurance
 humanReadable: Custom run`;
 
-const INVALID_YAML = `id: invalid
-invalid: [yaml`;
-
 describe("Template Loader - User Template Support", () => {
   beforeEach(() => {
     createTestDir();

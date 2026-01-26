@@ -35,6 +35,7 @@ describe("templates validate command", () => {
 
   afterEach(() => {
     cleanupTestDir(testDir);
+    vi.restoreAllMocks();
   });
 
   describe("valid templates", () => {
