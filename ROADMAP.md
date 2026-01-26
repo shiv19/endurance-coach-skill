@@ -13,10 +13,10 @@ Goal: Turn subjective athlete feedback into **structured coaching signal**, not 
 - **Post-workout interview entry point**
   - User can explicitly ask the agent to conduct a post-workout interview
   - Agent behavior:
-    - Sync workout automatically if Strava is enabled
+    - Sync workout automatically if Strava is enabled, and gets the Lap Details
     - Otherwise, naturally prompt for workout details
 
-- **Interview flow (baseline questions)**
+- **Interview flow using natural back and forth, open ended (baseline questions)**
   - How did the workout feel overall?
   - What were the key challenges or highlights?
   - Did you stick to the planned structure?
