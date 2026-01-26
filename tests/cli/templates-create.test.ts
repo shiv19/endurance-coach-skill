@@ -55,14 +55,12 @@ describe("templates create command", () => {
     });
 
     it("should create template for each sport type", () => {
-      const sports: Array<"run" | "bike" | "swim" | "strength" | "brick" | "race" | "rest"> = [
+      const sports: Array<"run" | "bike" | "swim" | "strength" | "brick"> = [
         "run",
         "bike",
         "swim",
         "strength",
         "brick",
-        "race",
-        "rest",
       ];
 
       for (const sport of sports) {
@@ -75,7 +73,7 @@ describe("templates create command", () => {
 
         runTemplates(args);
 
-        const filePath = join(testDir, sport === "rest" ? "run" : sport, `test.${sport}.yaml`);
+        const filePath = join(testDir, sport, `test.${sport}.yaml`);
         expect(existsSync(filePath)).toBe(true);
 
         const content = readFileSync(filePath, "utf-8");
@@ -405,21 +403,6 @@ sport: run
 
       expect(existsSync(join(testDir, "bike"))).toBe(true);
       expect(existsSync(join(testDir, "bike", "test_workout3.yaml"))).toBe(true);
-    });
-
-    it("should save rest templates in run/ subdirectory", () => {
-      const args: TemplatesArgs = {
-        command: "templates",
-        create: "rest_workout",
-        type: "rest",
-        userTemplatesDir: testDir,
-      };
-
-      runTemplates(args);
-
-      // Rest templates go in run/ directory
-      expect(existsSync(join(testDir, "run", "rest_workout.yaml"))).toBe(true);
-      expect(existsSync(join(testDir, "rest"))).toBe(false);
     });
   });
 });

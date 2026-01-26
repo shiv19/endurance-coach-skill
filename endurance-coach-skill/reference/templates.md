@@ -11,7 +11,7 @@ All templates are referenced by ID, and IDs include a sport prefix (e.g., `run.`
 ```yaml
 # Template reference syntax
 workouts:
-  Mon: rest # No parameters
+  Mon: run.rest # No parameter
   Tue: run.easy(40) # Single parameter
   Wed: run.tempo(20, 10, 10) # Multiple parameters
   Thu: swim.threshold(10) # Sport-prefixed template

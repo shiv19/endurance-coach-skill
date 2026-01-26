@@ -102,7 +102,8 @@ function handleCreate(args: TemplatesArgs): void {
   const existingTemplates = loadTemplates({ includeUserTemplates: false });
 
   // Determine output path (rest templates go in run/ directory)
-  const outputPath = join(templatesDir, sport, `${templateId}.yaml`);
+  const outputSportDir = sport;
+  const outputPath = join(templatesDir, outputSportDir, `${templateId}.yaml`);
 
   // Check if template already exists
   const templateExists = existsSync(outputPath);
@@ -133,7 +134,7 @@ function handleCreate(args: TemplatesArgs): void {
   }
 
   // Create output directory if needed
-  const outputDir = join(templatesDir, sport);
+  const outputDir = join(templatesDir, outputSportDir);
   if (!args.dryRun && !existsSync(outputDir)) {
     mkdirSync(outputDir, { recursive: true });
   }
@@ -677,7 +678,8 @@ export function runTemplates(args: TemplatesArgs): void {
     }
 
     // Load templates with user templates included
-    const templates = loadTemplates({ includeUserTemplates: true });
+    const userTemplatesDir = args.userTemplatesDir || getUserTemplatesDir();
+    const templates = loadTemplates({ includeUserTemplates: true, userTemplatesDir });
 
     if (args.show) {
       // Show details of a specific template
