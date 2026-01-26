@@ -69,25 +69,31 @@ export function runExpand(args: ExpandArgs): void {
   }
 
   // Expand the plan
-  const expanded = expandPlan(validation.data, templates);
+  let expanded;
+  try {
+    expanded = expandPlan(validation.data, templates);
+  } catch (error) {
+    log.error(`Failed to expand plan: ${error instanceof Error ? error.message : "Unknown error"}`);
+    process.exit(1);
+  }
 
   if (args.verbose) {
     log.info(`Expanded ${expanded.weeks.length} weeks`);
   }
 
-  // Format output
-  let output: string;
-  if (args.format === "yaml") {
-    output = stringifyYaml(expanded);
-  } else {
-    output = JSON.stringify(expanded, null, 2);
-  }
+  // Format output + write
+  try {
+    const output =
+      args.format === "yaml" ? stringifyYaml(expanded) : JSON.stringify(expanded, null, 2);
 
-  // Write output
-  if (args.outputFile) {
-    writeFileSync(args.outputFile, output);
-    log.success(`Expanded plan written to: ${args.outputFile}`);
-  } else {
-    console.log(output);
+    if (args.outputFile) {
+      writeFileSync(args.outputFile, output);
+      log.success(`Expanded plan written to: ${args.outputFile}`);
+    } else {
+      console.log(output);
+    }
+  } catch (error) {
+    log.error(`Failed to write expanded plan: ${error instanceof Error ? error.message : "Unknown error"}`);
+    process.exit(1);
   }
 }
