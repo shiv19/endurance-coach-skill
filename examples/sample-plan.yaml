@@ -48,76 +48,76 @@ weeks:
     phase: Base
     focus: "Establish routine"
     workouts:
-      Mon: easy(25)
-      Wed: easy(30)
-      Sat: long(40)
+      Mon: run.easy(25)
+      Wed: run.easy(30)
+      Sat: run.long(40)
 
   - week: 2
     phase: Base
     focus: "Build consistency"
     workouts:
-      Mon: easy(30)
-      Wed: easy(30)
-      Thu: easy(25)
-      Sat: long(45)
+      Mon: run.easy(30)
+      Wed: run.easy(30)
+      Thu: run.easy(25)
+      Sat: run.long(45)
 
   - week: 3
     phase: Base
     focus: "Increase volume slightly"
     workouts:
-      Mon: easy(30)
-      Wed: strides(30, 4)
-      Thu: easy(25)
-      Sat: long(50)
+      Mon: run.easy(30)
+      Wed: run.strides(30, 4)
+      Thu: run.easy(25)
+      Sat: run.long(50)
 
   # Build Phase - Weeks 4-6
   - week: 4
     phase: Build
     focus: "Introduce tempo"
     workouts:
-      Mon: easy(30)
-      Wed: tempo(15)
-      Thu: recovery(20)
-      Sat: long(55)
+      Mon: run.easy(30)
+      Wed: run.tempo(15)
+      Thu: run.recovery(20)
+      Sat: run.long(55)
 
   - week: 5
     phase: Build
     focus: "Build tempo duration"
     workouts:
-      Mon: easy(30)
-      Wed: tempo(20)
-      Thu: easy(25)
-      Sat: long(60)
+      Mon: run.easy(30)
+      Wed: run.tempo(20)
+      Thu: run.easy(25)
+      Sat: run.long(60)
 
   - week: 6
     phase: Build
     focus: "Add speed work"
     isRecoveryWeek: false
     workouts:
-      Mon: easy(30)
-      Wed: intervals.400(4)
-      Thu: recovery(20)
-      Sat: long(50)
+      Mon: run.easy(30)
+      Wed: run.intervals.400(4)
+      Thu: run.recovery(20)
+      Sat: run.long(50)
 
   # Peak Phase - Weeks 7-8
   - week: 7
     phase: Peak
     focus: "Race simulation"
     workouts:
-      Mon: easy(30)
-      Wed: tempo(15)
-      Thu: strides(25, 6)
-      Sat: long(45)
+      Mon: run.easy(30)
+      Wed: run.tempo(15)
+      Thu: run.strides(25, 6)
+      Sat: run.long(45)
 
   - week: 8
     phase: Peak
     focus: "Taper and race!"
     isRecoveryWeek: true
     workouts:
-      Mon: easy(25)
-      Wed: strides(20, 4)
-      Thu: recovery(15)
-      Sun: race.5k
+      Mon: run.easy(25)
+      Wed: run.strides(20, 4)
+      Thu: run.recovery(15)
+      Sun: run.race.5k
 
 raceStrategy:
   goalTime: "30:00"

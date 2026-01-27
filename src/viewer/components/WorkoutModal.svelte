@@ -49,14 +49,16 @@
   // Editable fields - intentionally capture initial values only
   let editSport = $state<Sport>(untrack(() => workout?.sport || "run"));
   let editType = $state<WorkoutType>(untrack(() => workout?.type || "endurance"));
+  let editCategory = $state(untrack(() => workout?.category || ""));
   let editName = $state(untrack(() => workout?.name || ""));
   let editDescription = $state(untrack(() => workout?.description || ""));
+  let editCoachingNotes = $state(untrack(() => workout?.coachingNotes || ""));
   let editDuration = $state(untrack(() => workout?.durationMinutes?.toString() || ""));
   let editDistance = $state(untrack(() => workout?.distanceMeters?.toString() || ""));
   let editZone = $state(untrack(() => workout?.primaryZone || ""));
   let editStructure = $state(untrack(() => workout?.humanReadable || ""));
 
-  const sports: Sport[] = ["swim", "bike", "run", "strength", "brick", "race", "rest"];
+  const sports: Sport[] = ["swim", "bike", "run", "strength", "brick"];
   const workoutTypes: WorkoutType[] = [
     "rest",
     "recovery",
@@ -72,6 +74,22 @@
     "openwater",
     "hills",
     "long",
+  ];
+  const workoutCategories: string[] = [
+    "rest",
+    "recovery",
+    "endurance",
+    "aerobic",
+    "tempo",
+    "threshold",
+    "intervals",
+    "speed",
+    "hills",
+    "race",
+    "strength",
+    "power",
+    "maintenance",
+    "technique",
   ];
 
   function handleKeydown(e: KeyboardEvent) {
@@ -96,8 +114,10 @@
   function startEdit() {
     editSport = workout?.sport || "run";
     editType = workout?.type || "endurance";
+    editCategory = workout?.category || "";
     editName = workout?.name || "";
     editDescription = workout?.description || "";
+    editCoachingNotes = workout?.coachingNotes || "";
     editDuration = workout?.durationMinutes?.toString() || "";
     editDistance = workout?.distanceMeters?.toString() || "";
     editZone = workout?.primaryZone || "";
@@ -117,8 +137,10 @@
     const updates: Partial<Workout> = {
       sport: editSport,
       type: editType,
+      category: editCategory || undefined,
       name: editName,
       description: editDescription,
+      coachingNotes: editCoachingNotes || undefined,
       durationMinutes: editDuration ? parseInt(editDuration) : undefined,
       distanceMeters: editDistance ? parseInt(editDistance) : undefined,
       primaryZone: editZone || undefined,
@@ -194,7 +216,17 @@
           <div class="modal-sport-badge {displayWorkout.sport}">
             {displayWorkout.sport.toUpperCase()}
           </div>
-          <h2 class="modal-title">{displayWorkout.name}</h2>
+          <div>
+            <h2 class="modal-title">{displayWorkout.name}</h2>
+            <div class="modal-workout-meta">
+              {#if displayWorkout.category}
+                <span class="modal-workout-category">{displayWorkout.category}</span>
+              {/if}
+              {#if displayWorkout.type}
+                <span class="modal-workout-type">{displayWorkout.type}</span>
+              {/if}
+            </div>
+          </div>
           <div class="modal-date">{formatDate(day.date)}</div>
         </div>
       {:else}
@@ -232,6 +264,12 @@
               <div class="modal-stat-label">Target Zone</div>
             </div>
           {/if}
+          {#if displayWorkout.rpe}
+            <div class="modal-stat">
+              <div class="modal-stat-value">{displayWorkout.rpe}</div>
+              <div class="modal-stat-label">RPE</div>
+            </div>
+          {/if}
         </div>
 
         {#if displayWorkout.description}
@@ -248,6 +286,13 @@
                 /\\n/g,
                 "\n"
               )}</pre>
+          </div>
+        {/if}
+
+        {#if displayWorkout.coachingNotes}
+          <div class="modal-section coaching-notes">
+            <h4 class="modal-section-title">💡 Coach's Notes</h4>
+            <p class="modal-coaching-notes">{displayWorkout.coachingNotes}</p>
           </div>
         {/if}
       {:else}
@@ -270,6 +315,19 @@
               {/each}
             </select>
           </div>
+        </div>
+
+        <div class="form-row full">
+          <label class="form-label" for="edit-category">Category (optional)</label>
+          <select id="edit-category" class="form-select" bind:value={editCategory}>
+            <option value="">-- Select Category --</option>
+            {#if editCategory && !workoutCategories.includes(editCategory)}
+              <option value={editCategory}>{editCategory}</option>
+            {/if}
+            {#each workoutCategories as c}
+              <option value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+            {/each}
+          </select>
         </div>
 
         <div class="form-row full">
@@ -337,6 +395,17 @@
             bind:value={editStructure}
             placeholder="Warm-up: 10min easy&#10;Main: 4x1km @ threshold&#10;Cool-down: 10min easy"
             rows="5"
+          ></textarea>
+        </div>
+
+        <div class="form-row full">
+          <label class="form-label" for="edit-coaching-notes">Coach's Notes (optional)</label>
+          <textarea
+            id="edit-coaching-notes"
+            class="form-textarea"
+            bind:value={editCoachingNotes}
+            placeholder="Foundation aerobic work, focus on smooth turnover"
+            rows="2"
           ></textarea>
         </div>
       {/if}
@@ -561,6 +630,38 @@
     margin-top: 0.25rem;
   }
 
+  .modal-workout-type {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: capitalize;
+    padding: 0.2rem 0.6rem;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    display: inline-block;
+  }
+
+  .modal-workout-meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .modal-workout-category {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.5rem;
+    background: var(--accent-glow);
+    color: var(--accent);
+    border-radius: 4px;
+  }
+
   .modal-close {
     width: 36px;
     height: 36px;
@@ -640,6 +741,25 @@
     line-height: 1.8;
     color: var(--text-secondary);
     white-space: pre-wrap;
+    margin: 0;
+  }
+
+  .coaching-notes {
+    background: linear-gradient(135deg, var(--accent-glow) 0%, var(--bg-tertiary) 100%);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+  }
+
+  .coaching-notes .modal-section-title {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .modal-coaching-notes {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
     margin: 0;
   }
 

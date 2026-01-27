@@ -204,8 +204,14 @@ async function generateWorkoutContent(
 }
 
 /**
- * Export all workouts in the plan to a single ZIP file
- * Contains ZWO/FIT/MRC files based on the selected format
+ * Package all exportable workouts from a training plan into a ZIP and trigger its download.
+ *
+ * Skips rest workouts (where `sport === "rest"` or `type === "rest"`) and any workouts not
+ * supported by the selected format. Adds generated ZWO/FIT/MRC files for supported workouts
+ * to the ZIP; if at least one file is added the ZIP is downloaded as `<planName>_workouts_<format>.zip`.
+ *
+ * @returns An object with counts and error messages: `exported` is the number of files added to the ZIP,
+ * `skipped` is the number of workouts omitted, and `errors` is an array of per-workout error messages.
  */
 export async function exportAllWorkouts(
   plan: TrainingPlan,
@@ -222,7 +228,7 @@ export async function exportAllWorkouts(
     for (const day of week.days ?? []) {
       for (const workout of day.workouts ?? []) {
         // Skip rest days
-        if (workout.sport === "rest") {
+        if (workout.sport === "rest" || workout.type === "rest") {
           skipped++;
           continue;
         }

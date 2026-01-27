@@ -2,7 +2,7 @@ import { execSync, spawnSync } from "child_process";
 import { getDbPath } from "../lib/config.js";
 
 // ============================================================================
-// SQLite Backend Abstraction
+// MARK: SQLite Backend Abstraction
 // ============================================================================
 
 interface SqliteBackend {
@@ -112,7 +112,7 @@ function getBackend(): SqliteBackend {
 }
 
 // ============================================================================
-// Public API (synchronous after initialization)
+// MARK: Public API (synchronous after initialization)
 // ============================================================================
 
 export function query(sql: string): string {

@@ -61,13 +61,13 @@ weeks:
     phase: Base
     focus: "Establish training rhythm"
     workouts:
-      Mon: rest
+      Mon: run.rest
       Tue: swim.technique(45)
       Wed: bike.endurance(60)
-      Thu: easy(40)
+      Thu: run.easy(40)
       Fri: swim.endurance(45)
       Sat: bike.endurance(120)
-      Sun: long(70)
+      Sun: run.long(70)
 
   - week: 2
     phase: Base
@@ -76,7 +76,7 @@ weeks:
       Mon: strength.core(30)
       Tue: swim.technique(50)
       Wed: bike.endurance(75)
-      Thu: strides(45, 5)
+      Thu: run.strides(45, 5)
       Fri: swim.endurance(45)
       Sat: bike.endurance(135)
       Sun: brick.halfironman
@@ -85,13 +85,13 @@ weeks:
     phase: Base
     focus: "Completing base phase with volume increase"
     workouts:
-      Mon: rest
+      Mon: run.rest
       Tue: swim.technique(50)
       Wed: bike.endurance(75)
-      Thu: easy(50)
+      Thu: run.easy(50)
       Fri: swim.threshold(50)
       Sat: bike.endurance(150)
-      Sun: long(80)
+      Sun: run.long(80)
 
   # Recovery Phase - Week 4
   - week: 4
@@ -99,11 +99,11 @@ weeks:
     focus: "Active recovery week"
     isRecoveryWeek: true
     workouts:
-      Mon: rest
+      Mon: run.rest
       Tue: swim.easy(35)
       Wed: bike.easy(45)
-      Thu: recovery(30)
-      Fri: rest
+      Thu: run.recovery(30)
+      Fri: run.rest
       Sat: bike.endurance(75)
       Sun: swim.endurance(40)
 
@@ -115,19 +115,19 @@ weeks:
       Mon: strength.triathlon(40)
       Tue: swim.threshold(55)
       Wed: bike.tempo(75)
-      Thu: tempo(50)
+      Thu: run.tempo(50)
       Fri: swim.endurance(50)
       Sat: brick.halfironman
-      Sun: long(85)
+      Sun: run.long(85)
 
   - week: 6
     phase: Build
     focus: "Building race-specific fitness"
     workouts:
-      Mon: rest
+      Mon: run.rest
       Tue: swim.threshold(55)
       Wed: bike.endurance(60)
-      Thu: tempo(55)
+      Thu: run.tempo(55)
       Fri: swim.speed(50)
       Sat: bike.tempo(150)
       Sun: brick.halfironman
@@ -139,23 +139,23 @@ weeks:
       Mon: strength.triathlon(35)
       Tue: swim.threshold(60)
       Wed: bike.threshold(90)
-      Thu: progression(55)
+      Thu: run.progression(55)
       Fri: swim.endurance(50)
       Sat: bike.endurance(165)
-      Sun: long(95)
+      Sun: run.long(95)
 
   # Peak Phase - Week 8
   - week: 8
     phase: Peak
     focus: "Race simulation and peak fitness"
     workouts:
-      Mon: rest
+      Mon: run.rest
       Tue: swim.threshold(55)
       Wed: bike.threshold(80)
-      Thu: threshold(60)
+      Thu: run.threshold(60)
       Fri: swim.speed(50)
       Sat: brick.halfironman
-      Sun: long(100)
+      Sun: run.long(100)
 
 raceStrategy:
   goalTime: "5:30:00"

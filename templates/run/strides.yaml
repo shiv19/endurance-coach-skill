@@ -1,4 +1,4 @@
-id: strides
+id: run.strides
 name: Easy Run + Strides
 sport: run
 type: endurance
@@ -26,6 +26,19 @@ structure:
       duration: "${duration}min"
       pace: "${paces.easy}"
       intensity: Zone 2
+    - type: intervals
+      repeats: "${strides}"
+      work:
+        type: work
+        name: Stride
+        duration: 30sec
+        pace: "${paces.r5k}"
+        intensity: Zone 4
+      recovery:
+        type: recovery
+        name: Recovery walk
+        duration: 90sec
+        intensity: Zone 1
 
 humanReadable: |
   EASY RUN + STRIDES - ${duration} minutes

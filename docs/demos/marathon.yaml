@@ -55,125 +55,125 @@ weeks:
     phase: Base
     focus: "Establish routine"
     workouts:
-      Mon: rest
-      Tue: easy(45)
+      Mon: run.rest
+      Tue: run.easy(45)
       Wed: strength.runner(30)
-      Thu: strides(40, 4)
-      Fri: rest
-      Sat: easy(30)
-      Sun: long(75)
+      Thu: run.strides(40, 4)
+      Fri: run.rest
+      Sat: run.easy(30)
+      Sun: run.long(75)
 
   - week: 2
     phase: Base
     focus: "Build consistency"
     workouts:
-      Mon: rest
-      Tue: easy(50)
+      Mon: run.rest
+      Tue: run.easy(50)
       Wed: strength.runner(35)
-      Thu: strides(45, 5)
-      Fri: rest
-      Sat: easy(35)
-      Sun: long(85)
+      Thu: run.strides(45, 5)
+      Fri: run.rest
+      Sat: run.easy(35)
+      Sun: run.long(85)
 
   - week: 3
     phase: Base
     focus: "Introduce fartlek"
     workouts:
-      Mon: rest
-      Tue: easy(50)
-      Wed: fartlek(45)
+      Mon: run.rest
+      Tue: run.easy(50)
+      Wed: run.fartlek(45)
       Thu: strength.runner(35)
-      Fri: recovery(30)
-      Sat: strides(35, 4)
-      Sun: long(100)
+      Fri: run.recovery(30)
+      Sat: run.strides(35, 4)
+      Sun: run.long(100)
 
   - week: 4
     phase: Base
     focus: "Recovery week"
     isRecoveryWeek: true
     workouts:
-      Mon: rest
-      Tue: easy(40)
+      Mon: run.rest
+      Tue: run.easy(40)
       Wed: strength.light(25)
-      Thu: easy(35)
-      Fri: rest
-      Sat: easy(30)
-      Sun: long(70)
+      Thu: run.easy(35)
+      Fri: run.rest
+      Sat: run.easy(30)
+      Sun: run.long(70)
 
   # Build Phase - Weeks 5-8
   - week: 5
     phase: Build
     focus: "Introduce tempo"
     workouts:
-      Mon: rest
-      Tue: easy(50)
-      Wed: tempo(50)
+      Mon: run.rest
+      Tue: run.easy(50)
+      Wed: run.tempo(50)
       Thu: strength.runner(35)
-      Fri: recovery(30)
-      Sat: easy(40)
-      Sun: long(105)
+      Fri: run.recovery(30)
+      Sat: run.easy(40)
+      Sun: run.long(105)
 
   - week: 6
     phase: Build
     focus: "Marathon pace work"
     workouts:
-      Mon: rest
-      Tue: easy(55)
-      Wed: progression(55)
+      Mon: run.rest
+      Tue: run.easy(55)
+      Wed: run.progression(55)
       Thu: strength.runner(35)
-      Fri: recovery(35)
-      Sat: easy(40)
-      Sun: long(120)
+      Fri: run.recovery(35)
+      Sat: run.easy(40)
+      Sun: run.long(120)
 
   - week: 7
     phase: Build
     focus: "Peak mileage week"
     workouts:
-      Mon: rest
-      Tue: easy(55)
-      Wed: tempo(55)
-      Thu: easy(40)
+      Mon: run.rest
+      Tue: run.easy(55)
+      Wed: run.tempo(55)
+      Thu: run.easy(40)
       Fri: strength.light(30)
-      Sat: easy(40)
-      Sun: long(140)
+      Sat: run.easy(40)
+      Sun: run.long(140)
 
   - week: 8
     phase: Build
     focus: "Recovery week"
     isRecoveryWeek: true
     workouts:
-      Mon: rest
-      Tue: easy(40)
-      Wed: fartlek(40)
-      Thu: rest
-      Fri: easy(30)
+      Mon: run.rest
+      Tue: run.easy(40)
+      Wed: run.fartlek(40)
+      Thu: run.rest
+      Fri: run.easy(30)
       Sat: strength.light(25)
-      Sun: long(80)
+      Sun: run.long(80)
 
   # Peak Phase - Weeks 9-10
   - week: 9
     phase: Peak
     focus: "Dress rehearsal"
     workouts:
-      Mon: rest
-      Tue: easy(50)
-      Wed: progression(60)
-      Thu: easy(40)
-      Fri: rest
-      Sat: strides(35, 5)
-      Sun: long(135)
+      Mon: run.rest
+      Tue: run.easy(50)
+      Wed: run.progression(60)
+      Thu: run.easy(40)
+      Fri: run.rest
+      Sat: run.strides(35, 5)
+      Sun: run.long(135)
 
   - week: 10
     phase: Peak
     focus: "Final big week"
     workouts:
-      Mon: rest
-      Tue: easy(45)
-      Wed: tempo(50)
-      Thu: easy(40)
-      Fri: rest
-      Sat: strides(35, 4)
-      Sun: long(120)
+      Mon: run.rest
+      Tue: run.easy(45)
+      Wed: run.tempo(50)
+      Thu: run.easy(40)
+      Fri: run.rest
+      Sat: run.strides(35, 4)
+      Sun: run.long(120)
 
 raceStrategy:
   goalTime: "3:55:00"

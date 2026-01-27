@@ -109,13 +109,15 @@ Workout templates are YAML files in `templates/`. After modifying templates:
 
 ### Available Scripts
 
-- `npm start -- [args]` - Run the CLI with arguments
+- `npm start -- [args]` - Run CLI with arguments
 - `npm run build` - Build all components (TypeScript, viewer, skill)
 - `npm run build:ts` - Build TypeScript only
-- `npm run build:viewer` - Build the web viewer
-- `npm run dev:viewer` - Development server for the viewer (requires generated plan)
+- `npm run build:viewer` - Build web viewer
+- `npm run dev:viewer` - Development server for viewer (requires generated plan)
 - `npm test` - Run tests in watch mode
 - `npm run test:run` - Run tests once
+- `npm run test:allTemplates` - Test all workout templates can be converted to HTML
+- `npm run test:expandPlanToJson` - Test all workout templates can be converted to JSON
 - `npm run typecheck` - Type check without emitting
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
@@ -228,6 +230,22 @@ tests/                  # Test files
 npm test              # Run all tests in watch mode
 npm run test:run      # Run tests once
 ```
+
+### Testing All Templates
+
+When modifying workout templates, verify all templates can be converted and rendered:
+
+```bash
+npm run test:allTemplates
+```
+
+This script renders a test plan (`tests/test-all-templates.yaml`) that includes every built-in template. If conversion fails, it will show which template has the issue.
+
+**Important**: After adding or modifying templates:
+
+1. Run `npm run test:allTemplates` to ensure conversion works
+2. Run `npm test` to verify unit tests still pass
+3. Run `npm run typecheck` to ensure TypeScript types are correct
 
 ### Writing Tests
 

@@ -47,7 +47,7 @@ structure:
       recovery:
         type: recovery
         name: Descent recovery
-        duration: "Descent"
+        duration: "3min"
         intensity: Zone 1
         description: "Easy spin down"
   cooldown:

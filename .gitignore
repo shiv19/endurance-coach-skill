@@ -6,6 +6,8 @@ dist/
 
 # Test coverage
 coverage/
+tests/test-all-templates.html
+tests/test-all-templates.json
 
 # Environment and secrets
 .env
@@ -38,5 +40,4 @@ npm-debug.log*
 
 # Built template (generated from src/viewer via Vite)
 templates/plan-viewer.html
-cloud-output/
 cloud-output/

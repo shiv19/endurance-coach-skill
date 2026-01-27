@@ -12,6 +12,7 @@ import type {
   InterpolationContext,
 } from "../templates/index.js";
 import { interpolate, createContext } from "../templates/index.js";
+import { convertTemplateStructure } from "../templates/converter.js";
 import { calculateAthleteZones } from "./zones.js";
 import type {
   ExpandedPlan,
@@ -22,9 +23,10 @@ import type {
   ExpandedWeekSummary,
   ExpansionOptions,
 } from "./types.js";
+import { validateTemplateExists } from "./validation.js";
 
 // ============================================================================
-// Date Utilities
+// MARK: Date Utilities
 // ============================================================================
 
 /**
@@ -66,7 +68,12 @@ function addDays(date: Date, days: number): Date {
 }
 
 /**
- * Calculate the start date of the plan from the event date and total weeks.
+ * Compute the plan's start date so the event date falls within the final week and weeks align to the specified first day.
+ *
+ * @param eventDate - Event date as an ISO string (`YYYY-MM-DD`) interpreted in local time
+ * @param totalWeeks - Total number of weeks in the plan (must be >= 1)
+ * @param firstDayOfWeek - Week alignment, either `"monday"` or `"sunday"`
+ * @returns The Date representing the first day of the plan (local date)
  */
 function calculateStartDate(
   eventDate: string,
@@ -74,8 +81,9 @@ function calculateStartDate(
   firstDayOfWeek: "monday" | "sunday"
 ): Date {
   const event = parseLocalDate(eventDate);
-  // Go back totalWeeks * 7 days from event date
-  const start = addDays(event, -(totalWeeks * 7));
+  // Go back (totalWeeks - 1) * 7 days from event date
+  // This ensures the event date falls within the final week
+  const start = addDays(event, -((totalWeeks - 1) * 7));
 
   // Adjust to the first day of the week
   const targetDay = firstDayOfWeek === "monday" ? 1 : 0;
@@ -116,7 +124,7 @@ function getDayOffset(dayAbbrev: string, firstDayOfWeek: "monday" | "sunday"): n
 }
 
 // ============================================================================
-// Workout Expansion
+// MARK: Workout Expansion
 // ============================================================================
 
 /**
@@ -127,7 +135,17 @@ function parseWorkoutReference(ref: string): ParsedWorkoutRef {
 }
 
 /**
- * Expand a single workout from its template reference.
+ * Create an ExpandedWorkout from a template reference.
+ *
+ * Builds a full interpolation context from the provided base `context` and any
+ * parameters embedded in `ref`, interpolates description and duration, converts
+ * any template structure to object form, and returns the expanded workout record.
+ *
+ * @param ref - The workout reference string (template id optionally with positional/keyword params)
+ * @param workoutId - The id to assign to the expanded workout instance
+ * @param context - Base interpolation variables (athlete paces, zones, etc.)
+ * @param templates - Registry of available templates used to resolve the referenced template
+ * @returns An ExpandedWorkout populated from the resolved template, including `id`, `sport`, `type`, `category`, `name`, `durationMinutes`, `primaryZone`, `rpe`, `coachingNotes`, `humanReadable`, `structure`, and `completed`
  */
 export function expandWorkout(
   ref: string,
@@ -136,19 +154,11 @@ export function expandWorkout(
   templates: TemplateRegistry
 ): ExpandedWorkout {
   const parsed = parseWorkoutReference(ref);
-  const template = templates.get(parsed.templateId);
 
-  if (!template) {
-    // Create a placeholder workout for unknown templates
-    return {
-      id: workoutId,
-      sport: "run",
-      type: "unknown",
-      name: `Unknown: ${parsed.templateId}`,
-      humanReadable: `Template not found: ${parsed.templateId}`,
-      completed: false,
-    };
-  }
+  // Validate template exists before attempting expansion (fail-fast)
+  validateTemplateExists(parsed.templateId, templates);
+
+  const template = templates.get(parsed.templateId)!; // Safe after validation
 
   // Build the full context with template params
   const paramContext = buildParamContext(template, parsed.params);
@@ -175,15 +185,23 @@ export function expandWorkout(
     }
   }
 
+  // Interpolate and convert structure to object-based format
+  const structure = template.structure
+    ? convertTemplateStructure(template.structure, fullContext)
+    : undefined;
+
   return {
     id: workoutId,
     sport: template.sport,
     type: template.type,
+    category: template.category,
     name: template.name,
     durationMinutes,
     primaryZone: template.targetZone,
     rpe: template.rpe,
+    coachingNotes: template.notes,
     humanReadable,
+    structure,
     completed: false,
   };
 }
@@ -219,7 +237,7 @@ function buildParamContext(
 }
 
 // ============================================================================
-// Week Expansion
+// MARK: Week Expansion
 // ============================================================================
 
 /**
@@ -301,7 +319,7 @@ function expandWeek(
 }
 
 // ============================================================================
-// Phase Expansion
+// MARK: Phase Expansion
 // ============================================================================
 
 /**
@@ -326,12 +344,22 @@ function expandPhases(compact: CompactPlan): ExpandedPhase[] {
 }
 
 // ============================================================================
-// Main Expander
+// MARK: Main Expander
 // ============================================================================
 
 /**
- * Expand a compact plan into the full format for HTML rendering.
- */
+ * Convert a compact training plan into a fully expanded plan suitable for rendering.
+ *
+ * The expansion resolves workout templates, interpolates template parameters, computes per-week
+ * schedules and summaries, calculates athlete zones, and assembles metadata, preferences, and
+ * phased weekly hour ranges.
+ *
+ * @param compact - The compact plan to expand
+ * @param templates - Registry of available workout templates used during expansion
+ * @param options - Expansion behavior overrides
+ * @param options.startDate - If provided, use this date as the plan start date; otherwise the function will use an explicit athlete startDate if present or compute a start date from the athlete's eventDate and total weeks
+ * @returns The expanded plan containing version, meta, preferences, zones, phases, weeks, and optional raceStrategy, assessment, athleteNotes, and athletePaces.
+ * */
 export function expandPlan(
   compact: CompactPlan,
   templates: TemplateRegistry,
@@ -342,7 +370,9 @@ export function expandPlan(
 
   // Calculate start date
   const startDate =
-    options.startDate || calculateStartDate(compact.athlete.eventDate, totalWeeks, firstDayOfWeek);
+    options.startDate ||
+    (compact.athlete.startDate ? parseLocalDate(compact.athlete.startDate) : null) ||
+    calculateStartDate(compact.athlete.eventDate, totalWeeks, firstDayOfWeek);
 
   // Build interpolation context
   const zonesForContext = compact.athlete.zones?.hr

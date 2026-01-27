@@ -23,7 +23,7 @@ structure:
   main:
     - type: work
       name: Continuous aerobic swim
-      duration: "${duration - 20}min"
+      duration: "${duration - 15}min"
       description: "Steady-state swimming at comfortable aerobic pace"
       pace: "CSS + 15-20s/100m"
       intensity: Zone 2
@@ -42,7 +42,7 @@ humanReadable: |
   - 300m easy freestyle
   - 4x50m drills (catch-up, fingertip drag)
 
-  MAIN SET: ${duration - 20} min continuous
+  MAIN SET: ${duration - 15} min continuous
   - Steady aerobic swimming
   - Pace: CSS + 15-20s/100m
   - Focus: Relaxed stroke, consistent rhythm

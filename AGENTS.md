@@ -30,6 +30,12 @@ npm test
 
 # Run tests once
 npm run test:run
+
+# Test all workout templates can be converted
+npm run test:allTemplates
+
+# Expand compact plan to JSON
+npm run test:expandPlanToJson
 ```
 
 ### Building
@@ -69,6 +75,16 @@ After making changes:
 2. Run `npm test` to run tests in watch mode
 3. Run `npm run format:check` before committing (pre-commit hook enforces this)
 
+**When Modifying Templates:**
+
+After adding or modifying workout templates, also run:
+
+```bash
+npm run test:allTemplates
+```
+
+This test renders a plan that includes every built-in template to ensure all templates can be converted properly. If a template has conversion issues (e.g., invalid duration format), the test will fail and indicate which template is problematic.
+
 ## Project Structure
 
 ```
@@ -91,6 +107,7 @@ src/
 │   ├── loader.ts      # Load templates from filesystem
 │   ├── yaml-parser.ts # YAML parsing wrapper
 │   ├── interpolate.ts # Template variable interpolation
+│   ├── converter.ts   # Convert template structures to workout structures (for device export)
 │   └── index.ts      # Public API exports
 ├── expander/           # Plan expansion logic
 │   ├── expander.ts    # Core expansion (compact → full)
@@ -209,9 +226,9 @@ athlete:
 weeks:
   - week: 1
     workouts:
-      Mon: tempo(20)
-      Tue: easy(35)
-      Wed: rest
+      Mon: run.tempo(20)
+      Tue: run.easy(35)
+      Wed: run.rest
 ```
 
 ### Template System
@@ -257,7 +274,19 @@ if (!validation.success) {
 3. **Load templates**: `loadTemplates()` loads all workout templates
 4. **Validate references**: `validateWorkoutRefs()` checks template IDs exist
 5. **Expand**: `expandPlan()` replaces template references with full workouts
+   - Interpolates template variables using context (paces, zones, params)
+   - Converts template structures to workout structures using `convertTemplateStructure()`
 6. **Calculate zones**: `calculateAthleteZones()` computes HR, power, pace zones
+
+**Template Conversion** (`src/templates/converter.ts`):
+
+Templates use string-based properties (e.g., `duration: "10min"`) but export functions need object-based properties (e.g., `duration: { unit: "minutes", value: 10 }`). The converter:
+
+- Interpolates template variables (${paces.easy}, ${reps}, etc.)
+- Parses duration strings ("10min", "30sec", "400m") into DurationTarget objects
+- Parses intensity strings ("Zone 2", "75% FTP", "RPE 7") into IntensityTarget objects
+- Converts TemplateStep to WorkoutStep
+- Converts TemplateIntervalSet to IntervalSet
 
 ### CLI Commands
 

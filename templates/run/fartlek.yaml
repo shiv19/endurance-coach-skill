@@ -1,4 +1,4 @@
-id: fartlek
+id: run.fartlek
 name: Fartlek
 sport: run
 type: intervals
@@ -12,6 +12,33 @@ params:
     min: 25
     max: 60
     description: Total duration in minutes
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 10min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "${(duration - 20) / 3}"
+      work:
+        type: work
+        name: Fast effort
+        duration: 1min
+        pace: "${paces.interval}"
+        intensity: Zone 4-5
+      recovery:
+        type: recovery
+        name: Easy recovery
+        duration: 2min
+        pace: "${paces.easy}"
+        intensity: Zone 2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: "${10 + (duration - 20) % 3}min"
+      pace: "${paces.easy}"
 
 humanReadable: |
   FARTLEK - ${duration} minutes
@@ -30,7 +57,7 @@ humanReadable: |
   - Recovery should be at least equal to effort time
   - Fast efforts range from 5K to mile pace
 
-  COOL-DOWN: 10 min easy
+  COOL-DOWN: ${10 + (duration - 20) % 3} min easy
 
   This is meant to be fun! Don't overthink it.
 

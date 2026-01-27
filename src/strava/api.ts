@@ -1,6 +1,6 @@
 import type { Tokens } from "../lib/config.js";
 import { log } from "../lib/logging.js";
-import type { StravaActivity, StravaAthlete } from "./types.js";
+import type { Lap, StravaActivity, StravaAthlete } from "./types.js";
 
 const API_BASE = "https://www.strava.com/api/v3";
 
@@ -35,6 +35,17 @@ export async function getAthlete(tokens: Tokens): Promise<StravaAthlete> {
   return response.json();
 }
 
+/**
+ * Fetches a page of the authenticated athlete's activities from the Strava API filtered by time range.
+ *
+ * @param tokens - Authentication tokens containing an access token
+ * @param after - UNIX timestamp (seconds) to include activities occurring after this time
+ * @param before - Optional UNIX timestamp (seconds) to include activities occurring before this time
+ * @param page - Page number to retrieve (defaults to 1)
+ * @param perPage - Number of activities per page (defaults to 100)
+ * @returns An array of `StravaActivity` objects matching the query
+ * @throws If the Strava API responds with a non-ok HTTP status
+ */
 export async function getActivities(
   tokens: Tokens,
   after: number,
@@ -61,6 +72,34 @@ export async function getActivities(
   return response.json();
 }
 
+/**
+ * Fetches lap data for a Strava activity.
+ *
+ * @param tokens - Authentication tokens containing an `access_token` used for the request
+ * @param id - Strava activity identifier
+ * @returns An array of `Lap` objects for the specified activity
+ * @throws Error when the API response is not ok; the error message includes the response status text
+ */
+export async function getActivityLaps(tokens: Tokens, id: number): Promise<Lap[]> {
+  const url = new URL(`${API_BASE}/activities/${id}/laps`);
+  const response = await fetchWithRetry(url.toString(), {
+    headers: { Authorization: `Bearer ${tokens.access_token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch activity laps: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Fetches all activities for the authenticated athlete starting from the specified date.
+ *
+ * @param tokens - Authentication tokens for the athlete
+ * @param afterDate - Lower bound date (UTC) for activities to include
+ * @returns An array of Strava activities occurring on or after `afterDate`
+ */
 export async function getAllActivities(tokens: Tokens, afterDate: Date): Promise<StravaActivity[]> {
   const after = Math.floor(afterDate.getTime() / 1000);
   const activities: StravaActivity[] = [];
@@ -69,22 +108,25 @@ export async function getAllActivities(tokens: Tokens, afterDate: Date): Promise
 
   log.start(`Fetching activities since ${afterDate.toISOString().split("T")[0]}...`);
 
-  while (true) {
-    const batch = await getActivities(tokens, after, undefined, page, perPage);
-    activities.push(...batch);
+  try {
+    while (true) {
+      const batch = await getActivities(tokens, after, undefined, page, perPage);
+      activities.push(...batch);
 
-    log.progress(`   Fetched ${activities.length} activities...`);
+      log.progress(`   Fetched ${activities.length} activities...`);
 
-    if (batch.length < perPage) {
-      break;
+      if (batch.length < perPage) {
+        break;
+      }
+
+      page++;
+      // Small delay to be nice to the API
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-
-    page++;
-    // Small delay to be nice to the API
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  } finally {
+    log.progressEnd();
   }
 
-  log.progressEnd();
   log.success(`Fetched ${activities.length} activities total`);
   return activities;
 }

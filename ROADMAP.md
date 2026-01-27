@@ -4,68 +4,7 @@ This roadmap is organized to make **coaching correctness and judgment** the spin
 
 ---
 
-## Phase 0: Coaching Correctness (Foundation)
-
-### Bugs / Invariants
-
-- **Fix incorrect training start dates**
-  - Current issue: `Athlete` YAML contains `eventDate` but no explicit `trainingStartDate`.
-  - Investigate and document what currently determines the training start date.
-  - Make the inference rule explicit and deterministic.
-  - Add regression tests covering:
-    - Event-based plans
-    - Non-event-based plans
-    - Edge cases (late config edits, timezone boundaries)
-
----
-
-## Phase 1: Workout Template System (Expression Layer)
-
-### Epic: Workout Template Enhancements
-
-Goal: Treat workout templates as **first-class, inspectable, and safe-to-extend artifacts**.
-
-- **Fail fast on unknown templates**
-  - CLI expander throws a clear error if an unknown template name is used.
-  - Error message should:
-    - List closest matching known templates
-    - Suggest creating a custom template if needed
-
-- **Custom template precedence & discovery**
-  - Custom templates live in:
-    - `~/.endurance-coach/workout-templates/`
-
-  - Template resolution order:
-    1. User templates
-    2. Built-in templates
-
-- **Template inspectability & ergonomics**
-  - Improve `templates` CLI command to clearly explain:
-    - Template `id`
-    - Template source (built-in vs user)
-
-  - Add:
-    - `templates list`
-    - `templates show <template-id>`
-
-- **Template validation**
-  - Add command:
-    - `templates validate --template <template-id>`
-
-  - Validation behavior:
-    - Checks user templates first, then built-ins
-    - Validates schema, required variables, and unsupported fields
-
-- **Template variable hygiene**
-  - Audit all template variables
-  - Identify variables not consumed by the Viewer project
-  - Either:
-    - Wire them through properly, or
-    - Deprecate them explicitly
-
----
-
-## Phase 2: Reflection as Data (Core Coaching Differentiator)
+## Phase 1: Reflection as Data (Core Coaching Differentiator)
 
 ### Epic: Post-Workout Interview with Agent
 
@@ -74,10 +13,10 @@ Goal: Turn subjective athlete feedback into **structured coaching signal**, not 
 - **Post-workout interview entry point**
   - User can explicitly ask the agent to conduct a post-workout interview
   - Agent behavior:
-    - Sync workout automatically if Strava is enabled
+    - Sync workout automatically if Strava is enabled, and gets the Lap Details
     - Otherwise, naturally prompt for workout details
 
-- **Interview flow (baseline questions)**
+- **Interview flow using natural back-and-forth, open-ended (baseline questions)**
   - How did the workout feel overall?
   - What were the key challenges or highlights?
   - Did you stick to the planned structure?
@@ -122,7 +61,7 @@ Goal: Turn subjective athlete feedback into **structured coaching signal**, not 
 
 ---
 
-## Phase 3: Intelligence Compounding (Future-Facing)
+## Phase 2: Intelligence Compounding (Future-Facing)
 
 _(Not implementation-heavy yet, but directionally important)_
 
@@ -138,7 +77,7 @@ _(Not implementation-heavy yet, but directionally important)_
 
 ---
 
-## Phase 4: Public Expression Loop (Strava Write-Back)
+## Phase 3: Public Expression Loop (Strava Write-Back)
 
 ### Epic: Coach-Authored Strava Titles & Descriptions
 
@@ -190,7 +129,7 @@ This phase is intentionally opinionated: the coach must _commit to a perspective
 
 ---
 
-## Phase 5: Web UI Enhancements (Amplify Insight, Not Distract)
+## Phase 4: Web UI Enhancements (Amplify Insight, Not Distract)
 
 ### Epic: Web UI Enhancements
 

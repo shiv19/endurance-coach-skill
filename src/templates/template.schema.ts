@@ -7,10 +7,10 @@
 import { z } from "zod";
 
 // ============================================================================
-// Core Types
+// MARK: Core Types
 // ============================================================================
 
-export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick", "race", "rest"]);
+export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick"]);
 
 export const ParamTypeSchema = z.enum(["int", "number", "duration", "distance", "string"]);
 
@@ -34,7 +34,7 @@ export const WorkoutCategorySchema = z.enum([
 ]);
 
 // ============================================================================
-// Template Parameters
+// MARK: Template Parameters
 // ============================================================================
 
 export const TemplateParamSchema = z.object({
@@ -49,7 +49,7 @@ export const TemplateParamSchema = z.object({
 export const TemplateParamsSchema = z.record(z.string(), TemplateParamSchema);
 
 // ============================================================================
-// Workout Structure
+// MARK: Workout Structure
 // ============================================================================
 
 export const TemplateStepSchema = z.object({
@@ -78,7 +78,7 @@ export const TemplateStructureSchema = z.object({
 });
 
 // ============================================================================
-// Complete Template
+// MARK: Complete Template
 // ============================================================================
 
 export const WorkoutTemplateSchema = z.object({
@@ -102,7 +102,7 @@ export const WorkoutTemplateSchema = z.object({
 });
 
 // ============================================================================
-// Validation Functions
+// MARK: Validation Functions
 // ============================================================================
 
 export type TemplateValidationResult =
@@ -142,7 +142,7 @@ export function validateTemplateOrThrow(data: unknown): z.infer<typeof WorkoutTe
 }
 
 // ============================================================================
-// Type Exports
+// MARK: Type Exports
 // ============================================================================
 
 export type WorkoutTemplate = z.infer<typeof WorkoutTemplateSchema>;

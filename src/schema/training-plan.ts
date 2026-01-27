@@ -9,7 +9,7 @@
  */
 
 // ============================================================================
-// Core Types
+// MARK: Core Types
 // ============================================================================
 
 export type Sport = "swim" | "bike" | "run" | "strength" | "brick" | "race" | "rest";
@@ -71,7 +71,7 @@ export const defaultPreferences: UnitPreferences = {
 };
 
 // ============================================================================
-// Workout Structure (for Zwift/Garmin export)
+// MARK: Workout Structure (for Zwift/Garmin export)
 // ============================================================================
 
 export interface IntensityTarget {
@@ -103,6 +103,11 @@ export interface IntervalSet {
   steps: WorkoutStep[]; // Usually [work, recovery]
 }
 
+/**
+ * Structured workout with object-based properties for device export.
+ * This is the converted form of TemplateStructure where all string-based
+ * properties have been parsed into proper objects.
+ */
 export interface StructuredWorkout {
   warmup?: WorkoutStep[];
   main: (WorkoutStep | IntervalSet)[];
@@ -113,15 +118,17 @@ export interface StructuredWorkout {
 }
 
 // ============================================================================
-// Daily Workout
+// MARK: Daily Workout
 // ============================================================================
 
 export interface Workout {
   id: string;
   sport: Sport;
   type: WorkoutType;
+  category?: string; // From template: endurance, speed, technique, etc.
   name: string;
-  description: string;
+  description: string; // Athlete-provided description
+  coachingNotes?: string; // From template: coaching context and focus points
 
   // Duration
   durationMinutes?: number;
@@ -134,7 +141,7 @@ export interface Workout {
   targetPace?: { low: string; high: string }; // "5:30/km" - "5:45/km"
   rpe?: number; // 1-10
 
-  // Structured workout for device export
+  // Structured workout for device export (object-based properties)
   structure?: StructuredWorkout;
 
   // Human-readable workout text (for display)
@@ -149,7 +156,7 @@ export interface Workout {
 }
 
 // ============================================================================
-// Training Week
+// MARK: Training Week
 // ============================================================================
 
 export interface TrainingDay {
@@ -183,7 +190,7 @@ export interface TrainingWeek {
 }
 
 // ============================================================================
-// Training Zones
+// MARK: Training Zones
 // ============================================================================
 
 export interface HeartRateZones {
@@ -248,7 +255,7 @@ export interface AthleteZones {
 }
 
 // ============================================================================
-// Athlete Assessment
+// MARK: Athlete Assessment
 // ============================================================================
 
 export interface AthleteAssessment {
@@ -286,7 +293,7 @@ export interface AthleteAssessment {
 }
 
 // ============================================================================
-// Training Phases
+// MARK: Training Phases
 // ============================================================================
 
 export interface TrainingPhase {
@@ -300,7 +307,7 @@ export interface TrainingPhase {
 }
 
 // ============================================================================
-// Race Strategy
+// MARK: Race Strategy
 // ============================================================================
 
 export interface RaceStrategy {
@@ -342,7 +349,7 @@ export interface RaceStrategy {
 }
 
 // ============================================================================
-// Complete Training Plan
+// MARK: Complete Training Plan
 // ============================================================================
 
 /**
@@ -410,7 +417,7 @@ export interface TrainingPlan {
 }
 
 // ============================================================================
-// Example/Template
+// MARK: Example/Template
 // ============================================================================
 
 export const exampleWorkout: Workout = {

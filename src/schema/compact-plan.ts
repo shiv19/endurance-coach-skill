@@ -11,7 +11,7 @@
  */
 
 // ============================================================================
-// Core Types
+// MARK: Core Types
 // ============================================================================
 
 export type Sport = "swim" | "bike" | "run" | "strength" | "brick" | "race" | "rest";
@@ -21,7 +21,7 @@ export type FirstDayOfWeek = "monday" | "sunday";
 export type DistanceUnit = "km" | "mi";
 
 // ============================================================================
-// Athlete Configuration
+// MARK: Athlete Configuration
 // ============================================================================
 
 /**
@@ -91,6 +91,7 @@ export interface CompactAthlete {
   name: string;
   event: string;
   eventDate: string; // ISO date: "2025-03-02"
+  startDate?: string; // Explicit plan start date (ISO format: "2025-02-17")
   paces: AthletePaces;
   zones?: AthleteZones;
   constraints?: AthleteConstraints;
@@ -99,7 +100,7 @@ export interface CompactAthlete {
 }
 
 // ============================================================================
-// Assessment (Optional)
+// MARK: Assessment (Optional)
 // ============================================================================
 
 /**
@@ -140,7 +141,7 @@ export interface CompactAssessment {
 }
 
 // ============================================================================
-// Training Phases
+// MARK: Training Phases
 // ============================================================================
 
 /**
@@ -155,7 +156,7 @@ export interface CompactPhase {
 }
 
 // ============================================================================
-// Weekly Schedule
+// MARK: Weekly Schedule
 // ============================================================================
 
 /**
@@ -164,11 +165,11 @@ export interface CompactPhase {
  * Format: "template.id" or "template.id(param)" or "template.id(param1, param2)"
  *
  * Examples:
- *   - "easy(30)" → easy run, 30 minutes
- *   - "intervals.400(6)" → 6x400m intervals
- *   - "long(90)" → 90-minute long run
- *   - "rest" → rest day (no params)
- *   - "tempo(20)" → 20-minute tempo section
+ *   - "run.easy(30)" → easy run, 30 minutes
+ *   - "run.intervals.400(6)" → 6x400m intervals
+ *   - "run.long(90)" → 90-minute long run
+ *   - "run.rest" → rest day (no params)
+ *   - "run.tempo(20)" → 20-minute tempo section
  */
 export type WorkoutRef = string;
 
@@ -198,7 +199,7 @@ export interface CompactWeek {
 }
 
 // ============================================================================
-// Race Strategy (Optional)
+// MARK: Race Strategy (Optional)
 // ============================================================================
 
 /**
@@ -216,7 +217,7 @@ export interface CompactRaceStrategy {
 }
 
 // ============================================================================
-// Complete Compact Plan
+// MARK: Complete Compact Plan
 // ============================================================================
 
 /**
@@ -235,7 +236,7 @@ export interface CompactPlan {
 }
 
 // ============================================================================
-// Utility Types
+// MARK: Utility Types
 // ============================================================================
 
 /**
@@ -247,16 +248,23 @@ export interface ParsedWorkoutRef {
 }
 
 /**
+ * Regex pattern for matching valid workout reference format.
+ * Template IDs can only contain letters, digits, underscores, and dots.
+ * Format: templateId or templateId(params)
+ */
+export const WORKOUT_REF_PATTERN = /^([a-zA-Z0-9_.]+)(?:\(([^)]*)\))?$/;
+
+/**
  * Parse a workout reference string into its components.
  *
  * Examples:
- *   "easy(30)" → { templateId: "easy", params: [30] }
- *   "intervals.400(6)" → { templateId: "intervals.400", params: [6] }
- *   "rest" → { templateId: "rest", params: [] }
- *   "tempo(20, 90)" → { templateId: "tempo", params: [20, 90] }
+ *   "run.easy(30)" → { templateId: "run.easy", params: [30] }
+ *   "run.intervals.400(6)" → { templateId: "run.intervals.400", params: [6] }
+ *   "run.rest" → { templateId: "run.rest", params: [] }
+ *   "run.tempo(20, 90)" → { templateId: "run.tempo", params: [20, 90] }
  */
 export function parseWorkoutRef(ref: string): ParsedWorkoutRef {
-  const match = ref.match(/^([a-zA-Z0-9_.]+)(?:\(([^)]*)\))?$/);
+  const match = ref.match(WORKOUT_REF_PATTERN);
   if (!match) {
     throw new Error(`Invalid workout reference: "${ref}"`);
   }

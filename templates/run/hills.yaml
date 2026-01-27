@@ -1,4 +1,4 @@
-id: hills
+id: run.hills
 name: Hill Repeats
 sport: run
 type: hills
@@ -12,6 +12,31 @@ params:
     min: 4
     max: 12
     description: Number of hill repeats
+
+structure:
+  warmup:
+    - type: warmup
+      name: Easy warmup
+      duration: 10min
+      pace: "${paces.easy}"
+  main:
+    - type: intervals
+      repeats: "${reps}"
+      work:
+        type: work
+        name: Hill repeat
+        duration: 90sec
+        intensity: Zone 4-5
+      recovery:
+        type: recovery
+        name: Jog down recovery
+        duration: 3min
+        intensity: Zone 1-2
+  cooldown:
+    - type: cooldown
+      name: Easy cooldown
+      duration: 10min
+      pace: "${paces.easy}"
 
 humanReadable: |
   HILL REPEATS

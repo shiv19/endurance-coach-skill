@@ -24,12 +24,12 @@ structure:
     - type: work
       name: Drill set
       description: "6-8 x 50m drill/swim alternating, 15s rest"
-      duration: "${(duration - 15) / 2}min"
+      duration: "${(duration - 10) / 2}min"
       intensity: Zone 1-2
     - type: work
       name: Technique focus
       description: "Focus on catch, pull, rotation"
-      duration: "${(duration - 15) / 2}min"
+      duration: "${(duration - 10) / 2}min"
       pace: "${paces.swim_easy}"
       intensity: Zone 2
   cooldown:

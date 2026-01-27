@@ -33,7 +33,13 @@ export {
 } from "./template.schema.js";
 
 // Loader
-export { loadTemplates, loadTemplatesFromArray, getTemplatesPath } from "./loader.js";
+export {
+  loadTemplates,
+  loadTemplatesFromArray,
+  getTemplatesPath,
+  getUserTemplatesDir,
+  type LoadTemplatesOptions,
+} from "./loader.js";
 
 // YAML utilities
 export { parse as parseYaml, stringify as stringifyYaml } from "./yaml-parser.js";
@@ -47,3 +53,12 @@ export {
   hasInterpolation,
   extractVariables,
 } from "./interpolate.js";
+
+// Conversion (template to workout structure)
+export {
+  parseDuration,
+  parseIntensity,
+  convertTemplateStep,
+  convertTemplateIntervalSet,
+  convertTemplateStructure,
+} from "./converter.js";

@@ -47,3 +47,36 @@ export interface StravaStream {
   original_size: number;
   resolution: string;
 }
+
+export interface MetaAthlete {
+  id: number;
+  resource_state: number;
+}
+
+export interface MetaActivity {
+  id: number;
+  resource_state: number;
+}
+
+export interface Lap {
+  id: number;
+  resource_state: number;
+  name: string;
+  activity: MetaActivity;
+  athlete: MetaAthlete;
+  elapsed_time: number;
+  moving_time: number;
+  start_date: string;
+  start_date_local: string;
+  distance: number;
+  start_index: number;
+  end_index: number;
+  total_elevation_gain: number;
+  average_speed: number;
+  max_speed: number;
+  average_cadence: number;
+  device_watts: boolean;
+  average_watts: number;
+  lap_index: number;
+  split: number;
+}

@@ -5,9 +5,10 @@
  */
 
 import type { Sport } from "../schema/compact-plan.js";
+import type { StructuredWorkout } from "../schema/training-plan.js";
 
 // ============================================================================
-// Expanded Workout
+// MARK: Expanded Workout
 // ============================================================================
 
 /**
@@ -17,17 +18,20 @@ export interface ExpandedWorkout {
   id: string;
   sport: Sport;
   type: string;
+  category?: string;
   name: string;
   description?: string;
   durationMinutes?: number;
   primaryZone?: string;
   rpe?: string;
+  coachingNotes?: string;
   humanReadable: string;
+  structure?: StructuredWorkout;
   completed: boolean;
 }
 
 // ============================================================================
-// Expanded Day
+// MARK: Expanded Day
 // ============================================================================
 
 /**
@@ -40,7 +44,7 @@ export interface ExpandedDay {
 }
 
 // ============================================================================
-// Expanded Week
+// MARK: Expanded Week
 // ============================================================================
 
 /**
@@ -72,7 +76,7 @@ export interface ExpandedWeek {
 }
 
 // ============================================================================
-// Expanded Zones
+// MARK: Expanded Zones
 // ============================================================================
 
 /**
@@ -132,7 +136,7 @@ export interface ExpandedAthleteZones {
 }
 
 // ============================================================================
-// Expanded Phase
+// MARK: Expanded Phase
 // ============================================================================
 
 /**
@@ -149,7 +153,7 @@ export interface ExpandedPhase {
 }
 
 // ============================================================================
-// Expanded Plan Metadata
+// MARK: Expanded Plan Metadata
 // ============================================================================
 
 /**
@@ -169,7 +173,7 @@ export interface ExpandedPlanMeta {
 }
 
 // ============================================================================
-// Complete Expanded Plan
+// MARK: Complete Expanded Plan
 // ============================================================================
 
 /**
@@ -277,7 +281,7 @@ export interface ExpandedPlan {
 }
 
 // ============================================================================
-// Expansion Options
+// MARK: Expansion Options
 // ============================================================================
 
 /**

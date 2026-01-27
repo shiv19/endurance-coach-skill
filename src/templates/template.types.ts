@@ -8,7 +8,7 @@
 import type { Sport } from "../schema/compact-plan.js";
 
 // ============================================================================
-// Template Parameters
+// MARK: Template Parameters
 // ============================================================================
 
 /**
@@ -36,7 +36,7 @@ export interface TemplateParams {
 }
 
 // ============================================================================
-// Workout Structure
+// MARK: Workout Structure
 // ============================================================================
 
 /**
@@ -83,7 +83,7 @@ export interface TemplateStructure {
 }
 
 // ============================================================================
-// Complete Template
+// MARK: Complete Template
 // ============================================================================
 
 /**
@@ -155,7 +155,7 @@ export interface WorkoutTemplate {
 }
 
 // ============================================================================
-// Template Registry
+// MARK: Template Registry
 // ============================================================================
 
 /**
@@ -176,10 +176,16 @@ export interface TemplateRegistry {
 
   /** Get all template IDs */
   ids(): string[];
+
+  /** Get the source of a template (user or builtin) */
+  getSource?(id: string): "user" | "builtin" | undefined;
+
+  /** Get the file path of a template */
+  getSourcePath?(id: string): string | undefined;
 }
 
 // ============================================================================
-// Interpolation Context
+// MARK: Interpolation Context
 // ============================================================================
 
 /**
@@ -203,7 +209,7 @@ export interface InterpolationContext {
 }
 
 // ============================================================================
-// Expanded Workout
+// MARK: Expanded Workout
 // ============================================================================
 
 /**
