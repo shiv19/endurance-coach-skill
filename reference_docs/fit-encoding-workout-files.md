@@ -1,6 +1,7 @@
 # Encoding FIT Workout Files Summary
 
-Source: https://developer.garmin.com/fit/cookbook/encoding-workout-files/
+Source: [Garmin Encoding Workout Files](https://developer.garmin.com/fit/cookbook/encoding-workout-files/)
+Last verified: 2026-01-27
 
 Required message sequence
 

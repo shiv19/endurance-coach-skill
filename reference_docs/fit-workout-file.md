@@ -1,6 +1,7 @@
 # FIT Workout File Type Summary
 
-Source: https://developer.garmin.com/fit/file-types/workout/
+Source: [Garmin File Types Workout](https://developer.garmin.com/fit/file-types/workout/)
+Last verified: 2026-01-27
 
 Required messages
 

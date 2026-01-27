@@ -108,22 +108,25 @@ export async function getAllActivities(tokens: Tokens, afterDate: Date): Promise
 
   log.start(`Fetching activities since ${afterDate.toISOString().split("T")[0]}...`);
 
-  while (true) {
-    const batch = await getActivities(tokens, after, undefined, page, perPage);
-    activities.push(...batch);
+  try {
+    while (true) {
+      const batch = await getActivities(tokens, after, undefined, page, perPage);
+      activities.push(...batch);
 
-    log.progress(`   Fetched ${activities.length} activities...`);
+      log.progress(`   Fetched ${activities.length} activities...`);
 
-    if (batch.length < perPage) {
-      break;
+      if (batch.length < perPage) {
+        break;
+      }
+
+      page++;
+      // Small delay to be nice to the API
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-
-    page++;
-    // Small delay to be nice to the API
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  } finally {
+    log.progressEnd();
   }
 
-  log.progressEnd();
   log.success(`Fetched ${activities.length} activities total`);
   return activities;
 }
