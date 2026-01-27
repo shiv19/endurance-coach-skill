@@ -96,6 +96,9 @@ async function main(): Promise<void> {
     case "modify":
       runModify(args);
       break;
+    default:
+      printHelp();
+      break;
   }
 }
 

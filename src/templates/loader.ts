@@ -12,6 +12,7 @@ import { parse as parseYaml } from "./yaml-parser.js";
 import { validateTemplateOrThrow, type WorkoutTemplate } from "./template.schema.js";
 import type { TemplateRegistry } from "./template.types.js";
 import type { Sport } from "../schema/compact-plan.js";
+import { log } from "../lib/logging.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -276,7 +277,7 @@ export function loadTemplates(arg?: string | LoadTemplatesOptions): TemplateRegi
       const userDir = options.userTemplatesDir ?? USER_TEMPLATES_DIR;
 
       if (!existsSync(userDir)) {
-        console.log(
+        log.info(
           `User templates directory does not exist: ${userDir}. Using built-in templates only.`
         );
       } else {
