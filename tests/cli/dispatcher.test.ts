@@ -110,7 +110,7 @@ describe("cli dispatcher", () => {
     await import("../../src/cli/index.js");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(errorSpy).toHaveBeenCalledWith("boom");
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("boom"));
     expect(exitSpy).toHaveBeenCalledWith(1);
 
     exitSpy.mockRestore();

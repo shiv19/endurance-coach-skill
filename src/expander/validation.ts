@@ -178,10 +178,22 @@ export function validatePlanTemplates(
     for (const [day, refs] of Object.entries(week.workouts)) {
       const refArray = Array.isArray(refs) ? refs : [refs];
       for (const ref of refArray) {
+        if (typeof ref !== "string") {
+          const refString = String(ref);
+          errors.push({
+            templateId: refString,
+            week: week.week,
+            day,
+            ref: refString,
+            suggestions: [],
+          });
+          continue;
+        }
         // Extract template ID from reference (e.g., "run.easy(30)" -> "run.easy")
         // Uses WORKOUT_REF_PATTERN to match the same validation rules as parseWorkoutRef
-        const match = ref.trim().match(WORKOUT_REF_PATTERN);
-        const templateId = match ? match[1] : ref.trim();
+        const trimmedRef = ref.trim();
+        const match = trimmedRef.match(WORKOUT_REF_PATTERN);
+        const templateId = match ? match[1] : trimmedRef;
 
         if (!templates.has(templateId)) {
           const suggestions = findSimilarTemplates(templateId, templates);
@@ -189,7 +201,7 @@ export function validatePlanTemplates(
             templateId,
             week: week.week,
             day,
-            ref,
+            ref: trimmedRef,
             suggestions,
           });
         }

@@ -107,6 +107,10 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  log.error(err.message);
+  if (err instanceof Error) {
+    log.error(err.stack ?? err.message);
+  } else {
+    log.error(String(err));
+  }
   process.exit(1);
 });
