@@ -88,6 +88,19 @@ export interface LoadTemplatesOptions {
 }
 
 // ============================================================================
+// MARK: Internal Types
+// ============================================================================
+
+/**
+ * Internal type for templates with source metadata.
+ * Extends WorkoutTemplate with runtime metadata fields.
+ */
+type TemplateWithMetadata = WorkoutTemplate & {
+  _source: "builtin" | "user";
+  _sourcePath: string;
+};
+
+// ============================================================================
 // MARK: File Discovery
 // ============================================================================
 
@@ -132,21 +145,19 @@ function findYamlFiles(dir: string): string[] {
  * @returns The validated workout template with `_source` set to `source` and `_sourcePath` set to `filePath`
  * @throws Error if the file cannot be read, the YAML is invalid, or the template fails schema validation
  */
-function loadTemplateFile(
-  filePath: string,
-  source: "builtin" | "user"
-): WorkoutTemplate & { _source: "builtin" | "user"; _sourcePath: string } {
+function loadTemplateFile(filePath: string, source: "builtin" | "user"): TemplateWithMetadata {
   const content = readFileSync(filePath, "utf-8");
   const data = parseYaml(content);
 
   // Validate against schema
   const template = validateTemplateOrThrow(data);
 
-  // Attach source tracking
-  (template as any)._source = source;
-  (template as any)._sourcePath = filePath;
-
-  return template as WorkoutTemplate & { _source: "builtin" | "user"; _sourcePath: string };
+  // Return template with source metadata
+  return {
+    ...template,
+    _source: source,
+    _sourcePath: filePath,
+  };
 }
 
 /**
@@ -162,7 +173,7 @@ function loadTemplateFile(
 function loadTemplatesFromDir(
   dir: string,
   source: "builtin" | "user",
-  templates: Map<string, WorkoutTemplate & { _source: "builtin" | "user"; _sourcePath: string }>
+  templates: Map<string, TemplateWithMetadata>
 ): void {
   const yamlFiles = findYamlFiles(dir);
 
@@ -243,10 +254,7 @@ export function loadTemplates(options?: LoadTemplatesOptions): TemplateRegistry;
  * @returns A TemplateRegistry containing all loaded templates; registry methods can be used to query templates and their sources.
  */
 export function loadTemplates(arg?: string | LoadTemplatesOptions): TemplateRegistry {
-  const templates = new Map<
-    string,
-    WorkoutTemplate & { _source: "builtin" | "user"; _sourcePath: string }
-  >();
+  const templates = new Map<string, TemplateWithMetadata>();
 
   // Determine if we have a string (templatesDir) or options object
   const isStringArg = typeof arg === "string";
@@ -301,6 +309,13 @@ export function loadTemplatesFromArray(templateArray: WorkoutTemplate[]): Templa
 }
 
 /**
+ * Type guard to check if a template has metadata.
+ */
+function hasMetadata(template: WorkoutTemplate): template is TemplateWithMetadata {
+  return "_source" in template && "_sourcePath" in template;
+}
+
+/**
  * Create a TemplateRegistry backed by the provided templates map.
  *
  * @param templates - Map keyed by template id with `WorkoutTemplate` values; template objects may include runtime metadata `_source` (`"user"` | `"builtin"`) and `_sourcePath`.
@@ -333,13 +348,13 @@ function createRegistry(templates: Map<string, WorkoutTemplate>): TemplateRegist
     getSource(id: string): "user" | "builtin" | undefined {
       const template = templates.get(id);
       if (!template) return undefined;
-      return (template as any)._source ?? "builtin";
+      return hasMetadata(template) ? template._source : "builtin";
     },
 
     getSourcePath(id: string): string | undefined {
       const template = templates.get(id);
       if (!template) return undefined;
-      return (template as any)._sourcePath;
+      return hasMetadata(template) ? template._sourcePath : undefined;
     },
   };
 }

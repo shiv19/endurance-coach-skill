@@ -147,7 +147,7 @@ export function validateTemplateExists(templateId: string, templates: TemplateRe
 /**
  * Enhanced version of validateWorkoutRefs that returns detailed error objects.
  */
-export interface TemplateValidationError {
+export interface PlanTemplateValidationError {
   templateId: string;
   week: number;
   day: string;
@@ -159,20 +159,20 @@ export interface TemplateValidationError {
  * Collects unknown template references from a compact plan and returns detailed validation errors.
  *
  * Iterates the plan's weeks and workouts, identifies template references that are not present in the provided
- * TemplateRegistry, and returns an array of TemplateValidationError objects containing the week, day, original
+ * TemplateRegistry, and returns an array of PlanTemplateValidationError objects containing the week, day, original
  * reference, the extracted template ID, and suggested similar template IDs.
  *
  * @param compactPlan - Plan object with a `weeks` array; each week contains a `week` number and `workouts` mapping days to a template ref or array of refs.
  * @param templates - TemplateRegistry used to check whether a referenced template ID exists and to derive suggestions for unknown IDs.
- * @returns An array of TemplateValidationError objects describing each unknown template reference found in the plan.
+ * @returns An array of PlanTemplateValidationError objects describing each unknown template reference found in the plan.
  */
 export function validatePlanTemplates(
   compactPlan: {
     weeks: Array<{ week: number; workouts: Record<string, string | string[]> }>;
   },
   templates: TemplateRegistry
-): TemplateValidationError[] {
-  const errors: TemplateValidationError[] = [];
+): PlanTemplateValidationError[] {
+  const errors: PlanTemplateValidationError[] = [];
 
   for (const week of compactPlan.weeks) {
     for (const [day, refs] of Object.entries(week.workouts)) {
@@ -209,7 +209,7 @@ export function validatePlanTemplates(
  * @param errors - Array of template validation errors to format
  * @returns A multi-line message describing each unknown reference and any suggestions, or an empty string if there are no errors
  */
-export function formatValidationErrors(errors: TemplateValidationError[]): string {
+export function formatValidationErrors(errors: PlanTemplateValidationError[]): string {
   if (errors.length === 0) return "";
 
   let message = `Found ${errors.length} unknown template reference${
