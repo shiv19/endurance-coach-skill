@@ -287,15 +287,23 @@ export async function runSync(args: SyncArgs): Promise<void> {
 
     // Store activities
     log.start("Storing activities in database...");
-    let count = 0;
-    for (const activity of activities) {
-      insertActivity(activity);
-      count++;
-      if (count % 50 === 0) {
-        log.progress(`   Stored ${count}/${activities.length}...`);
+    execute("BEGIN TRANSACTION");
+    try {
+      let count = 0;
+      for (const activity of activities) {
+        insertActivity(activity);
+        count++;
+        if (count % 50 === 0) {
+          log.progress(`   Stored ${count}/${activities.length}...`);
+        }
       }
+      execute("COMMIT");
+    } catch (error) {
+      execute("ROLLBACK");
+      throw error;
+    } finally {
+      log.progressEnd();
     }
-    log.progressEnd();
     log.success(`Stored ${activities.length} activities`);
 
     execute(`
@@ -346,15 +354,23 @@ export async function runSync(args: SyncArgs): Promise<void> {
 
   // Step 6: Store activities
   log.start("Storing activities in database...");
-  let count = 0;
-  for (const activity of activities) {
-    insertActivity(activity);
-    count++;
-    if (count % 50 === 0) {
-      log.progress(`   Stored ${count}/${activities.length}...`);
+  execute("BEGIN TRANSACTION");
+  try {
+    let count = 0;
+    for (const activity of activities) {
+      insertActivity(activity);
+      count++;
+      if (count % 50 === 0) {
+        log.progress(`   Stored ${count}/${activities.length}...`);
+      }
     }
+    execute("COMMIT");
+  } catch (error) {
+    execute("ROLLBACK");
+    throw error;
+  } finally {
+    log.progressEnd();
   }
-  log.progressEnd();
   log.success(`Stored ${activities.length} activities`);
 
   // Step 7: Log sync

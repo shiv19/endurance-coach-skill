@@ -82,7 +82,7 @@ function calculateStartDate(
 ): Date {
   const event = parseLocalDate(eventDate);
   // Go back (totalWeeks - 1) * 7 days from event date
-  // This ensures the final week's last day aligns with the event date
+  // This ensures the event date falls within the final week
   const start = addDays(event, -((totalWeeks - 1) * 7));
 
   // Adjust to the first day of the week
