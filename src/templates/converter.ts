@@ -179,19 +179,26 @@ export function parseIntensity(
   }
 
   // Check for single percentage (e.g., "75% FTP", "75%")
-  const singlePercentPattern = /^(\d+(?:\.\d+)?)\s*%?\s*(FTP|LTHR|LT)?$/i;
+  // Only match as percentage if it has "%" or an explicit unit (FTP/LTHR/LT)
+  const singlePercentPattern = /^(\d+(?:\.\d+)?)\s*(%\s*(FTP|LTHR|LT)?|(FTP|LTHR|LT))$/i;
   const singlePercentMatch = parsed.match(singlePercentPattern);
   if (singlePercentMatch) {
     const value = parseFloat(singlePercentMatch[1]);
-    const target = singlePercentMatch[2]?.toUpperCase() || "FTP";
-    const unit: IntensityUnit =
-      target === "LTHR" || target === "LT" ? "percent_lthr" : "percent_ftp";
+    // If no "%" sign is present and value is in typical RPE range (1-10 or <30),
+    // skip this match and let the RPE pattern handle it
+    if (!parsed.includes("%") && value < 30) {
+      // Fall through to RPE pattern
+    } else {
+      const target = (singlePercentMatch[3] || singlePercentMatch[4] || "FTP").toUpperCase();
+      const unit: IntensityUnit =
+        target === "LTHR" || target === "LT" ? "percent_lthr" : "percent_ftp";
 
-    return {
-      unit,
-      value,
-      description: `${value}% ${target}`,
-    };
+      return {
+        unit,
+        value,
+        description: `${value}% ${target}`,
+      };
+    }
   }
 
   // Check for RPE format (e.g., "RPE 7", "RPE 7-8", "7/10")
