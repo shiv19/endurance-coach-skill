@@ -184,9 +184,9 @@ export function parseIntensity(
   const singlePercentMatch = parsed.match(singlePercentPattern);
   if (singlePercentMatch) {
     const value = parseFloat(singlePercentMatch[1]);
-    // If no "%" sign is present and value is in typical RPE range (1-10 or <30),
+    // If no "%" sign is present AND no explicit unit AND value is in typical RPE range (1-10 or <30),
     // skip this match and let the RPE pattern handle it
-    if (!parsed.includes("%") && value < 30) {
+    if (!parsed.includes("%") && !singlePercentMatch[3] && !singlePercentMatch[4] && value < 30) {
       // Fall through to RPE pattern
     } else {
       const target = (singlePercentMatch[3] || singlePercentMatch[4] || "FTP").toUpperCase();
