@@ -81,14 +81,19 @@ export async function runStrength(args: StrengthArgs): Promise<void> {
           PARTITION BY sport_type
           ORDER BY distance DESC, moving_time DESC, start_date DESC
         ) AS distance_rank
+        , ROW_NUMBER() OVER (
+          PARTITION BY sport_type
+          ORDER BY moving_time DESC, distance DESC, start_date DESC
+        ) AS time_rank
       FROM activities
       WHERE start_date >= date('now', '-${years} years')
     )
     SELECT
       sport_type,
-      ROUND(MAX(distance) / 1000.0, 1) AS peak_km,
-      ROUND(MAX(moving_time) / 3600.0, 1) AS peak_hours,
-      MAX(CASE WHEN distance_rank = 1 THEN start_date END) AS when_achieved
+      ROUND(MAX(CASE WHEN distance_rank = 1 THEN distance END) / 1000.0, 1) AS peak_km,
+      MAX(CASE WHEN distance_rank = 1 THEN start_date END) AS peak_km_date,
+      ROUND(MAX(CASE WHEN time_rank = 1 THEN moving_time END) / 3600.0, 1) AS peak_hours,
+      MAX(CASE WHEN time_rank = 1 THEN start_date END) AS peak_hours_date
     FROM ranked
     GROUP BY sport_type;
   `;
@@ -134,8 +139,8 @@ export async function runStrength(args: StrengthArgs): Promise<void> {
   const historicalPeaksRows = queryJson<Record<string, unknown>>(historicalPeaksSql);
   const historicalPeaksTable = formatTable(
     historicalPeaksRows,
-    ["Sport", "Peak km", "Peak hours", "When achieved"],
-    ["sport_type", "peak_km", "peak_hours", "when_achieved"]
+    ["Sport", "Peak km", "Peak km date", "Peak hours", "Peak hours date"],
+    ["sport_type", "peak_km", "peak_km_date", "peak_hours", "peak_hours_date"]
   );
   printSection(`Historical peaks (last ${years} years)`, historicalPeaksTable);
 }
