@@ -1,4 +1,4 @@
-import { execSync, spawnSync } from "child_process";
+import Database from "better-sqlite3";
 import { getDbPath } from "../lib/config.js";
 
 // ============================================================================
@@ -12,84 +12,42 @@ interface SqliteBackend {
 }
 
 let cachedBackend: SqliteBackend | null = null;
+let dbInstance: Database.Database | null = null;
 
 /**
- * Try to use Node's built-in SQLite module (Node 22.5+).
- * Falls back to shelling out to sqlite3 CLI if not available.
+ * Initialize the SQLite backend using better-sqlite3.
  */
-async function detectBackend(): Promise<SqliteBackend> {
-  // Try Node.js built-in SQLite first (Node 22.5+)
-  try {
-    // Dynamic import to avoid syntax errors on older Node versions
-    const sqlite = await import("node:sqlite");
-    const dbPath = getDbPath();
-    const db = new sqlite.DatabaseSync(dbPath);
+function createBackend(): SqliteBackend {
+  const dbPath = getDbPath();
+  const db = new Database(dbPath);
+  dbInstance = db;
 
-    return {
-      query(sql: string): string {
-        const stmt = db.prepare(sql);
-        const rows = stmt.all();
-        if (rows.length === 0) return "";
-        // Format as simple text output (column values separated by |)
-        return rows
-          .map((row) =>
-            Object.values(row as Record<string, unknown>)
-              .map((v) => (v === null ? "" : String(v)))
-              .join("|")
-          )
-          .join("\n");
-      },
-      queryJson<T>(sql: string): T[] {
-        const stmt = db.prepare(sql);
-        return stmt.all() as T[];
-      },
-      execute(sql: string): void {
-        db.exec(sql);
-      },
-    };
-  } catch {
-    // Node.js built-in SQLite not available, try CLI
-  }
+  // Add safety pragmas
+  db.pragma("foreign_keys = ON");
+  db.pragma("busy_timeout = 5000");
 
-  // Fallback: Use sqlite3 CLI
-  try {
-    // Check if sqlite3 is available
-    execSync("sqlite3 --version", { stdio: "ignore" });
-
-    return {
-      query(sql: string): string {
-        const dbPath = getDbPath();
-        return execSync(`sqlite3 "${dbPath}" "${sql.replace(/"/g, '\\"')}"`, {
-          encoding: "utf-8",
-        });
-      },
-      queryJson<T>(sql: string): T[] {
-        const dbPath = getDbPath();
-        const result = execSync(`sqlite3 -json "${dbPath}" "${sql.replace(/"/g, '\\"')}"`, {
-          encoding: "utf-8",
-        });
-        if (!result.trim()) return [];
-        return JSON.parse(result);
-      },
-      execute(sql: string): void {
-        const dbPath = getDbPath();
-        const result = spawnSync("sqlite3", [dbPath], {
-          input: sql,
-          encoding: "utf-8",
-        });
-        if (result.error) throw result.error;
-        if (result.status !== 0) {
-          throw new Error(`SQLite error: ${result.stderr}`);
-        }
-      },
-    };
-  } catch {
-    throw new Error(
-      "SQLite is not available. Please either:\n" +
-        "  1. Use Node.js 22.5+ (has built-in SQLite)\n" +
-        "  2. Install sqlite3 CLI (brew install sqlite3 / apt install sqlite3)"
-    );
-  }
+  return {
+    query(sql: string): string {
+      const stmt = db.prepare(sql);
+      const rows = stmt.all();
+      if (rows.length === 0) return "";
+      // Format as simple text output (column values separated by |)
+      return rows
+        .map((row) =>
+          Object.values(row as Record<string, unknown>)
+            .map((v) => (v === null ? "" : String(v)))
+            .join("|")
+        )
+        .join("\n");
+    },
+    queryJson<T>(sql: string): T[] {
+      const stmt = db.prepare(sql);
+      return stmt.all() as T[];
+    },
+    execute(sql: string): void {
+      db.exec(sql);
+    },
+  };
 }
 
 /**
@@ -97,7 +55,7 @@ async function detectBackend(): Promise<SqliteBackend> {
  */
 export async function initDatabase(): Promise<void> {
   if (!cachedBackend) {
-    cachedBackend = await detectBackend();
+    cachedBackend = createBackend();
   }
 }
 
@@ -129,4 +87,22 @@ export function execute(sql: string): void {
 
 export function runScript(script: string): void {
   execute(script);
+}
+
+/**
+ * Get the raw better-sqlite3 database instance.
+ * Useful for transactions or other advanced features.
+ */
+export function getDb(): Database.Database {
+  if (!dbInstance) {
+    throw new Error("Database not initialized. Call initDatabase() first.");
+  }
+  return dbInstance;
+}
+
+/**
+ * Helper to run code within a transaction.
+ */
+export function transaction<T>(fn: () => T): T {
+  return getDb().transaction(fn)();
 }

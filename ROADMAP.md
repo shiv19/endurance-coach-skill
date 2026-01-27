@@ -1,154 +1,275 @@
-## Endurance Coach – Polished Roadmap
+# Endurance Coach – Polished Roadmap
 
-This roadmap is organized to make **coaching correctness and judgment** the spine of the system, with tooling and UI serving that goal—not competing with it.
+This roadmap makes **coaching correctness and judgment** the spine of the system.
+Tooling and UI exist only to surface and reinforce that judgment.
 
 ---
 
-## Phase 1: Reflection as Data (Core Coaching Differentiator)
+# Phase 1: Reflection as Data (Core Differentiator)
 
 ### Epic: Post-Workout Interview with Agent
 
-Goal: Turn subjective athlete feedback into **structured coaching signal**, not just notes.
-
-- **Post-workout interview entry point**
-  - User can explicitly ask the agent to conduct a post-workout interview
-  - Agent behavior:
-    - Sync workout automatically if Strava is enabled, and gets the Lap Details
-    - Otherwise, naturally prompt for workout details
-
-- **Interview flow using natural back-and-forth, open-ended (baseline questions)**
-  - How did the workout feel overall?
-  - What were the key challenges or highlights?
-  - Did you stick to the planned structure?
-  - How were energy, hydration, and mental focus?
-  - What would you change or improve next time?
-
-- **Data-aware questioning**
-  - Agent incorporates inferred signals from workout data:
-    - Pace vs plan
-    - Heart rate trends
-    - Duration and completion fidelity
-
-  - Questions and follow-ups should adapt based on these signals
-
-- **Coaching judgment (not just summarization)**
-  - Persist two distinct outputs:
-    1. **Athlete Reflection Summary** (what the user said)
-    2. **Coach Notes** (agent’s opinionated assessment)
-
-  - Coach Notes may:
-    - Challenge perceived effort vs objective data
-    - Flag fatigue, overreaching, or execution issues
-
-- **Persistence & schema evolution**
-  - Store interviews in a dedicated table
-    - Foreign key → workout ID
-    - Support multiple interviews per workout
-
-  - Introduce explicit DB schema versioning
-    - Forward-only, idempotent migrations
-    - Backwards compatibility guaranteed
-
-- **Optional UX support**
-  - Web UI reminder when a workout is marked complete
-  - Reminder should be non-blocking and skippable
-
-- **Stretch Goal (intentionally scoped)**
-  - In-app interview chat via local web server
-  - CLI launches a temporary local UI for the interview
-  - Uses the same agent framework and configuration
-  - If complexity grows, split into a separate epic
+Goal: Convert subjective athlete feedback into **structured coaching signal**, not journaling.
 
 ---
 
-## Phase 2: Intelligence Compounding (Future-Facing)
+## Entry Point
 
-_(Not implementation-heavy yet, but directionally important)_
+- User explicitly requests a post-workout interview
+- If Strava enabled:
+  - Auto-sync workout
+  - Load lap-level details
+
+- Else:
+  - Prompt for workout summary (type, duration, structure)
+
+_No reminders yet. Manual trigger only._
+
+---
+
+## Interview Flow
+
+Natural, conversational, open-ended.
+
+Baseline questions:
+
+- How did the workout feel overall?
+- What were the key challenges or highlights?
+- Did you stick to the planned structure?
+- How were energy, hydration, and mental focus?
+- What would you change or improve next time?
+
+Constraints:
+
+- Target: 5–7 turns
+- Hard cap: 10 turns
+- If unresolved at cap → summarize and stop
+
+---
+
+## Data-Aware Question Triggers
+
+Small, explicit rule set:
+
+- HR drift > threshold → ask about fatigue / fueling
+- Pace or power deviates from plan → ask about execution vs environment
+- High lap variability → ask about focus or pacing strategy
+- Early fade → ask about warmup or opening intensity
+
+Rules are deterministic, not learned (initially).
+
+---
+
+## Coaching Judgment Output
+
+Persist **three distinct artifacts**:
+
+1. Athlete Reflection Summary
+   - Neutral summary of what the athlete reported
+
+2. Coach Notes
+   - Opinionated assessment
+   - May challenge athlete perception
+   - May flag fatigue, underfueling, execution issues, or misplaced intensity
+
+3. Coach Confidence
+   - Low / Medium / High
+   - Represents confidence in correctness of Coach Notes
+
+Never merge (1) and (2).
+
+---
+
+## Persistence
+
+- New table: `workout_interviews`
+  - id
+  - workout_id (FK)
+  - athlete_summary
+  - coach_notes
+  - coach_confidence
+  - created_at
+
+- Support multiple interviews per workout
+
+- Introduce explicit DB schema versioning
+  - Forward-only, idempotent migrations
+  - Backward compatible reads
+
+---
+
+## CLI Output (Initial)
+
+After interview:
+
+- Show Athlete Summary
+- Show Coach Notes
+- Show Confidence
+
+No UI yet.
+
+---
+
+## Stretch Goal (Scoped)
+
+- Local web interview UI launched from CLI
+- Same agent + schemas
+- If complexity grows, becomes separate epic
+
+---
+
+# Phase 2: Intelligence Compounding
+
+Goal: Build **memory + trend awareness**, not automation.
+
+---
+
+## Primary North Star Metric
+
+**Execution Reliability Score**
+
+Composite of:
+
+- Planned vs actual alignment
+- Perception vs data alignment
+- Completion fidelity
+
+All future intelligence feeds this.
+
+---
+
+## Capabilities
 
 - Cross-workout pattern detection:
   - Repeated perception vs data mismatches
-  - Accumulating fatigue signals
+  - Repeated under/over-execution
+  - Rising effort at stable outputs
 
 - Agent-generated flags:
   - “Effort trending higher than expected”
-  - “Execution consistency improving / degrading”
+  - “Execution consistency improving”
+  - “Possible accumulating fatigue”
 
-- Use interview insights to influence future workout recommendations
+- Interview insights influence future workout recommendations
+
+No dashboards required initially.
 
 ---
 
-## Phase 3: Public Expression Loop (Strava Write-Back)
+# Phase 3: Public Expression Loop (Strava Write-Back)
 
 ### Epic: Coach-Authored Strava Titles & Descriptions
 
-Goal: Close the loop between **experience → reflection → coaching judgment → public expression**.
-
-This phase turns private insight into a visible artifact, while preserving athlete voice and trust.
-
-- **Strava write-back as a suggestion, not automation (by default)**
-  - Agent generates a _suggested_ Strava title and description after the post-workout interview.
-  - User explicitly approves before anything is published.
-  - Original Strava title/description are preserved for rollback.
-
-- **Tone-aware generation**
-  - User can select or customize tone, for example:
-    - Neutral / factual
-    - Coach-direct
-    - Reflective
-    - Light / minimal
-
-  - Tone preference is stored per user and can be overridden per workout.
-
-- **Iterative refinement loop**
-  - User can ask for revisions:
-    - “Make it shorter”
-    - “Less harsh”
-    - “More honest”
-    - “Focus on execution, not feeling”
-
-  - Agent revises copy while preserving factual grounding in workout + interview data.
-
-- **Copy structure constraints (to avoid AI voice leakage)**
-  - Title: short, human, opinionated
-  - Description:
-    1. What happened
-    2. Key mismatch or confirmation
-    3. One coaching takeaway
-
-- **Publishing controls**
-  - Configurable modes:
-    - `off` – no Strava write-back
-    - `suggest` – generate and ask for approval (default)
-    - `auto` – publish automatically after interview
-
-- **Audit & safety**
-  - Persist applied copy, timestamps, and approval source
-  - Allow one-command rollback to original Strava text
-
-This phase is intentionally opinionated: the coach must _commit to a perspective_, but the athlete retains final authority.
+Goal: Turn private judgment into **public narrative**, with athlete control.
 
 ---
 
-## Phase 4: Web UI Enhancements (Amplify Insight, Not Distract)
+## Default Behavior
 
-### Epic: Web UI Enhancements
+- Agent generates suggested title + description after interview
+- User must approve before publishing
+- Original Strava text preserved
+
+---
+
+## Tone Control
+
+Selectable tone:
+
+- Neutral / factual
+- Coach-direct
+- Reflective
+- Light / minimal
+
+Stored per user; override per workout.
+
+---
+
+## Copy Constraints
+
+- No emojis
+- No hashtags
+
+Title:
+
+- Short
+- Human
+- Opinionated
+
+Description structure:
+
+1. What happened
+2. Key mismatch or confirmation
+3. One coaching takeaway
+
+---
+
+## Iteration Loop
+
+User may request:
+
+- Shorter
+- Less harsh
+- More honest
+- Focus on execution, not feeling
+- Etc.
+
+Agent revises while remaining grounded in data + interview.
+
+---
+
+## Publishing Modes
+
+- off
+- suggest (default)
+- auto
+
+---
+
+## Audit & Safety
+
+- Persist applied copy
+- Timestamp
+- Approval source
+- One-command rollback
+
+---
+
+# Phase 4: Web UI Enhancements
 
 Goal: Reduce friction **only where it surfaces coaching insight**.
 
-- **Workout navigation ergonomics**
-  - Floating left/right arrows on workout card
-  - Navigate to previous/next workout without returning to calendar
+---
 
-- **Sidebar usability**
-  - Expand sidebar to view full content without scrolling
+## Workout Navigation
 
-> UI work should not precede coaching intelligence. It should surface and reinforce it.
+- Floating previous / next arrows
+- No return-to-calendar required
 
 ---
 
-## Guiding Principles
+## Sidebar
+
+- Expandable to view full content
+
+---
+
+## Hard Rule
+
+No new visualization unless it directly surfaces:
+
+- Coach Notes
+- Execution Reliability trend
+- Pattern flag
+
+No exploratory graphs.
+
+---
+
+# Guiding Principles
 
 - Correctness before cleverness
 - Judgment before conversation
 - Data + perception > either alone
-- UI exists to amplify insight, not replace it
+- UI amplifies insight, never replaces it
+- Discomfort in service of improvement is acceptable

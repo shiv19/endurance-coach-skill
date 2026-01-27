@@ -1,4 +1,5 @@
-import { initDatabase, query, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson } from "../../db/client.js";
+import { formatTable } from "../utils/format-table.js";
 import type { QueryArgs } from "../args.js";
 
 // ============================================================================
@@ -13,11 +14,13 @@ import type { QueryArgs } from "../args.js";
 export async function runQuery(args: QueryArgs): Promise<void> {
   await initDatabase();
 
+  const results = queryJson<Record<string, unknown>>(args.sql);
+
   if (args.json) {
-    const results = queryJson(args.sql);
     console.log(JSON.stringify(results, null, 2));
   } else {
-    const result = query(args.sql);
-    console.log(result);
+    if (results.length === 0) return;
+    const keys = Object.keys(results[0]);
+    console.log(formatTable(results, keys, keys));
   }
 }

@@ -10,7 +10,7 @@ import {
 } from "../../lib/config.js";
 import { log } from "../../lib/logging.js";
 import { migrate } from "../../db/migrate.js";
-import { execute, initDatabase } from "../../db/client.js";
+import { execute, initDatabase, transaction } from "../../db/client.js";
 import { getValidTokens } from "../../strava/oauth.js";
 import { getActivityLaps, getAllActivities, getAthlete } from "../../strava/api.js";
 import type { StravaActivity, StravaTokenResponse } from "../../strava/types.js";
@@ -287,8 +287,7 @@ export async function runSync(args: SyncArgs): Promise<void> {
 
     // Store activities
     log.start("Storing activities in database...");
-    execute("BEGIN TRANSACTION");
-    try {
+    transaction(() => {
       let count = 0;
       for (const activity of activities) {
         insertActivity(activity);
@@ -297,13 +296,8 @@ export async function runSync(args: SyncArgs): Promise<void> {
           log.progress(`   Stored ${count}/${activities.length}...`);
         }
       }
-      execute("COMMIT");
-    } catch (error) {
-      execute("ROLLBACK");
-      throw error;
-    } finally {
-      log.progressEnd();
-    }
+    });
+    log.progressEnd();
     log.success(`Stored ${activities.length} activities`);
 
     execute(`
@@ -354,8 +348,7 @@ export async function runSync(args: SyncArgs): Promise<void> {
 
   // Step 6: Store activities
   log.start("Storing activities in database...");
-  execute("BEGIN TRANSACTION");
-  try {
+  transaction(() => {
     let count = 0;
     for (const activity of activities) {
       insertActivity(activity);
@@ -364,13 +357,8 @@ export async function runSync(args: SyncArgs): Promise<void> {
         log.progress(`   Stored ${count}/${activities.length}...`);
       }
     }
-    execute("COMMIT");
-  } catch (error) {
-    execute("ROLLBACK");
-    throw error;
-  } finally {
-    log.progressEnd();
-  }
+  });
+  log.progressEnd();
   log.success(`Stored ${activities.length} activities`);
 
   // Step 7: Log sync
