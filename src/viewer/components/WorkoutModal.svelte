@@ -321,6 +321,9 @@
           <label class="form-label" for="edit-category">Category (optional)</label>
           <select id="edit-category" class="form-select" bind:value={editCategory}>
             <option value="">-- Select Category --</option>
+            {#if editCategory && !workoutCategories.includes(editCategory)}
+              <option value={editCategory}>{editCategory}</option>
+            {/if}
             {#each workoutCategories as c}
               <option value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
             {/each}
