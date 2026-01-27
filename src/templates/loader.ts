@@ -259,6 +259,9 @@ export function loadTemplates(arg?: string | LoadTemplatesOptions): TemplateRegi
   if (isStringArg) {
     // Backward compatibility: string arg is treated as templatesDir
     const dir = arg ?? getTemplatesDir();
+    if (!existsSync(dir)) {
+      throw new Error(`Templates directory not found: ${dir}`);
+    }
     loadTemplatesFromDir(dir, "builtin", templates);
   } else {
     // New API with options object
@@ -266,6 +269,9 @@ export function loadTemplates(arg?: string | LoadTemplatesOptions): TemplateRegi
 
     // Load built-in templates first
     const builtinDir = options.builtinTemplatesDir ?? getTemplatesDir();
+    if (!existsSync(builtinDir)) {
+      throw new Error(`Built-in templates directory not found: ${builtinDir}`);
+    }
     loadTemplatesFromDir(builtinDir, "builtin", templates);
 
     // Optionally load user templates (they will override built-ins)
