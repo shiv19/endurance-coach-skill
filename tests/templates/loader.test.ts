@@ -7,6 +7,7 @@ import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadTemplates, getUserTemplatesDir } from "../../src/templates/index.js";
+import { log } from "../../src/lib/logging.js";
 
 let testDir: string;
 
@@ -56,7 +57,7 @@ describe("Template Loader - User Template Support", () => {
   });
 
   it("handles missing user templates directory gracefully", () => {
-    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const logSpy = vi.spyOn(log, "info").mockImplementation(() => {});
     const nonExistent = join(tmpdir(), "non-existent");
     const registry = loadTemplates({ includeUserTemplates: true, userTemplatesDir: nonExistent });
     expect(registry.has("run.easy")).toBe(true);
