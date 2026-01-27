@@ -85,7 +85,7 @@ Never merge (1) and (2).
 - New table: `workout_interviews`
   - id
   - workout_id (FK)
-  - athlete_summary
+  - athlete_reflection_summary
   - coach_notes
   - coach_confidence
   - created_at
