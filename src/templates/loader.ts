@@ -4,7 +4,7 @@
  * Loads workout templates from YAML files in templates directory.
  */
 
-import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, lstatSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -122,7 +122,10 @@ function findYamlFiles(dir: string): string[] {
 
   for (const entry of entries) {
     const fullPath = join(dir, entry);
-    const stat = statSync(fullPath);
+    const stat = lstatSync(fullPath);
+    if (stat.isSymbolicLink()) {
+      continue;
+    }
 
     if (stat.isDirectory()) {
       files.push(...findYamlFiles(fullPath));
