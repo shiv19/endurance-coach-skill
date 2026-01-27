@@ -6,6 +6,7 @@
  */
 
 import type { TemplateRegistry } from "../templates/index.js";
+import { WORKOUT_REF_PATTERN } from "../schema/compact-plan.js";
 
 // ============================================================================
 // MARK: Error Classes
@@ -177,8 +178,10 @@ export function validatePlanTemplates(
     for (const [day, refs] of Object.entries(week.workouts)) {
       const refArray = Array.isArray(refs) ? refs : [refs];
       for (const ref of refArray) {
-        // Extract template ID from reference (e.g., "easy(30)" -> "easy")
-        const templateId = ref.trim().split(/[:(]/)[0];
+        // Extract template ID from reference (e.g., "run.easy(30)" -> "run.easy")
+        // Uses WORKOUT_REF_PATTERN to match the same validation rules as parseWorkoutRef
+        const match = ref.trim().match(WORKOUT_REF_PATTERN);
+        const templateId = match ? match[1] : ref.trim();
 
         if (!templates.has(templateId)) {
           const suggestions = findSimilarTemplates(templateId, templates);
