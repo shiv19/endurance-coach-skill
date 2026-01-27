@@ -185,12 +185,12 @@ function loadTemplatesFromDir(
       if (templates.has(template.id)) {
         const existing = templates.get(template.id)!;
         if (source === "user" && existing._source === "builtin") {
-          console.warn(
+          log.warn(
             `User template overrides built-in template with ID "${template.id}". ` +
               `User: ${file} | Built-in: ${existing._sourcePath}`
           );
         } else if (source === "builtin") {
-          console.warn(
+          log.warn(
             `Duplicate template ID: ${template.id} in ${file}. ` +
               `Previous template loaded from: ${existing._sourcePath}`
           );
@@ -201,13 +201,9 @@ function loadTemplatesFromDir(
     } catch (error) {
       const fileName = basename(file);
       if (error instanceof Error) {
-        console.error(
-          `Failed to load template ${fileName} from ${source} directory: ${error.message}`
-        );
+        log.error(`Failed to load template ${fileName} from ${source} directory: ${error.message}`);
       } else {
-        console.error(
-          `Failed to load template ${fileName} from ${source} directory: Unknown error`
-        );
+        log.error(`Failed to load template ${fileName} from ${source} directory: Unknown error`);
       }
     }
   }

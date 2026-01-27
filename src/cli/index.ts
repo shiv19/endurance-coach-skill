@@ -28,7 +28,11 @@ const proxyUrl =
   process.env.HTTP_PROXY ||
   process.env.http_proxy;
 if (proxyUrl) {
-  setGlobalDispatcher(new ProxyAgent(proxyUrl));
+  try {
+    setGlobalDispatcher(new ProxyAgent(proxyUrl));
+  } catch (err) {
+    log.warn(`Invalid proxy URL ignored: ${proxyUrl} (${err})`);
+  }
 }
 
 // ============================================================================
@@ -46,7 +50,7 @@ async function main(): Promise<void> {
 
   switch (args.command) {
     case "help":
-      printHelp();
+      await printHelp();
       break;
     case "auth":
       await runAuth(args);
@@ -58,19 +62,19 @@ async function main(): Promise<void> {
       await runSync(args);
       break;
     case "schema":
-      runSchema();
+      await runSchema();
       break;
     case "validate":
-      runValidate(args);
+      await runValidate(args);
       break;
     case "expand":
-      runExpand(args);
+      await runExpand(args);
       break;
     case "templates":
-      runTemplates(args);
+      await runTemplates(args);
       break;
     case "render":
-      runRender(args);
+      await runRender(args);
       break;
     case "stats":
       await runStats(args);
@@ -94,10 +98,10 @@ async function main(): Promise<void> {
       await runQuery(args);
       break;
     case "modify":
-      runModify(args);
+      await runModify(args);
       break;
     default:
-      printHelp();
+      await printHelp();
       break;
   }
 }
