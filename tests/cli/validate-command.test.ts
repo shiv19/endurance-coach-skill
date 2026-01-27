@@ -90,7 +90,7 @@ describe("runValidate", () => {
     expect(() =>
       runValidate({ command: "validate", inputFile: "plan.json", compact: false })
     ).toThrow("exit:1");
-    expect(log.error).toHaveBeenCalledWith("Input file is not valid JSON");
+    expect(log.error).toHaveBeenCalledWith(expect.stringContaining("Input file is not valid"));
 
     exitSpy.mockRestore();
   });

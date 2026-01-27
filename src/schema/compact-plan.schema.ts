@@ -10,7 +10,7 @@ import { z } from "zod";
 // MARK: Core Types
 // ============================================================================
 
-export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick", "race", "rest"]);
+export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick"]);
 
 export const FirstDayOfWeekSchema = z.enum(["monday", "sunday"]);
 

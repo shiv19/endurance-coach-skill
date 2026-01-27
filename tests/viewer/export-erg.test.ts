@@ -60,7 +60,7 @@ describe("ERG/MRC Export", () => {
     });
 
     it("should return false for all non-bike sports", () => {
-      const nonBikeSports: Sport[] = ["swim", "run", "strength", "brick", "race", "rest"];
+      const nonBikeSports: Sport[] = ["swim", "run", "strength", "brick"];
       for (const sport of nonBikeSports) {
         expect(isErgSupported(sport)).toBe(false);
       }
@@ -309,7 +309,7 @@ describe("ERG/MRC Export", () => {
     });
 
     it("should throw error for all non-bike sports", () => {
-      const nonBikeSports: Sport[] = ["swim", "run", "strength", "brick", "race", "rest"];
+      const nonBikeSports: Sport[] = ["swim", "run", "strength", "brick"];
 
       for (const sport of nonBikeSports) {
         const workout = createWorkout({ sport });

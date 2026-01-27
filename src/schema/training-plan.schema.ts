@@ -11,7 +11,7 @@ import { z } from "zod";
 // MARK: Core Types
 // ============================================================================
 
-export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick", "race", "rest"]);
+export const SportSchema = z.enum(["swim", "bike", "run", "strength", "brick"]);
 
 // Workout types - flexible to support various training methodologies
 // Common types: rest, recovery, easy, endurance, tempo, threshold, intervals,

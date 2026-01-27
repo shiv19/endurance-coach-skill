@@ -48,7 +48,8 @@ export function runValidate(args: ValidateArgs): void {
   } catch (err) {
     const fileType =
       args.inputFile.endsWith(".yaml") || args.inputFile.endsWith(".yml") ? "YAML" : "JSON";
-    log.error(`Input file is not valid ${fileType}`);
+    const details = err instanceof Error ? `: ${err.message}` : "";
+    log.error(`Input file is not valid ${fileType}${details}`);
     process.exit(1);
   }
 

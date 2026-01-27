@@ -1,4 +1,4 @@
-import { read, readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { log } from "../../lib/logging.js";
@@ -76,8 +76,8 @@ export function runRender(args: RenderArgs): void {
     let compactData: unknown;
     try {
       compactData = parseYaml(planContent);
-    } catch {
-      log.error("Input file is not valid YAML");
+    } catch (e) {
+      log.error(`Input file is not valid YAML: ${e}`);
       process.exit(1);
     }
 
@@ -100,8 +100,8 @@ export function runRender(args: RenderArgs): void {
     let planData: unknown;
     try {
       planData = JSON.parse(planContent);
-    } catch {
-      log.error("Input file is not valid JSON");
+    } catch (e) {
+      log.error(`Input file is not valid JSON: ${e}`);
       process.exit(1);
     }
 
