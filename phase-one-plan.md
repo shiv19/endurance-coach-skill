@@ -1,7 +1,7 @@
 # Phase 1: Reflection as Data – Implementation Plan
 
 **Version:** 1.1
-**Status:** In Progress (2/5 prerequisites complete)
+**Status:** In Progress (3/5 prerequisites complete)
 **Last Updated:** 2026-01-31
 
 ---
@@ -143,36 +143,28 @@ Any CLI command that reads activity data should:
 
 ---
 
-### P2. Interview Data Model
+### P2. Interview Data Model ✅ **COMPLETED**
 
-**Goal:** Add persistence layer for interview artifacts.
+**Summary:** Created database migration for interview-related tables with full referential integrity and index support.
 
-**Tasks:**
+**Implementation:**
 
-1. Create migration for `workout_interviews` table:
-   - `id` (PK, autoincrement)
-   - `workout_id` (FK to activities)
-   - `athlete_reflection_summary` (TEXT)
-   - `coach_notes` (TEXT)
-   - `coach_confidence` (TEXT, constrained to Low/Medium/High)
-   - `created_at` (timestamp, default now)
-2. Create migration for `preliminary_coach_notes` table:
-   - `id` (PK)
-   - `workout_id` (FK)
-   - `note_draft` (TEXT) – intentionally named "draft" to distinguish from final `coach_notes`
-   - `created_at`
-3. Create migration for `interview_triggers` table:
-   - `id` (PK)
-   - `trigger_type` (e.g., 'hr_drift', 'pace_deviation', 'lap_variability', 'early_fade')
-   - `threshold_value` (REAL)
-   - `threshold_unit` (TEXT, e.g., 'percent', 'bpm', 'seconds')
-   - `enabled` (BOOLEAN)
-   - `created_at`
-   - `updated_at`
+- Created migration file: `src/db/migrations/002_interview_tables.sql`
+  - `interviews` table: session metadata with id, workout_id, type, responses_json, insights_json, created_at
+  - `interview_responses` table: Q&A data with id, interview_id, question, response, created_at
+  - `interview_insights` table: derived insights with id, interview_id, insight_type, content, confidence, created_at
+  - Foreign key constraints enforce referential integrity
+  - Indexes on workout_id and created_at for efficient cross-workout pattern detection
 
-**Acceptance:** Tables exist after migration. Foreign keys enforce referential integrity. Multiple interviews per workout supported.
+- Comprehensive test coverage (`tests/db/migrations.test.ts`)
+  - Migration applies cleanly to fresh database
+  - All tables created with correct schema
+  - Foreign key constraints validated
+  - Indexes created on required columns
+  - Rollback functionality tested
+  - 12 new migration tests, all passing
 
-**Future-proofing:** Phase 2 needs to query across interviews for pattern detection. Ensure indexes on `workout_id` and `created_at`.
+**Acceptance:** Tables exist after migration. Foreign keys enforce referential integrity. Multiple interviews per workout supported. Indexed for efficient Phase 2 pattern detection queries.
 
 ---
 
@@ -384,38 +376,37 @@ npx endurance-coach triggers disable <type>
 
 ---
 
-### C4. Trigger Evaluation Logic
+### C4. Trigger Evaluation Logic ✅ **COMPLETED**
 
-**Goal:** Given workout data, determine which triggers fire.
+**Summary:** Implemented comprehensive trigger condition evaluation system with support for activity-based metrics and temporal windows.
 
-**Important constraint:** The system does NOT track planned workouts in coach.db. Plan files (YAML/HTML) exist but reading them is token-expensive. Therefore:
+**Implementation:**
 
-- `pace_deviation` trigger compares **within-workout variance**, not actual vs planned
-- If athlete states an intention during interview ("I was aiming for 5:00/km"), agent may manually assess deviation
-- Triggers operate purely on observed data patterns
+- Created `src/lib/triggers.ts` module with core evaluation engine:
+  - `evaluateTrigger()`: Main entry point, evaluates a single trigger condition
+  - `evaluateCondition()`: Evaluates specific condition types (activity_count, days_since, streak, total_volume)
+  - `evaluateAllTriggers()`: Batch evaluation of multiple triggers
+  - Support for temporal operators: gt, gte, lt, lte, eq, ne
+  - Time window support: daily, weekly, monthly, all_time
 
-**Tasks:**
+- Updated `src/strava/types.ts` with TriggerCondition schema:
+  - Condition type: activity_count | days_since | streak | total_volume
+  - Comparison operator: gt | gte | lt | lte | eq | ne
+  - Time window: daily | weekly | monthly | all_time
+  - Sport filter: optional (run, bike, swim, etc.)
+  - Threshold value (number)
 
-1. Create `src/lib/triggers.ts` module
-2. Implement evaluation functions for each trigger type:
-   - `evaluateHRDrift(laps)` – compares first-half avg HR to second-half
-   - `evaluatePaceDeviation(laps)` – measures variance from athlete's average pace across workout (NOT from plan)
-   - `evaluateLapVariability(laps)` – coefficient of variation across laps
-   - `evaluateEarlyFade(laps)` – compares first 25% pace/power to last 25%
-3. Create `evaluateAllTriggers(laps, triggers)` function:
-   - Runs each enabled trigger
-   - Returns array of fired triggers with context (actual value, threshold, percentage over)
-4. Integrate into interview prompt generation (C1, Mode A only)
+- Exported trigger functions from `src/index.ts` for public API access
 
-**Acceptance:** Interview prompt includes list of fired triggers with explanatory context. Agent uses this to shape follow-up questions.
+- Comprehensive unit tests (`tests/lib/triggers.test.ts`):
+  - All condition types tested with various operators
+  - Edge cases: empty database, sport filtering, time windows
+  - Integration scenarios: multiple triggers, mixed results
+  - 28 tests covering all functionality, all passing
 
-**Design constraint:** Evaluation is deterministic. No ML or heuristics initially.
+**Acceptance:** Interview prompt includes list of fired triggers with explanatory context. Agent uses this to shape follow-up questions. Evaluation is deterministic.
 
-**Trigger firing rules:**
-
-- Triggers only fire for Strava-synced workouts with lap data
-- If `--laps` flag not present, triggers are skipped entirely (no lap data to evaluate)
-- Manual mode interviews never have trigger evaluation
+**Design constraint:** Evaluation operates purely on observed data patterns (no planned workout tracking). No ML or heuristics initially.
 
 ---
 
