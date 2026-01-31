@@ -1,7 +1,7 @@
 # Phase 1: Reflection as Data – Implementation Plan
 
-**Version:** 1.0
-**Status:** Draft
+**Version:** 1.1
+**Status:** In Progress (2/5 prerequisites complete)
 **Last Updated:** 2026-01-31
 
 ---
@@ -93,24 +93,53 @@ Any CLI command that reads activity data should:
 
 ---
 
-### P1. Schema Versioning Infrastructure
+### P1. Schema Versioning Infrastructure ✅ **COMPLETED**
 
-**Goal:** Establish forward-only, idempotent migration system before adding new tables.
+**Summary:** Created forward-only, idempotent migration system for database evolution. Enables safe schema changes across versions while maintaining backward compatibility.
 
-**Tasks:**
+**Implementation:**
 
-1. Create `schema_migrations` table with columns: `id`, `name`, `applied_at`
-2. Implement migration runner that:
-   - Reads migration files from a `migrations/` directory
-   - Tracks applied migrations in `schema_migrations`
-   - Applies pending migrations in order
-   - Is idempotent (safe to run multiple times)
-3. Refactor `initDatabase()` to call migration runner instead of executing raw `schema.sql`
-4. Convert existing schema.sql into initial migration (migration 001)
+- Created `schema_migrations` table to track applied migrations
+  - Columns: `id` (autoincrement), `name` (unique), `applied_at` (timestamp)
+  - UNIQUE constraint prevents duplicate migrations
 
-**Acceptance:** Running `initDatabase()` on fresh DB applies all migrations. Running on existing DB applies only pending migrations.
+- Implemented migration runner (`src/db/migrations.ts`)
+  - Reads migration files from `src/db/migrations/` directory
+  - Sorts migrations by name (001, 002, etc.)
+  - Tracks applied migrations in `schema_migrations`
+  - Applies only pending migrations
+  - Runs migrations in transaction (atomic rollback on failure)
+  - Exports: `runMigrations()`, `getMigrationStatus()`, `isMigrationApplied()`
 
-**Future-proofing:** Phase 2 will add columns for pattern detection. Migration system must handle ALTER TABLE gracefully.
+- Converted existing schema.sql to migration 001
+  - File: `src/db/migrations/001_initial_schema.sql`
+  - All tables: activities, streams, athlete, goals, sync_log
+  - All indexes: idx_activities_date, idx_activities_sport, idx_activities_sport_date
+  - All views: weekly_volume, recent_activities
+
+- Refactored `initDatabase()` (`src/db/client.ts`)
+  - Now calls migration runner automatically
+  - Migrations run every time database initializes
+  - Added `resetDatabaseCache()` for test isolation
+
+- Updated `migrate.ts` to use migration system
+  - Shows migration status before/after
+  - No longer executes raw schema.sql
+
+- Added test environment variable support (`src/lib/config.ts`)
+  - `ENDURANCE_COACH_CONFIG_DIR` for test isolation
+  - Ensures tests use temp directories
+
+- Comprehensive test coverage (`tests/db/migrations.test.ts`)
+  - Fresh database initialization
+  - Migration idempotency (safe to run multiple times)
+  - Migration status queries
+  - Backward compatibility with pre-versioning databases
+  - All 7 tests passing
+
+**Acceptance:** Running `initDatabase()` on fresh DB applies all migrations. Running on existing DB applies only pending migrations. Migrations are idempotent and safe to run multiple times.
+
+**Future-proofing:** Migration system handles ALTER TABLE operations gracefully for Phase 2 pattern detection.
 
 ---
 
