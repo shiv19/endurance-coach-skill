@@ -3,7 +3,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as readline from "readline";
 
-const CONFIG_DIR = join(homedir(), ".endurance-coach");
+// Allow override via environment variable for testing
+const CONFIG_DIR = process.env.ENDURANCE_COACH_CONFIG_DIR || join(homedir(), ".endurance-coach");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 const TOKENS_FILE = join(CONFIG_DIR, "tokens.json");
 const DB_FILE = join(CONFIG_DIR, "coach.db");

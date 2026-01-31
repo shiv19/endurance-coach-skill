@@ -57,6 +57,22 @@ export async function initDatabase(): Promise<void> {
   if (!cachedBackend) {
     cachedBackend = createBackend();
   }
+
+  // Run any pending migrations
+  const { runMigrations } = await import("./migrations.js");
+  runMigrations();
+}
+
+/**
+ * Reset the cached database connection.
+ * This is primarily used for testing to ensure each test gets a fresh connection.
+ */
+export function resetDatabaseCache(): void {
+  if (dbInstance) {
+    dbInstance.close();
+    dbInstance = null;
+  }
+  cachedBackend = null;
 }
 
 /**
