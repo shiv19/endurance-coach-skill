@@ -273,3 +273,14 @@ No exploratory graphs.
 - Data + perception > either alone
 - UI amplifies insight, never replaces it
 - Discomfort in service of improvement is acceptable
+
+## Roadmap Suggestions
+
+1. Pre-workout state capture - Consider adding a lightweight "how do you feel going in" signal. "Felt terrible, executed well" is a different story than "felt great, still faded." Could be as simple as a 1-5 readiness score before the workout. Informs the post-workout interpretation significantly.
+2. Auto-draft Coach Notes from laps - You already have activity --laps. Before the interview starts, generate a preliminary coach assessment from the data alone. Then the interview validates, challenges, or adds context. This gives the athlete something concrete to react to rather than open-ended "how did it feel?"
+3. Close the loop to plan modification - Phase 2 detects patterns and flags them. But what's the action? Consider explicitly
+   connecting intelligence outputs to plan adjustment suggestions. "Accumulating fatigue detected → recommend recovery week" or
+   "Execution improving → ready for intensity progression."
+4. Phase 3 might be lower priority - Strava write-back is appealing but Phase 2's intelligence compounding is where the coaching value
+   compounds. I'd consider swapping their order unless the public accountability loop is core to your vision.
+5. Interview completion criteria - Beyond turn count, consider explicit signal: "Do I have enough to write confident Coach Notes?" If confidence would be Low after 7 turns, maybe that's fine - just surface it.
