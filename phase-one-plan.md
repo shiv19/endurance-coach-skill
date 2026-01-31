@@ -1,7 +1,7 @@
 # Phase 1: Reflection as Data – Implementation Plan
 
 **Version:** 1.1
-**Status:** In Progress (3/5 prerequisites complete)
+**Status:** In Progress (8/13 tasks complete)
 **Last Updated:** 2026-01-31
 
 ---
@@ -170,7 +170,29 @@ Any CLI command that reads activity data should:
 
 ## Core Implementation
 
-### C1. Interview CLI Command – Prompt Generation
+### C1. Interview CLI Command – Prompt Generation ✅ **COMPLETED**
+
+**Summary:** Implemented complete CLI command for generating interview prompts with four modes (latest, list, specific, manual), supporting both Strava-synced and manual workflows.
+
+**Implementation:**
+
+- Created `src/cli/commands/interview.ts` with four operational modes:
+  - `--latest`: Auto-selects most recent activity with optional lap data
+  - `--list`: Returns recent activities (configurable days, defaults to 7)
+  - `<workout_id>`: Specific workout with optional lap data
+  - `--manual`: Conversational capture prompt for non-Strava users
+- Auto-sync integration: `--list` and `--latest` modes automatically call `ensureFreshData()` for data freshness
+- Tiered context loading: Lap data optional via `--laps` flag for token optimization
+- Data loading: Fetches workout metadata, previous interviews (limit 3), trigger configurations, and interview count
+- Trigger evaluation: Loads and evaluates triggers when lap data requested
+- Sync status transparency: Output includes `sync_status` (synced | cached | manual)
+- JSON and formatted text output modes
+
+**Acceptance:** Command supports full agent-orchestrated workflow. Auto-sync is transparent and resilient. Output is deterministic and includes all required context for interview flow.
+
+**Design constraint:** Output must be deterministic given same inputs. Agent can regenerate prompt if needed.
+
+---
 
 **Goal:** CLI command that loads workout context and returns structured interview prompt.
 
@@ -288,7 +310,25 @@ This removes sync orchestration from the agent entirely. Token-efficient by desi
 
 ---
 
-### C2. Interview Persistence Commands
+### C2. Interview Persistence Commands ✅ **COMPLETED**
+
+**Summary:** Implemented CLI commands for persisting interview artifacts with validation and timestamp audit trails.
+
+**Implementation:**
+
+- Created `src/cli/commands/interview-persistence.ts` with two functions:
+  - `saveInterview()`: Validates confidence level (Low/Medium/High), reflection, notes, and workout existence
+  - `savePreliminaryNote()`: Upsert behavior for draft coach notes (one per workout)
+- Input validation: Ensures all required fields present and non-empty
+- Database integrity: Foreign key constraints enforce workout existence
+- Return created interview IDs with timestamps
+- Confidence validation: Enum-based validation against Low/Medium/High
+
+**Acceptance:** Agent can persist structured artifacts via CLI. Each call creates audit trail with timestamp.
+
+**Future-proofing:** Phase 3 (Strava write-back) will need to retrieve these artifacts. Ensure query functions exist.
+
+---
 
 **Goal:** CLI commands for persisting interview artifacts after agent completes interview.
 
@@ -317,7 +357,26 @@ npx endurance-coach preliminary-note-save <workout_id> --note=<text>
 
 ---
 
-### C2b. Manual Activity Recording Command
+### C2b. Manual Activity Recording Command ✅ **COMPLETED**
+
+**Summary:** Implemented CLI command for manually recording workout details with synthetic ID generation to avoid Strava ID collisions.
+
+**Implementation:**
+
+- Created `src/cli/commands/activity-record.ts` with `recordManualActivity()` function
+- Validates sport type against 34 valid Strava sport types
+- Generates synthetic negative IDs (e.g., -1, -2) to avoid collision with Strava IDs
+- Sets `source` field to 'manual' (vs 'strava')
+- Stores optional structure and notes in `raw_json` field
+- Supports type, duration, distance, structure, and notes parameters
+- Auto-capitalizes sport type (e.g., "run" → "Run")
+- Validates required fields: type and positive duration
+
+**Database migration:** Added `003_add_activity_source.sql` migration to add `source` column with default 'strava'
+
+**Acceptance:** Non-Strava users can persist workout records. Manual activities are distinguishable from Strava-synced.
+
+---
 
 **Goal:** CLI command for persisting workout details captured conversationally (non-Strava users).
 
@@ -344,7 +403,32 @@ npx endurance-coach activity-record --type=<type> --duration=<minutes> [--distan
 
 ---
 
-### C3. Trigger Configuration Commands
+### C3. Trigger Configuration Commands ✅ **COMPLETED**
+
+**Summary:** Implemented CLI commands for managing trigger configurations with default seeding and validation.
+
+**Implementation:**
+
+- Created `src/cli/commands/triggers.ts` with three subcommands:
+  - `list`: Displays all configured triggers with current state
+  - `set`: Upserts trigger configuration with type, threshold, unit, and optional enabled flag
+  - `disable`: Sets enabled=false for specified trigger type
+- Validation: Validates trigger types (hr_drift, pace_deviation, lap_variability, early_fade) and units (percent, bpm, seconds)
+- Default seeding: On first run, seeds four default triggers (disabled by default):
+  - hr_drift: 10% threshold
+  - pace_deviation: 15% threshold
+  - lap_variability: 20% threshold
+  - early_fade: 10% threshold
+- Uses SQLite UPSERT with updated_at timestamp tracking
+- Formatted table output for list command
+
+**Acceptance:** Agent can propose triggers, user can refine via agent, agent persists via CLI.
+
+**Design note:** Thresholds are intentionally simple percentages initially. Avoid premature complexity around athlete-specific baselines.
+
+**Philosophy note:** Defaults are seeded disabled and never fire unless explicitly enabled via trigger negotiation. They exist only to give the agent something concrete to propose during the configuration conversation.
+
+---
 
 **Goal:** CLI commands for managing data-aware question triggers.
 
@@ -410,7 +494,31 @@ npx endurance-coach triggers disable <type>
 
 ---
 
-### C5. Interview Query Commands
+### C5. Interview Query Commands ✅ **COMPLETED**
+
+**Summary:** Implemented CLI commands for retrieving interview history with filtering and detailed views.
+
+**Implementation:**
+
+- Created `src/cli/commands/interviews.ts` with `runInterviews()` dispatcher
+- Two subcommands:
+  - `list`: Returns summary of past interviews (ID, workout ID, created_at, confidence, reflection summary)
+    - Optional `--workout` filter to get interviews for specific workout
+    - Optional `--limit` parameter (defaults to 10)
+    - Sorts by created_at DESC
+  - `get`: Returns full interview details including coach notes
+    - Requires interview ID parameter
+    - Returns all fields: id, workout_id, created_at, coach_confidence, athlete_reflection_summary, coach_notes
+- Uses formatted table output for list command with proper headers
+- Error handling: Returns clear error message when interview not found
+
+**Note:** `interview-count` command removed. Interview count is now included in every interview prompt output (see C1), eliminating the need for a separate query.
+
+**Acceptance:** Agent can reference past interviews when needed.
+
+**Future-proofing:** Phase 2 pattern detection will query across all interviews. Ensure these queries are efficient.
+
+---
 
 **Goal:** CLI commands for retrieving interview history.
 
