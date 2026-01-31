@@ -24,12 +24,16 @@ export interface StatsArgs {
   weeks?: number;
   longestWeeks?: number;
   json: boolean;
+  verbose?: boolean;
+  noSync?: boolean;
 }
 
 export interface TrainingLoadArgs {
   command: "training-load";
   weeks?: number;
   json: boolean;
+  verbose?: boolean;
+  noSync?: boolean;
 }
 
 export interface FoundationArgs {
@@ -218,6 +222,8 @@ export function parseArgs(): CliArgs {
     const statsArgs: StatsArgs = {
       command: "stats",
       json: args.includes("--json"),
+      verbose: args.includes("--verbose") || args.includes("-v"),
+      noSync: args.includes("--no-sync"),
     };
 
     for (let i = 1; i < args.length; i++) {
@@ -241,6 +247,8 @@ export function parseArgs(): CliArgs {
     const trainingLoadArgs: TrainingLoadArgs = {
       command: "training-load",
       json: args.includes("--json"),
+      verbose: args.includes("--verbose") || args.includes("-v"),
+      noSync: args.includes("--no-sync"),
     };
 
     for (let i = 1; i < args.length; i++) {

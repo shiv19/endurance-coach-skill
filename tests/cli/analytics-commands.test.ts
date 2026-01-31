@@ -31,7 +31,8 @@ describe("analytics-style CLI commands", () => {
     await runStats({ command: "stats", json: true });
 
     expect(initDatabase).toHaveBeenCalled();
-    expect(queryJson).toHaveBeenCalledTimes(3);
+    // ensureFreshData adds 1 extra call to queryJson (for getting most recent activity date)
+    expect(queryJson).toHaveBeenCalledTimes(4);
     const output = logSpy.mock.calls[0]?.[0] as string;
     const parsed = JSON.parse(output);
     expect(parsed).toEqual({
@@ -61,7 +62,9 @@ describe("analytics-style CLI commands", () => {
 
     await runTrainingLoad({ command: "training-load", json: true, weeks: 0 });
 
-    const sql = vi.mocked(queryJson).mock.calls[0]?.[0] as string;
+    // First call is from ensureFreshData to get most recent activity date
+    // Second call is the actual training load query
+    const sql = vi.mocked(queryJson).mock.calls[1]?.[0] as string;
     expect(sql).toContain("-84 days");
 
     logSpy.mockRestore();
@@ -136,14 +139,14 @@ describe("analytics-style CLI commands", () => {
 
   it("runs query in json and text modes", async () => {
     vi.mocked(queryJson).mockReturnValue([{ id: 1 }]);
-    vi.mocked(query).mockReturnValue("result");
+    vi.mocked(formatTable).mockReturnValue("formatted");
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
     await runQuery({ command: "query", sql: "select 1", json: true });
     await runQuery({ command: "query", sql: "select 1", json: false });
 
     expect(queryJson).toHaveBeenCalledWith("select 1");
-    expect(query).toHaveBeenCalledWith("select 1");
+    expect(queryJson).toHaveBeenCalledTimes(2);
 
     logSpy.mockRestore();
   });

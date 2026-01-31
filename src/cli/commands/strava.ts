@@ -11,6 +11,7 @@ import {
 import { log } from "../../lib/logging.js";
 import { migrate } from "../../db/migrate.js";
 import { execute, initDatabase, transaction } from "../../db/client.js";
+import { insertActivity, insertAthlete } from "../../db/storage.js";
 import { getValidTokens } from "../../strava/oauth.js";
 import { getActivityLaps, getAllActivities, getAthlete } from "../../strava/api.js";
 import type { StravaActivity, StravaTokenResponse } from "../../strava/types.js";
@@ -121,104 +122,84 @@ export async function runAuth(args: AuthArgs): Promise<void> {
 // ============================================================================
 // MARK: Sync Command
 // ============================================================================
-/**
- * Produce a SQL literal for a string value.
- *
- * @param str - The input string; `null` or `undefined` are treated as SQL NULL.
- * @returns `NULL` if `str` is `null` or `undefined`; otherwise the input wrapped in single quotes with any internal single quotes doubled (SQL-escaped string literal).
- */
 
-function escapeString(str: string | null | undefined): string {
-  if (str == null) return "NULL";
-  return `'${str.replace(/'/g, "''")}'`;
+/**
+ * Result type for sync operations
+ */
+export interface SyncResult {
+  syncedCount: number;
+  error?: string;
 }
 
 /**
- * Insert or replace a Strava activity row into the local `activities` table.
+ * Core sync logic - reusable by both CLI and auto-sync.
  *
- * The full activity object is saved in the `raw_json` column and `synced_at` is set to the current timestamp.
- * Numeric fields that are null or undefined are stored as SQL NULL; string fields and the JSON payload are escaped for SQL insertion.
- *
- * @param activity - The Strava activity to persist (will be stored and indexed by `id`)
+ * @param tokens - Valid Strava tokens
+ * @param days - Number of days to look back for activities
+ * @param verbose - Whether to log detailed progress
+ * @returns SyncResult with count and optional error
  */
-function insertActivity(activity: StravaActivity): void {
-  const sql = `
-    INSERT OR REPLACE INTO activities (
-      id, name, sport_type, start_date, elapsed_time, moving_time,
-      distance, total_elevation_gain, average_speed, max_speed,
-      average_heartrate, max_heartrate, average_watts, max_watts,
-      weighted_average_watts, kilojoules, suffer_score, average_cadence,
-      calories, description, workout_type, gear_id, raw_json, synced_at
-    ) VALUES (
-      ${activity.id},
-      ${escapeString(activity.name)},
-      ${escapeString(activity.sport_type)},
-      ${escapeString(activity.start_date)},
-      ${activity.elapsed_time ?? "NULL"},
-      ${activity.moving_time ?? "NULL"},
-      ${activity.distance ?? "NULL"},
-      ${activity.total_elevation_gain ?? "NULL"},
-      ${activity.average_speed ?? "NULL"},
-      ${activity.max_speed ?? "NULL"},
-      ${activity.average_heartrate ?? "NULL"},
-      ${activity.max_heartrate ?? "NULL"},
-      ${activity.average_watts ?? "NULL"},
-      ${activity.max_watts ?? "NULL"},
-      ${activity.weighted_average_watts ?? "NULL"},
-      ${activity.kilojoules ?? "NULL"},
-      ${activity.suffer_score ?? "NULL"},
-      ${activity.average_cadence ?? "NULL"},
-      ${activity.calories ?? "NULL"},
-      ${escapeString(activity.description)},
-      ${activity.workout_type ?? "NULL"},
-      ${escapeString(activity.gear_id)},
-      ${escapeString(JSON.stringify(activity))},
-      datetime('now')
-    );
-  `;
+export async function syncActivities(
+  tokens: Tokens,
+  days: number,
+  verbose = false
+): Promise<SyncResult> {
+  try {
+    if (verbose) {
+      log.start("Fetching athlete profile...");
+    }
+    const athlete = await getAthlete(tokens);
+    insertAthlete(athlete);
+    if (verbose) {
+      log.success(`Authenticated as ${athlete.firstname} ${athlete.lastname}`);
+    }
 
-  execute(sql);
-}
+    const afterDate = new Date();
+    afterDate.setDate(afterDate.getDate() - days);
 
-/**
- * Inserts or replaces an athlete row in the local database.
- *
- * @param athlete - Athlete data to persist. Fields:
- *   - `id`: Strava athlete identifier
- *   - `firstname`: Athlete's first name
- *   - `lastname`: Athlete's last name
- *   - `weight` (optional): Athlete weight (if available)
- *   - `ftp` (optional): Athlete functional threshold power (if available)
- *
- * This stores the provided fields, the full athlete object as `raw_json`, and sets `updated_at` to the current time.
- */
-function insertAthlete(athlete: {
-  id: number;
-  firstname: string;
-  lastname: string;
-  weight?: number;
-  ftp?: number;
-}): void {
-  const sql = `
-    INSERT OR REPLACE INTO athlete (id, firstname, lastname, weight, ftp, raw_json, updated_at)
-    VALUES (
-      ${athlete.id},
-      ${escapeString(athlete.firstname)},
-      ${escapeString(athlete.lastname)},
-      ${athlete.weight ?? "NULL"},
-      ${athlete.ftp ?? "NULL"},
-      ${escapeString(JSON.stringify(athlete))},
-      datetime('now')
-    );
-  `;
-  execute(sql);
+    if (verbose) {
+      log.info(`Fetching activities since ${afterDate.toISOString().split("T")[0]}...`);
+    }
+    const activities = await getAllActivities(tokens, afterDate);
+
+    if (verbose) {
+      log.start("Storing activities in database...");
+    }
+    transaction(() => {
+      let count = 0;
+      for (const activity of activities) {
+        insertActivity(activity);
+        count++;
+        if (verbose && count % 50 === 0) {
+          log.progress(`   Stored ${count}/${activities.length}...`);
+        }
+      }
+    });
+    if (verbose) {
+      log.progressEnd();
+      log.success(`Stored ${activities.length} activities`);
+    }
+
+    execute(`
+      INSERT INTO sync_log (started_at, completed_at, activities_synced, status)
+      VALUES (datetime('now'), datetime('now'), ${activities.length}, 'success');
+    `);
+
+    return { syncedCount: activities.length };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (verbose) {
+      log.error(`Sync failed: ${errorMessage}`);
+    }
+    return { syncedCount: 0, error: errorMessage };
+  }
 }
 
 /**
  * Synchronizes Strava activities into the local SQLite database.
  *
  * Performs authentication either with provided access/refresh tokens or via an OAuth browser flow,
- * fetches the athlete profile and activities for the configured lookback period, inserts or updates athlete and activity rows,
+ * fetches athlete profile and activities for the configured lookback period, inserts or updates athlete and activity rows,
  * records a sync_log entry, and persists tokens and configuration as needed.
  *
  * @param args - Synchronization options. May include:
@@ -277,33 +258,12 @@ export async function runSync(args: SyncArgs): Promise<void> {
     const tokens = { ...tempTokens, athlete_id: athlete.id };
     saveTokens(tokens);
 
-    insertAthlete(athlete);
-    log.success(`Authenticated as ${athlete.firstname} ${athlete.lastname}`);
+    const result = await syncActivities(tokens, syncDays, true);
 
-    // Fetch activities
-    const afterDate = new Date();
-    afterDate.setDate(afterDate.getDate() - syncDays);
-    const activities = await getAllActivities(tokens, afterDate);
-
-    // Store activities
-    log.start("Storing activities in database...");
-    transaction(() => {
-      let count = 0;
-      for (const activity of activities) {
-        insertActivity(activity);
-        count++;
-        if (count % 50 === 0) {
-          log.progress(`   Stored ${count}/${activities.length}...`);
-        }
-      }
-    });
-    log.progressEnd();
-    log.success(`Stored ${activities.length} activities`);
-
-    execute(`
-      INSERT INTO sync_log (started_at, completed_at, activities_synced, status)
-      VALUES (datetime('now'), datetime('now'), ${activities.length}, 'success');
-    `);
+    if (result.error) {
+      log.error(`Sync failed: ${result.error}`);
+      process.exit(1);
+    }
 
     log.info(`Database: ${getDbPath()}`);
     log.ready("Sync complete! You can now create training plans.");
@@ -334,38 +294,12 @@ export async function runSync(args: SyncArgs): Promise<void> {
   // Authenticate with Strava (opens browser)
   const tokens = await getValidTokens();
 
-  // Step 4: Fetch and store athlete profile
-  log.start("Fetching athlete profile...");
-  const athlete = await getAthlete(tokens);
-  insertAthlete(athlete);
-  log.success(`Athlete: ${athlete.firstname} ${athlete.lastname}`);
+  const result = await syncActivities(tokens, configSyncDays, true);
 
-  // Step 5: Fetch activities
-  const afterDate = new Date();
-  afterDate.setDate(afterDate.getDate() - configSyncDays);
-
-  const activities = await getAllActivities(tokens, afterDate);
-
-  // Step 6: Store activities
-  log.start("Storing activities in database...");
-  transaction(() => {
-    let count = 0;
-    for (const activity of activities) {
-      insertActivity(activity);
-      count++;
-      if (count % 50 === 0) {
-        log.progress(`   Stored ${count}/${activities.length}...`);
-      }
-    }
-  });
-  log.progressEnd();
-  log.success(`Stored ${activities.length} activities`);
-
-  // Step 7: Log sync
-  execute(`
-    INSERT INTO sync_log (started_at, completed_at, activities_synced, status)
-    VALUES (datetime('now'), datetime('now'), ${activities.length}, 'success');
-  `);
+  if (result.error) {
+    log.error(`Sync failed: ${result.error}`);
+    process.exit(1);
+  }
 
   log.info(`Database: ${getDbPath()}`);
   log.ready(`Query with: sqlite3 -json "${getDbPath()}" "SELECT * FROM weekly_volume"`);

@@ -3,6 +3,7 @@ import type { TrainingLoadArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
 import { printSection } from "../utils/printSection.js";
+import { ensureFreshData } from "../../lib/freshness.js";
 
 const DEFAULT_WEEKS = 12;
 
@@ -14,6 +15,7 @@ const DEFAULT_WEEKS = 12;
  *   - `json`: If true, output is printed as a JSON object `{ trainingLoad: ... }`; otherwise a formatted table is printed.
  */
 export async function runTrainingLoad(args: TrainingLoadArgs): Promise<void> {
+  await ensureFreshData({ verbose: args.verbose, noSync: args.noSync });
   await initDatabase();
 
   const weeks = toPositiveInt(args.weeks, DEFAULT_WEEKS);
