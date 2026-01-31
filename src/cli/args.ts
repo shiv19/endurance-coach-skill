@@ -1,154 +1,57 @@
 import { log } from "../lib/logging.js";
+import type {
+  CliArgs,
+  SyncArgs,
+  RenderArgs,
+  StatsArgs,
+  TrainingLoadArgs,
+  FoundationArgs,
+  StrengthArgs,
+  SchedulePreferencesArgs,
+  HrZonesArgs,
+  QueryArgs,
+  AuthArgs,
+  ActivityLapsArgs,
+  HelpArgs,
+  ValidateArgs,
+  ExpandArgs,
+  TemplatesArgs,
+  ModifyArgs,
+  InterviewArgs,
+  InterviewSaveArgs,
+  PreliminaryNoteSaveArgs,
+  ActivityRecordArgs,
+  TriggersArgs,
+  InterviewsListArgs,
+  InterviewsGetArgs,
+} from "./args.types.js";
 
-// ============================================================================
-// MARK: Argument Type Interfaces
-// ============================================================================
-
-export interface SyncArgs {
-  command: "sync";
-  clientId?: string;
-  clientSecret?: string;
-  accessToken?: string;
-  refreshToken?: string;
-  days?: number;
-}
-
-export interface RenderArgs {
-  command: "render";
-  inputFile: string;
-  outputFile?: string;
-}
-
-export interface StatsArgs {
-  command: "stats";
-  weeks?: number;
-  longestWeeks?: number;
-  json: boolean;
-  verbose?: boolean;
-  noSync?: boolean;
-}
-
-export interface TrainingLoadArgs {
-  command: "training-load";
-  weeks?: number;
-  json: boolean;
-  verbose?: boolean;
-  noSync?: boolean;
-}
-
-export interface FoundationArgs {
-  command: "foundation";
-  topWeeks?: number;
-  json: boolean;
-}
-
-export interface StrengthArgs {
-  command: "strength";
-  months?: number;
-  longMonths?: number;
-  easyHrMax?: number;
-  longMinutes?: number;
-  years?: number;
-  json: boolean;
-}
-
-export interface SchedulePreferencesArgs {
-  command: "schedule-preferences";
-  rideMinutes?: number;
-  runMinutes?: number;
-  json: boolean;
-}
-
-export interface HrZonesArgs {
-  command: "hr-zones";
-  weeks?: number;
-  distributionWeeks?: number;
-  json: boolean;
-}
-
-export interface QueryArgs {
-  command: "query";
-  sql: string;
-  json: boolean;
-}
-
-export interface AuthArgs {
-  command: "auth";
-  clientId?: string;
-  clientSecret?: string;
-  code?: string;
-}
-
-export interface ActivityLapsArgs {
-  command: "activity";
-  id: number;
-  laps: true;
-}
-
-export interface HelpArgs {
-  command: "help";
-}
-
-export interface ValidateArgs {
-  command: "validate";
-  inputFile: string;
-  compact?: boolean;
-}
-
-export interface ExpandArgs {
-  command: "expand";
-  inputFile: string;
-  outputFile?: string;
-  format?: "json" | "yaml";
-  verbose?: boolean;
-}
-
-export interface TemplatesArgs {
-  command: "templates";
-  sport?: string;
-  show?: string;
-  type?: string;
-  source?: "user" | "builtin" | "all";
-  verbose?: boolean;
-  create?: string;
-  category?: string;
-  templateFile?: string;
-  overwrite?: boolean;
-  dryRun?: boolean;
-  example?: boolean;
-  userTemplatesDir?: string; // For testing
-  validate?: string; // Template ID to validate
-}
-
-export interface SchemaArgs {
-  command: "schema";
-}
-
-export interface ModifyArgs {
-  command: "modify";
-  backup: string;
-  plan: string;
-  output?: string;
-}
-
-export type CliArgs =
-  | SyncArgs
-  | RenderArgs
-  | StatsArgs
-  | TrainingLoadArgs
-  | FoundationArgs
-  | StrengthArgs
-  | SchedulePreferencesArgs
-  | HrZonesArgs
-  | QueryArgs
-  | AuthArgs
-  | ActivityLapsArgs
-  | HelpArgs
-  | ModifyArgs
-  | ValidateArgs
-  | SchemaArgs
-  | ExpandArgs
-  | TemplatesArgs;
+export type {
+  CliArgs,
+  SyncArgs,
+  RenderArgs,
+  StatsArgs,
+  TrainingLoadArgs,
+  FoundationArgs,
+  StrengthArgs,
+  SchedulePreferencesArgs,
+  HrZonesArgs,
+  QueryArgs,
+  AuthArgs,
+  ActivityLapsArgs,
+  HelpArgs,
+  ValidateArgs,
+  ExpandArgs,
+  TemplatesArgs,
+  ModifyArgs,
+  InterviewArgs,
+  InterviewSaveArgs,
+  PreliminaryNoteSaveArgs,
+  ActivityRecordArgs,
+  TriggersArgs,
+  InterviewsListArgs,
+  InterviewsGetArgs,
+} from "./args.types.js";
 
 // ============================================================================
 // MARK: Argument Parsing
@@ -597,6 +500,272 @@ export function parseArgs(): CliArgs {
 
     return modifyArgs;
   }
+
+  if (args[0] === "interview") {
+    let mode: "latest" | "list" | "manual" | "specific" = "manual";
+    let workoutId: number | undefined;
+    let laps = false;
+    let days: number | undefined;
+    let json = false;
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--latest") {
+        mode = "latest";
+      } else if (args[i] === "--list") {
+        mode = "list";
+      } else if (args[i] === "--manual") {
+        mode = "manual";
+      } else if (args[i] === "--laps") {
+        laps = true;
+      } else if (args[i].startsWith("--days=")) {
+        days = parseInt(args[i].split("=")[1], 10);
+      } else if (args[i] === "--days") {
+        days = parseInt(args[i + 1], 10);
+        i++;
+      } else if (args[i] === "--json") {
+        json = true;
+      } else if (!args[i].startsWith("-") && !isNaN(parseInt(args[i], 10))) {
+        mode = "specific";
+        workoutId = parseInt(args[i], 10);
+      }
+    }
+
+    const interviewArgs: InterviewArgs = {
+      command: "interview",
+      mode,
+      laps,
+      json,
+    };
+
+    if (workoutId !== undefined) {
+      interviewArgs.workoutId = workoutId;
+    }
+    if (days !== undefined) {
+      interviewArgs.days = days;
+    }
+
+    return interviewArgs;
+  }
+
+  if (args[0] === "interview-save") {
+    const interviewSaveArgs: InterviewSaveArgs = {
+      command: "interview-save",
+      workoutId: 0,
+      reflection: "",
+      notes: "",
+      confidence: "Medium",
+    };
+
+    for (const arg of args) {
+      if (arg.startsWith("--reflection=")) {
+        interviewSaveArgs.reflection = arg.split("=")[1];
+      } else if (arg.startsWith("--notes=")) {
+        interviewSaveArgs.notes = arg.split("=")[1];
+      } else if (arg.startsWith("--confidence=")) {
+        const confidence = arg.split("=")[1];
+        if (confidence === "Low" || confidence === "Medium" || confidence === "High") {
+          interviewSaveArgs.confidence = confidence;
+        } else {
+          log.error(`Invalid confidence level: ${confidence}. Must be Low, Medium, or High`);
+          process.exit(1);
+        }
+      }
+    }
+
+    if (!args[1] || isNaN(parseInt(args[1], 10))) {
+      log.error("interview-save command requires a workout ID");
+      process.exit(1);
+    }
+    interviewSaveArgs.workoutId = parseInt(args[1], 10);
+
+    if (!interviewSaveArgs.reflection) {
+      log.error("interview-save command requires --reflection");
+      process.exit(1);
+    }
+
+    if (!interviewSaveArgs.notes) {
+      log.error("interview-save command requires --notes");
+      process.exit(1);
+    }
+
+    return interviewSaveArgs;
+  }
+
+  if (args[0] === "preliminary-note-save") {
+    const preliminaryNoteSaveArgs: PreliminaryNoteSaveArgs = {
+      command: "preliminary-note-save",
+      workoutId: 0,
+      note: "",
+    };
+
+    for (const arg of args) {
+      if (arg.startsWith("--note=")) {
+        preliminaryNoteSaveArgs.note = arg.split("=")[1];
+      }
+    }
+
+    if (!args[1] || isNaN(parseInt(args[1], 10))) {
+      log.error("preliminary-note-save command requires a workout ID");
+      process.exit(1);
+    }
+    preliminaryNoteSaveArgs.workoutId = parseInt(args[1], 10);
+
+    if (!preliminaryNoteSaveArgs.note) {
+      log.error("preliminary-note-save command requires --note");
+      process.exit(1);
+    }
+
+    return preliminaryNoteSaveArgs;
+  }
+
+  if (args[0] === "activity-record") {
+    const activityRecordArgs: ActivityRecordArgs = {
+      command: "activity-record",
+      type: "",
+      duration: 0,
+    };
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "--type") {
+        activityRecordArgs.type = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--type=")) {
+        activityRecordArgs.type = args[i].split("=")[1];
+      } else if (args[i] === "--duration") {
+        activityRecordArgs.duration = parseInt(args[i + 1], 10);
+        i++;
+      } else if (args[i].startsWith("--duration=")) {
+        activityRecordArgs.duration = parseInt(args[i].split("=")[1], 10);
+      } else if (args[i] === "--distance") {
+        activityRecordArgs.distance = parseFloat(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--distance=")) {
+        activityRecordArgs.distance = parseFloat(args[i].split("=")[1]);
+      } else if (args[i] === "--structure") {
+        activityRecordArgs.structure = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--structure=")) {
+        activityRecordArgs.structure = args[i].split("=")[1];
+      } else if (args[i] === "--notes") {
+        activityRecordArgs.notes = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--notes=")) {
+        activityRecordArgs.notes = args[i].split("=")[1];
+      }
+    }
+
+    if (!activityRecordArgs.type) {
+      log.error("activity-record command requires --type");
+      process.exit(1);
+    }
+
+    if (!activityRecordArgs.duration || activityRecordArgs.duration <= 0) {
+      log.error("activity-record command requires --duration (positive number)");
+      process.exit(1);
+    }
+
+    return activityRecordArgs;
+  }
+
+  if (args[0] === "triggers") {
+    if (!args[1] || (args[1] !== "list" && args[1] !== "set" && args[1] !== "disable")) {
+      log.error("triggers command requires a subcommand: list, set, or disable");
+      process.exit(1);
+    }
+
+    const subcommand = args[1] as "list" | "set" | "disable";
+    const triggersArgs: TriggersArgs = {
+      command: "triggers",
+      subcommand,
+    };
+
+    for (let i = 2; i < args.length; i++) {
+      if (args[i] === "--type") {
+        triggersArgs.type = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--type=")) {
+        triggersArgs.type = args[i].split("=")[1];
+      } else if (args[i] === "--threshold") {
+        triggersArgs.threshold = parseFloat(args[i + 1]);
+        i++;
+      } else if (args[i].startsWith("--threshold=")) {
+        triggersArgs.threshold = parseFloat(args[i].split("=")[1]);
+      } else if (args[i] === "--unit") {
+        triggersArgs.unit = args[i + 1];
+        i++;
+      } else if (args[i].startsWith("--unit=")) {
+        triggersArgs.unit = args[i].split("=")[1];
+      } else if (args[i] === "--enabled") {
+        triggersArgs.enabled = true;
+      }
+    }
+
+    if (subcommand === "set" || subcommand === "disable") {
+      if (!triggersArgs.type) {
+        log.error(`${subcommand} subcommand requires --type`);
+        process.exit(1);
+      }
+    }
+
+    if (subcommand === "set") {
+      if (triggersArgs.threshold === undefined) {
+        log.error("set subcommand requires --threshold");
+        process.exit(1);
+      }
+      if (!triggersArgs.unit) {
+        log.error("set subcommand requires --unit");
+        process.exit(1);
+      }
+    }
+
+    return triggersArgs;
+  }
+
+  if (args[0] === "interviews") {
+    if (!args[1] || (args[1] !== "list" && args[1] !== "get")) {
+      log.error("interviews command requires a subcommand: list or get");
+      process.exit(1);
+    }
+
+    const subcommand = args[1] as "list" | "get";
+
+    if (subcommand === "list") {
+      const interviewsListArgs: InterviewsListArgs = {
+        command: "interviews",
+        subcommand: "list",
+      };
+
+      for (let i = 2; i < args.length; i++) {
+        if (args[i] === "--workout") {
+          interviewsListArgs.workout = parseInt(args[i + 1], 10);
+          i++;
+        } else if (args[i].startsWith("--workout=")) {
+          interviewsListArgs.workout = parseInt(args[i].split("=")[1], 10);
+        } else if (args[i] === "--limit") {
+          interviewsListArgs.limit = parseInt(args[i + 1], 10);
+          i++;
+        } else if (args[i].startsWith("--limit=")) {
+          interviewsListArgs.limit = parseInt(args[i].split("=")[1], 10);
+        }
+      }
+
+      return interviewsListArgs;
+    } else {
+      if (!args[2] || isNaN(parseInt(args[2], 10))) {
+        log.error("interviews get subcommand requires an interview ID");
+        process.exit(1);
+      }
+
+      const interviewsGetArgs: InterviewsGetArgs = {
+        command: "interviews",
+        subcommand: "get",
+        interviewId: parseInt(args[2], 10),
+      };
+
+      return interviewsGetArgs;
+    }
+  }
+
   if (args[0] === "--help" || args[0] === "-h" || args[0] === "help") {
     return { command: "help" };
   }

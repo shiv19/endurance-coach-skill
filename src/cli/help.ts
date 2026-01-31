@@ -107,6 +107,14 @@ Modify Options:
   --plan, -p FILE       Expanded plan JSON file to modify
   --output, -o FILE     Output file (default: overwrites plan file)
 
+Interview Save Options:
+  --reflection, -r TEXT   Athlete reflection summary
+  --notes, -n TEXT       Coach notes
+  --confidence, -c LEVEL Confidence level: Low, Medium, or High (default: Medium)
+
+Preliminary Note Save Options:
+  --note TEXT            Preliminary coach note
+
 Examples:
   # Headless auth flow (for automated environments)
   npx endurance-coach auth --client-id=12345 --client-secret=abc123
@@ -158,5 +166,11 @@ Examples:
 
   # Save modified plan to a new file
   npx endurance-coach modify -b backup.json -p expanded.json -o modified.json
+
+  # Save interview results
+  npx endurance-coach interview-save 123456 --reflection "Felt good today" --notes "Good pace control" --confidence High
+
+  # Save preliminary coach note
+  npx endurance-coach preliminary-note-save 123456 --note "Look at HR drift data"
 `);
 }
