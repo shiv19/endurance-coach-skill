@@ -14,7 +14,7 @@
 // MARK: Core Types
 // ============================================================================
 
-export type Sport = "swim" | "bike" | "run" | "strength" | "brick" | "race" | "rest";
+export type Sport = "swim" | "bike" | "run" | "strength" | "brick";
 
 export type FirstDayOfWeek = "monday" | "sunday";
 

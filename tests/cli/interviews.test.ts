@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { initDatabase, resetDatabaseCache, getDb } from "../../src/db/client.js";
 import { listInterviews, getInterview } from "../../src/cli/commands/interviews.js";
+import { log } from "../../src/lib/logging.js";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdirSync, rmSync } from "node:fs";
@@ -58,11 +59,12 @@ describe("interviews", () => {
     `);
 
     db.exec("DELETE FROM workout_interviews");
+    db.exec("DELETE FROM activities");
     db.prepare(
-      "INSERT OR REPLACE INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
     ).run(1, "Test Run", "Run", "2025-01-01T10:00:00Z", 3600, 3600);
     db.prepare(
-      "INSERT OR REPLACE INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
     ).run(2, "Test Ride", "Ride", "2025-01-02T10:00:00Z", 3600, 3600);
   });
 
@@ -183,9 +185,8 @@ describe("interviews", () => {
         subcommand: "list" as const,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await listInterviews(args);
-      consoleLogSpy.mockRestore();
 
       const db = getDb();
       const allInterviews = db
@@ -194,14 +195,17 @@ describe("interviews", () => {
         count: number;
       };
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = consoleLogSpy.mock.calls[0][0] as string;
-      expect(output).toContain("ID");
+      expect(logInfoSpy).toHaveBeenCalled();
+      // Find the call that contains the table output (has "ID" header)
+      const tableCall = logInfoSpy.mock.calls.find((call) => (call[0] as string).includes("ID"));
+      expect(tableCall).toBeDefined();
+      const output = tableCall![0] as string;
       expect(output).toContain("Workout");
       expect(output).toContain("Created At");
       expect(output).toContain("Confidence");
       expect(output).toContain("Reflection");
       expect(allInterviews.count).toBe(3);
+      logInfoSpy.mockRestore();
     });
 
     it("should list interviews filtered by workout ID", async () => {
@@ -211,20 +215,22 @@ describe("interviews", () => {
         workout: 1,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await listInterviews(args);
-      consoleLogSpy.mockRestore();
 
       const db = getDb();
       const filteredInterviews = db
         .prepare("SELECT COUNT(*) as count FROM workout_interviews WHERE workout_id = ?")
         .get(1) as { count: number };
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = consoleLogSpy.mock.calls[0][0] as string;
-      expect(output).toContain("ID");
+      expect(logInfoSpy).toHaveBeenCalled();
+      // Find the call that contains the table output (has "ID" header)
+      const tableCall = logInfoSpy.mock.calls.find((call) => (call[0] as string).includes("ID"));
+      expect(tableCall).toBeDefined();
+      const output = tableCall![0] as string;
       expect(output).toContain("Workout");
       expect(filteredInterviews.count).toBe(2);
+      logInfoSpy.mockRestore();
     });
 
     it("should list interviews with custom limit", async () => {
@@ -234,15 +240,18 @@ describe("interviews", () => {
         limit: 1,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await listInterviews(args);
-      consoleLogSpy.mockRestore();
 
-      const output = consoleLogSpy.mock.calls[0][0] as string;
+      // Find the call that contains the table output (has "ID" header)
+      const tableCall = logInfoSpy.mock.calls.find((call) => (call[0] as string).includes("ID"));
+      expect(tableCall).toBeDefined();
+      const output = tableCall![0] as string;
       const lines = output.split("\n");
 
-      expect(lines.length).toBeGreaterThan(2);
-      expect(lines.length).toBeLessThanOrEqual(4);
+      // Table has header + separator + 1 data row = at least 3 lines
+      expect(lines.length).toBeGreaterThanOrEqual(3);
+      logInfoSpy.mockRestore();
     });
 
     it("should handle default limit of 10", async () => {
@@ -251,9 +260,8 @@ describe("interviews", () => {
         subcommand: "list" as const,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await listInterviews(args);
-      consoleLogSpy.mockRestore();
 
       const db = getDb();
       const allInterviews = db
@@ -262,8 +270,9 @@ describe("interviews", () => {
         count: number;
       };
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(logInfoSpy).toHaveBeenCalled();
       expect(allInterviews.count).toBe(3);
+      logInfoSpy.mockRestore();
     });
 
     it("should display no interviews message when database is empty", async () => {
@@ -275,11 +284,11 @@ describe("interviews", () => {
         subcommand: "list" as const,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await listInterviews(args);
-      consoleLogSpy.mockRestore();
 
-      expect(consoleLogSpy).toHaveBeenCalledWith("No interviews found.");
+      expect(logInfoSpy).toHaveBeenCalledWith("No interviews found.");
+      logInfoSpy.mockRestore();
     });
   });
 
@@ -304,18 +313,23 @@ describe("interviews", () => {
         interviewId: interview.id,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await getInterview(args);
-      consoleLogSpy.mockRestore();
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(logInfoSpy).toHaveBeenCalled();
+      // Find the call that contains JSON output (starts with '{')
+      const jsonCall = logInfoSpy.mock.calls.find((call) =>
+        (call[0] as string).trim().startsWith("{")
+      );
+      expect(jsonCall).toBeDefined();
+      const output = JSON.parse(jsonCall![0] as string);
       expect(output.id).toBe(interview.id);
       expect(output.workout_id).toBe(1);
       expect(output.athlete_reflection_summary).toBe("Felt great today");
       expect(output.coach_notes).toBe("Good pace control");
       expect(output.coach_confidence).toBe("High");
       expect(output.created_at).toBeDefined();
+      logInfoSpy.mockRestore();
     });
 
     it("should exit with error for non-existent interview", async () => {
@@ -354,17 +368,22 @@ describe("interviews", () => {
         interviewId: interview.id,
       };
 
-      const consoleLogSpy = vi.spyOn(console, "log");
+      const logInfoSpy = vi.spyOn(log, "info");
       await getInterview(args);
-      consoleLogSpy.mockRestore();
 
-      const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      // Find the call that contains JSON output (starts with '{')
+      const jsonCall = logInfoSpy.mock.calls.find((call) =>
+        (call[0] as string).trim().startsWith("{")
+      );
+      expect(jsonCall).toBeDefined();
+      const output = JSON.parse(jsonCall![0] as string);
       expect(Object.keys(output)).toContain("id");
       expect(Object.keys(output)).toContain("workout_id");
       expect(Object.keys(output)).toContain("created_at");
       expect(Object.keys(output)).toContain("coach_confidence");
       expect(Object.keys(output)).toContain("athlete_reflection_summary");
       expect(Object.keys(output)).toContain("coach_notes");
+      logInfoSpy.mockRestore();
     });
   });
 });

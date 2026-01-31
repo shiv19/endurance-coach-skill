@@ -121,8 +121,8 @@ describe("Database Migrations", () => {
       const { getMigrationStatus } = await import("../../src/db/migrations.js");
 
       const status = getMigrationStatus();
-      expect(status.applied).toBe(2);
-      expect(status.latestApplied).toBe("002_interview_tables");
+      expect(status.applied).toBe(3);
+      expect(status.latestApplied).toBe("003_add_activity_source");
     });
   });
 
@@ -136,13 +136,13 @@ describe("Database Migrations", () => {
       // Get migration status
       const { getMigrationStatus } = await import("../../src/db/migrations.js");
       let status = getMigrationStatus();
-      expect(status.applied).toBe(2);
+      expect(status.applied).toBe(3);
 
       // Second run - should be idempotent
       await initDatabase();
 
       status = getMigrationStatus();
-      expect(status.applied).toBe(2); // Still 2, not 4
+      expect(status.applied).toBe(3); // Still 2, not 4
 
       // Check only two migrations were recorded
       const records = execSync(
@@ -150,7 +150,7 @@ describe("Database Migrations", () => {
         { encoding: "utf-8" }
       );
 
-      expect(parseInt(records.trim())).toBe(2);
+      expect(parseInt(records.trim())).toBe(3);
     });
   });
 
@@ -162,9 +162,9 @@ describe("Database Migrations", () => {
       const { getMigrationStatus } = await import("../../src/db/migrations.js");
 
       const status = getMigrationStatus();
-      expect(status.applied).toBe(2);
+      expect(status.applied).toBe(3);
       expect(status.pending).toBe(0);
-      expect(status.latestApplied).toBe("002_interview_tables");
+      expect(status.latestApplied).toBe("003_add_activity_source");
     });
 
     it("should correctly check if migration is applied", async () => {
@@ -175,6 +175,7 @@ describe("Database Migrations", () => {
 
       expect(isMigrationApplied("001_initial_schema")).toBe(true);
       expect(isMigrationApplied("002_interview_tables")).toBe(true);
+      expect(isMigrationApplied("003_add_activity_source")).toBe(true);
     });
   });
 

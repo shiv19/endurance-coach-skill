@@ -70,9 +70,13 @@ describe("interview-persistence", () => {
       )
     `);
 
+    db.exec("DELETE FROM activities");
     db.prepare(
       "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
     ).run(1, "Test Run", "Run", "2025-01-01T10:00:00Z", 3600, 3600);
+    db.prepare(
+      "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(2, "Test Ride", "Ride", "2025-01-02T10:00:00Z", 3600, 3600);
   });
 
   afterEach(() => {
@@ -276,7 +280,7 @@ describe("interview-persistence", () => {
       expect(notes[0].note_draft).toBe("Check HR drift data");
     });
 
-    it("should update existing note for same workout (upsert)", async () => {
+    it("should allow multiple notes for same workout", async () => {
       const args1 = {
         command: "preliminary-note-save" as const,
         workoutId: 1,
@@ -288,18 +292,19 @@ describe("interview-persistence", () => {
       const args2 = {
         command: "preliminary-note-save" as const,
         workoutId: 1,
-        note: "Updated note",
+        note: "Second note",
       };
 
       await savePreliminaryNote(args2);
 
       const db = getDb();
-      const notes = db.prepare("SELECT * FROM preliminary_coach_notes").all() as {
+      const notes = db.prepare("SELECT * FROM preliminary_coach_notes ORDER BY id").all() as {
         note_draft: string;
       }[];
 
-      expect(notes).toHaveLength(1);
-      expect(notes[0].note_draft).toBe("Updated note");
+      expect(notes).toHaveLength(2);
+      expect(notes[0].note_draft).toBe("First note");
+      expect(notes[1].note_draft).toBe("Second note");
     });
 
     it("should exit with error for empty note", async () => {
@@ -351,10 +356,8 @@ describe("interview-persistence", () => {
     });
 
     it("should allow multiple notes for different workouts", async () => {
+      // Activity id=2 is already inserted in beforeEach
       const db = getDb();
-      db.prepare(
-        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
-      ).run(2, "Test Ride", "Ride", "2025-01-02T10:00:00Z", 3600, 3600);
 
       const args1 = {
         command: "preliminary-note-save" as const,

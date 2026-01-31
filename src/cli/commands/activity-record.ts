@@ -3,55 +3,7 @@ import { getDb } from "../../db/client.js";
 import { log } from "../../lib/logging.js";
 import type { ActivityRecordArgs } from "../args.js";
 
-const VALID_SPORT_TYPES = [
-  "Run",
-  "Ride",
-  "Swim",
-  "Walk",
-  "Hike",
-  "VirtualRide",
-  "VirtualRun",
-  "AlpineSki",
-  "BackcountrySki",
-  "Canoeing",
-  "Crossfit",
-  "EBikeRide",
-  "Elliptical",
-  "Golf",
-  "Handcycle",
-  "HighIntensityIntervalTraining",
-  "HorsebackRiding",
-  "IceSkate",
-  "InlineSkate",
-  "Kayaking",
-  "Kitesurf",
-  "MountainBikeRide",
-  "NordicSki",
-  "Pickleball",
-  "Pilates",
-  "Racquetball",
-  "RockClimbing",
-  "RollerSki",
-  "Rowing",
-  "Sail",
-  "Skateboard",
-  "Snowboard",
-  "Snowshoe",
-  "Soccer",
-  "StairStepper",
-  "StandUpPaddling",
-  "Surfing",
-  "SwimRun",
-  "TableTennis",
-  "Tennis",
-  "TrailRun",
-  "Velomobile",
-  "WeightTraining",
-  "Wheelchair",
-  "Windsurf",
-  "Workout",
-  "Yoga",
-];
+const VALID_SPORT_TYPES = ["Swim", "Bike", "Run", "Strength", "Brick"];
 
 function capitalizeSportType(type: string): string {
   return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
@@ -73,7 +25,7 @@ export function recordManualActivity(args: ActivityRecordArgs): void {
   const sportType = capitalizeSportType(args.type);
   if (!VALID_SPORT_TYPES.includes(sportType)) {
     log.error(`Invalid sport type: ${args.type}`);
-    log.info(`Valid types: ${VALID_SPORT_TYPES.slice(0, 10).join(", ")}...`);
+    log.info(`Valid types: ${VALID_SPORT_TYPES.join(", ")}`);
     process.exit(1);
   }
 

@@ -97,9 +97,6 @@ export async function savePreliminaryNote(args: PreliminaryNoteSaveArgs): Promis
       `
       INSERT INTO preliminary_coach_notes (workout_id, note_draft)
       VALUES (?, ?)
-      ON CONFLICT(workout_id) DO UPDATE SET
-        note_draft = excluded.note_draft,
-        created_at = datetime('now')
       `
     )
     .run(args.workoutId, args.note);

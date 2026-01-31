@@ -51,7 +51,7 @@ describe("activity-record command", () => {
     it("should capitalize sport type", () => {
       const args: ActivityRecordArgs = {
         command: "activity-record",
-        type: "ride",
+        type: "bike",
         duration: 45,
       };
 
@@ -63,7 +63,7 @@ describe("activity-record command", () => {
         .prepare("SELECT sport_type FROM activities WHERE source = 'manual'")
         .get() as { sport_type: string };
 
-      expect(activity.sport_type).toBe("Ride");
+      expect(activity.sport_type).toBe("Bike");
 
       consoleSpy.mockRestore();
     });
@@ -148,7 +148,7 @@ describe("activity-record command", () => {
 
       recordManualActivity({
         command: "activity-record",
-        type: "ride",
+        type: "bike",
         duration: 45,
       });
 
@@ -212,7 +212,7 @@ describe("activity-record command", () => {
       const db = getDb();
       db.prepare("DELETE FROM activities WHERE source = 'manual'").run();
       db.prepare(
-        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, source)"
+        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, source) VALUES (?, ?, ?, ?, ?, ?, ?)"
       ).run(123456, "Strava Run", "Run", "2025-01-01T10:00:00Z", 1800, 1800, "strava");
 
       const args: ActivityRecordArgs = {
@@ -236,7 +236,7 @@ describe("activity-record command", () => {
 
   describe("sport type validation", () => {
     it("should accept valid sport types", () => {
-      const validTypes = ["Run", "Ride", "Swim", "Walk", "Hike", "VirtualRide", "WeightTraining"];
+      const validTypes = ["Swim", "Bike", "Run", "Strength", "Brick"];
 
       const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
         throw new Error(`exit:${code}`);

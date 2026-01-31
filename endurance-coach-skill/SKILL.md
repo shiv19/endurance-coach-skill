@@ -98,6 +98,189 @@ Read these files as needed during plan creation:
 
 ---
 
+## Post-Workout Interview
+
+Conduct post-workout interviews when athletes explicitly request them. Supports both Strava and non-Strava workflows.
+
+### Entry Point
+
+Athlete explicitly requests: "Can we review my workout?" or "I want to do a post-workout interview."
+
+### Strava-Enabled Flow
+
+1. List recent workouts: `npx endurance-coach interview --list`
+   - Auto-syncs if data is stale (no manual `sync` needed)
+   - CLI handles freshness automatically
+
+2. Present options: "Which workout would you like to review?"
+
+3. Get workout context: `npx endurance-coach interview <selected_id>`
+
+   **OR** for quick access: `npx endurance-coach interview --latest` (also auto-syncs)
+
+### Tiered Context Loading (Token Optimization)
+
+- **Default** (no flags): metadata + triggers + history
+  - Use for: easy runs, recovery sessions, basic reviews
+
+- **With `--laps`**: adds full lap data
+  - Use for: workouts with intervals, tempo runs, races, structured efforts
+  - Rule: If workout type suggests structured effort, include `--laps`
+
+### Non-Strava Flow
+
+1. Start manual capture: `npx endurance-coach interview --manual`
+2. Establish workout details through conversation first
+3. Persist minimal activity: `npx endurance-coach activity-record`
+4. Proceed to interview persistence
+
+### Interview Flow
+
+- Conduct 5-7 turn conversational interview
+- Hard cap at 10 turns total
+- If unresolved at cap, summarize and stop
+
+### Baseline Questions
+
+1. How did the workout feel overall?
+2. What were the key challenges or highlights?
+3. Did you stick to the planned structure?
+4. How were energy, hydration, and mental focus?
+5. What would you change or improve next time?
+
+### Data-Aware Trigger Interpretation
+
+**Strava mode only:** Triggers are evaluated from lap data to generate context-aware questions. Check triggers with `npx endurance-coach triggers list` and configure with `triggers set`.
+
+### Artifact Generation
+
+Generate three artifacts:
+
+1. **Athlete Reflection Summary**: Neutral, what athlete reported
+2. **Coach Notes**: Opinionated, may challenge perception
+3. **Coach Confidence**: Low/Medium/High based on signal quality
+
+### Persistence
+
+Save interview: `npx endurance-coach interview-save`
+
+### Preliminary Coach Notes (After 5 Interviews)
+
+Generate preliminary coach note only when interview_count ≥ 5. This rule exists because coaches need baseline data before forming opinions—early interviews establish patterns (e.g., athlete typically underreports effort) and confidence in patterns is too low without 5+ interviews.
+
+The preliminary note is:
+
+- Generated silently (not shown to athlete)
+- Used only to shape question emphasis
+- Stored separately via `preliminary-note-save` command
+
+The preliminary note is generated from the first 4 interviews to give context for the 5th interview. It helps the agent:
+
+- Frame questions more precisely
+- Notice patterns the athlete may be missing
+- Avoid repeating topics already covered
+
+**Example:**
+
+_Preliminary note (agent's internal view):_
+"Based on your first 4 interviews, I notice you consistently report feeling 'fine' on easy runs even when HR drift is elevated. This suggests you may be pushing harder than you think on recovery days."
+
+_Shaped question for interview 5 (what athlete sees):_
+"Your HR has been trending upward on the last few easy runs. How do you feel about the effort level on those days?"
+
+_Premature conclusion (what to avoid):_
+"You're definitely overtraining your easy runs. Stop pushing so hard." (This would be confrontational without sufficient data)
+
+---
+
+## Trigger Configuration
+
+Configure data-aware question triggers collaboratively with athletes. Triggers flag workouts that need deeper review based on lap metrics.
+
+**Important:** Triggers are optional and user-controlled. Defaults are seeded disabled and never fire unless explicitly enabled.
+
+### When to Configure
+
+- After first few interviews (once you've observed patterns)
+- When athlete explicitly requests trigger setup
+- Periodically when training patterns change significantly
+
+### When to Revisit Triggers
+
+Revisit trigger configuration when:
+
+- Significant changes in training occur (e.g., new training block, event prep)
+- Athlete's fitness level changes (e.g., post-injury return, performance gains)
+- Training focus shifts (e.g., endurance to speed, base to build phase)
+
+### Configuration Flow
+
+1. Check current state: `npx endurance-coach triggers list`
+2. Propose candidate triggers based on observed patterns
+3. Explain each trigger concept in coaching terms
+4. Discuss and refine thresholds together
+5. Persist agreed triggers: `npx endurance-coach triggers set <trigger_name> --enabled --threshold=<value> --unit=<unit>`
+
+### Trigger Types
+
+**HR Drift**: Heart rate rises over time at constant effort
+
+- Indicates: fatigue, dehydration, fueling issues
+- Example: "Your HR climbed from 145 to 165 bpm during the last 30 minutes"
+
+**Pace Deviation**: Actual pace differs from planned target
+
+- Indicates: pacing execution, fitness level assessment
+- Example: "You averaged 6:15/km vs the 5:45/km target"
+
+**Lap Variability**: Inconsistency across interval repetitions
+
+- Indicates: fatigue accumulation, pacing discipline
+- Example: "Your 5th interval was 18 seconds slower than the 1st"
+
+**Early Fade**: Second half slower than first half
+
+- Indicates: going out too hard, endurance limit
+- Example: "Your average pace dropped from 5:30/km to 5:55/km halfway through"
+
+### Commands
+
+```bash
+# View all configured triggers
+npx endurance-coach triggers list
+
+# Configure a trigger with threshold and unit
+npx endurance-coach triggers set <type> --threshold=<value> --unit=<unit> [--enabled]
+
+# Disable a trigger
+npx endurance-coach triggers disable <type>
+```
+
+**Available trigger types:** `hr_drift`, `pace_deviation`, `lap_variability`, `early_fade`
+
+**Available units:** `percent`, `bpm`, `seconds`
+
+### Default Seeds
+
+CLI seeds four default triggers (disabled by default):
+
+- `hr_drift`: threshold 10, unit percent
+- `pace_deviation`: threshold 15, unit percent
+- `lap_variability`: threshold 20, unit percent
+- `early_fade`: threshold 10, unit percent
+
+Use these as starting points for discussion, not as recommendations.
+
+### Guidance
+
+- Explain triggers in coaching terms (what they detect and why it matters)
+- Use examples from the athlete's recent workouts
+- Recommend conservative thresholds initially
+- Note that thresholds can be refined over time
+- Emphasize this is a collaborative process, not automatic configuration
+
+---
+
 ## Plan Output Format (v2.0)
 
 **IMPORTANT: Output training plans in the compact YAML v2.0 format, then render to HTML.**
