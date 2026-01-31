@@ -119,3 +119,16 @@ export type {
   SwimZones,
   PaceZones,
 } from "./schema/training-plan.js";
+
+// Triggers
+export {
+  evaluateHRDrift,
+  evaluatePaceDeviation,
+  evaluateLapVariability,
+  evaluateEarlyFade,
+  evaluateAllTriggers,
+  type TriggerType,
+  type TriggerConfig,
+  type TriggerEvaluationResult,
+  type FiredTrigger,
+} from "./lib/triggers.js";
