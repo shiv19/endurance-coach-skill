@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { mkdirSync, rmSync } from "node:fs";
 
 describe("interview-persistence", () => {
-  const testDir = join(tmpdir(), "endurance-coach-activity-record-test-" + Date.now());
+  const testDir = join(tmpdir(), "endurance-coach-interview-persistence-test-" + Date.now());
   const originalEnv = { ...process.env };
 
   beforeEach(async () => {

@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { mkdirSync, rmSync } from "node:fs";
 
 describe("interviews", () => {
-  const testDir = join(tmpdir(), "endurance-coach-activity-record-test-" + Date.now());
+  const testDir = join(tmpdir(), "endurance-coach-interviews-test-" + Date.now());
   const originalEnv = { ...process.env };
 
   beforeEach(async () => {
