@@ -544,7 +544,7 @@ npx endurance-coach interviews get <interview_id>
 
 ## Skill Integration
 
-### S1. Update SKILL.md with Interview Workflow
+### S1. Update SKILL.md with Interview Workflow ✅ **COMPLETED**
 
 **Goal:** Teach agent how to conduct post-workout interviews.
 
@@ -583,7 +583,7 @@ npx endurance-coach interviews get <interview_id>
 
 ---
 
-### S2. Document Trigger Negotiation Flow
+### S2. Document Trigger Negotiation Flow ✅ **COMPLETED**
 
 **Goal:** Teach agent how to collaboratively configure triggers.
 
@@ -601,7 +601,7 @@ npx endurance-coach interviews get <interview_id>
 
 ---
 
-### S3. Document Conditional Preliminary Note Behavior
+### S3. Document Conditional Preliminary Note Behavior ✅ **COMPLETED**
 
 **Goal:** Teach agent the interview count threshold logic.
 
@@ -620,7 +620,7 @@ npx endurance-coach interviews get <interview_id>
 
 ## Testing Strategy
 
-### T1. Unit Tests – Trigger Evaluation
+### T1. Unit Tests – Trigger Evaluation ✅ **COMPLETED**
 
 **Tasks:**
 
@@ -634,7 +634,7 @@ npx endurance-coach interviews get <interview_id>
 
 ---
 
-### T2. Integration Tests – Interview Flow
+### T2. Integration Tests – Interview Flow ✅ **COMPLETED**
 
 **Tasks:**
 
@@ -659,7 +659,7 @@ npx endurance-coach interviews get <interview_id>
 
 ---
 
-### T3. Migration Tests
+### T3. Migration Tests ✅ **COMPLETED**
 
 **Tasks:**
 
@@ -672,7 +672,7 @@ npx endurance-coach interviews get <interview_id>
 
 ---
 
-### T4. Auto-Sync Utility Tests
+### T4. Auto-Sync Utility Tests ✅ **COMPLETED**
 
 **Tasks:**
 
@@ -708,11 +708,12 @@ Before release:
 
 - [ ] Fresh install works (no prior database)
 - [ ] Upgrade from 1.3.0 works (existing database)
-- [ ] `interview --list` auto-syncs when data is stale
-- [ ] `interview --list` skips sync when data is fresh (today's activity exists)
-- [ ] `interview --list` handles sync failure gracefully (returns cached + warning)
-- [ ] `interview --latest` auto-syncs and selects most recent activity
-- [ ] `interview <id>` works with specific workout ID (no auto-sync needed)
+- [x] `interview --list` auto-syncs when data is stale
+- [x] `interview --list` skips sync when data is fresh (today's activity exists)
+- [x] `interview --list` handles sync failure gracefully (returns cached + warning)
+- [x] `interview --latest` auto-syncs and selects most recent activity
+- [ ] `interview --latest --laps` includes lap data
+- [x] `interview <id>` works with specific workout ID (no auto-sync needed)
 - [ ] Interview with Strava-synced workout includes lap data and triggers
 - [ ] `interview --manual` returns conversational capture prompt
 - [ ] `activity-record` persists manual activity

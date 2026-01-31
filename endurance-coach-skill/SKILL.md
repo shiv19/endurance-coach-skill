@@ -162,7 +162,20 @@ Generate three artifacts:
 
 ### Persistence
 
-Save interview: `npx endurance-coach interview-save`
+Save interview using the following syntax:
+
+```bash
+npx endurance-coach interview-save <workout-id> \
+  --reflection="<athlete reflection summary>" \
+  --notes="<coach notes>" \
+  --confidence=<Low|Medium|High>
+```
+
+- `--reflection`: What the athlete reported (neutral summary)
+- `--notes`: Coach's interpretation (may challenge perception)
+- `--confidence`: Signal quality assessment (default: Medium)
+
+Run `interview-save --help` for full usage.
 
 ### Preliminary Coach Notes (After 5 Interviews)
 
@@ -172,7 +185,14 @@ The preliminary note is:
 
 - Generated silently (not shown to athlete)
 - Used only to shape question emphasis
-- Stored separately via `preliminary-note-save` command
+- Stored separately via:
+
+```bash
+npx endurance-coach preliminary-note-save <workout-id> \
+  --note="<preliminary coach note>"
+```
+
+Run `preliminary-note-save --help` for full usage.
 
 The preliminary note is generated from the first 4 interviews to give context for the 5th interview. It helps the agent:
 

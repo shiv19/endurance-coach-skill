@@ -548,6 +548,29 @@ export function parseArgs(): CliArgs {
   }
 
   if (args[0] === "interview-save") {
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log(`
+interview-save - Save post-workout interview results
+
+Usage: npx endurance-coach interview-save <workout-id> [options]
+
+Required:
+  <workout-id>              Strava activity ID
+  --reflection="TEXT"       Athlete reflection summary (what athlete reported)
+  --notes="TEXT"            Coach notes (coach's interpretation)
+
+Optional:
+  --confidence=LEVEL        Coach confidence: Low, Medium, or High (default: Medium)
+
+Example:
+  npx endurance-coach interview-save 17213185177 \\
+    --reflection="Felt good overall, tempo portion was comfortably hard" \\
+    --notes="Solid execution, good terrain adaptation" \\
+    --confidence=High
+`);
+      process.exit(0);
+    }
+
     const interviewSaveArgs: InterviewSaveArgs = {
       command: "interview-save",
       workoutId: 0,
@@ -592,6 +615,27 @@ export function parseArgs(): CliArgs {
   }
 
   if (args[0] === "preliminary-note-save") {
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log(`
+preliminary-note-save - Save preliminary coach note (internal use)
+
+Usage: npx endurance-coach preliminary-note-save <workout-id> [options]
+
+Required:
+  <workout-id>              Strava activity ID
+  --note="TEXT"             Preliminary coach note (shapes future interview questions)
+
+Notes:
+  Preliminary notes are generated after 5+ interviews to help frame future
+  interview questions. They are internal and not shown to the athlete.
+
+Example:
+  npx endurance-coach preliminary-note-save 17213185177 \\
+    --note="Athlete tends to underreport effort on easy runs when HR drift is elevated"
+`);
+      process.exit(0);
+    }
+
     const preliminaryNoteSaveArgs: PreliminaryNoteSaveArgs = {
       command: "preliminary-note-save",
       workoutId: 0,
