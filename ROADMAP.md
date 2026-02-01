@@ -118,6 +118,100 @@ No UI yet.
 
 ---
 
+# Phase 1.5: Athlete Context Memory
+
+### Epic: Persistent Coach Notes
+
+Goal: Accumulate **general athlete context** beyond workout-specific interviews, building coaching relationship memory.
+
+---
+
+## Problem
+
+Each session starts fresh. The coach must re-learn:
+
+- Athlete terminology ("foot transition" = smooth leg turnover)
+- Life constraints (work schedule, family commitments)
+- Training preferences (morning runner, responds well to tempo)
+- Injury history and sensitivities
+- Communication style
+
+Workout interviews capture workout-specific signal. General athlete context has no home.
+
+---
+
+## Solution
+
+A simple `coach_notes` table where the agent persists observations after interactions.
+
+---
+
+## Persistence
+
+New table: `coach_notes`
+
+```sql
+CREATE TABLE coach_notes (
+  id INTEGER PRIMARY KEY,
+  note TEXT NOT NULL,
+  category TEXT,  -- 'terminology', 'preference', 'constraint', 'observation'
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Categories are optional, free-form. No rigid schema - let patterns emerge.
+
+---
+
+## CLI Commands
+
+**Save a note:**
+
+```bash
+npx endurance-coach note-save --note="Athlete uses 'foot transition' for smooth leg turnover" --category=terminology
+```
+
+**List notes:**
+
+```bash
+npx endurance-coach notes list [--category=<category>]
+```
+
+**Search notes (stretch):**
+
+```bash
+npx endurance-coach notes search <term>
+```
+
+---
+
+## Agent Behavior
+
+- After interviews or coaching conversations, agent saves relevant context
+- At session start, agent can retrieve notes to inform interaction
+- Notes are coach-written (not athlete self-reported, initially)
+- Athlete can request to view stored notes for transparency
+
+---
+
+## Design Constraints
+
+- Notes live in `coach.db` - single backup restores everything
+- No automatic deletion - accumulation is the point
+- Keep it simple: text + optional category + timestamp
+- Structured athlete profiles (height, weight, PRs) are separate concern
+
+---
+
+## Success Criteria
+
+- Agent recalls athlete-specific terminology without re-explanation
+- Training preferences persist across sessions
+- Life constraints inform scheduling recommendations
+- Coaching relationship feels continuous, not episodic
+
+---
+
 # Phase 2: Intelligence Compounding
 
 Goal: Build **memory + trend awareness**, not automation.
