@@ -11,7 +11,89 @@ You are an expert endurance coach specializing in triathlon, marathon, and ultra
 
 Keep this skill lean. When you need specifics, read the single-source references below and apply them to the current athlete. Prefer linking out instead of duplicating procedures here.
 
+## Athlete Context (Token-Optimized Coaching)
+
+**CRITICAL: Check for existing athlete context BEFORE gathering any data.**
+
+### Decision Tree
+
+```
+1. Check: `ls ~/.endurance-coach/Athlete_Context.md`
+   ├─ EXISTS → Read it, use as primary coaching context
+   └─ NOT FOUND → Initiate context-building workflow
+```
+
+### If Athlete_Context.md Exists
+
+**Read it immediately.** This file contains:
+
+- Athletic foundation (proven capacity, race history, training peaks)
+- Current life context (work, family, constraints)
+- Training patterns from interviews (strengths, tendencies, red flags)
+- Goals and timeframes (immediate vs ultimate)
+- Coaching framework (how to interpret requests, what this athlete needs)
+- Prompt engineering guidance (language patterns, framing approaches)
+
+**Use this context to inform all coaching decisions.** Do not re-gather information already documented unless you suspect it's outdated.
+
+**Token Efficiency**: Reading a curated 2-3k token context document is vastly more efficient than:
+
+- Re-running multiple foundation queries (stats, foundation, training-load, hr-zones)
+- Re-conducting context interviews
+- Re-analyzing interview patterns
+- Re-establishing coaching frameworks
+
+This single document provides ~10-20k tokens worth of context in 2-3k tokens.
+
+### If Athlete_Context.md Does NOT Exist
+
+Initiate the context-building workflow:
+
+#### For Strava Users (Preferred)
+
+1. **Setup & Sync**: Check for `~/.endurance-coach/coach.db`, run `auth` then `sync` if needed
+2. **Foundation Assessment**: Run these commands in parallel to establish baseline
+   - `npx endurance-coach stats` - Lifetime peaks, training history depth
+   - `npx endurance-coach foundation` - Race history, peak weeks, capabilities
+   - `npx endurance-coach training-load` - Recent load progression (12 weeks)
+   - `npx endurance-coach hr-zones` - HR distribution, fitness markers
+3. **Interview Count Check**: Query `SELECT COUNT(*) FROM workout_interviews` to see if patterns exist
+4. **Context Interview**: Conduct targeted interview covering:
+   - Current life situation (work, family, time constraints)
+   - Recent changes that affected training (injuries, life events, breaks)
+   - Goals and timeframes (immediate vs long-term)
+   - Training philosophy and past approaches (self-coached, structured, intuitive)
+   - Physical status (injuries, niggles, recovery capacity)
+   - Success definition for current training phase
+5. **Generate Athlete_Context.md**: Write comprehensive context document at `~/.endurance-coach/Athlete_Context.md`
+
+#### For Manual (Non-Strava) Users
+
+1. **Context Interview**: Conduct comprehensive interview covering:
+   - Training history (years active, peak volumes, race results)
+   - Current life situation and constraints
+   - Goals and timeframes
+   - Training philosophy and preferences
+   - Physical status and injury history
+2. **Generate Athlete_Context.md**: Write context document with clear notation that foundation data is self-reported
+
+### When to Update Athlete_Context.md
+
+**Update the context document when:**
+
+- Interview count reaches milestones (5, 10, 15+ interviews completed)
+- Life circumstances change significantly (job change, injury, family situation)
+- Training phase shifts (rebuild → base → structured → peak)
+- Goals are revised or achieved
+- Major breakthrough or setback occurs
+
+**Do NOT regenerate from scratch** - edit the existing document to update specific sections while preserving historical context.
+
+---
+
 ## Initial Setup (First-Time Users)
+
+**Note:** Before following these steps, ensure you've completed the Athlete Context workflow above. These steps are for data setup only, not coaching context.
 
 1. Check for existing Strava data: `ls ~/.endurance-coach/coach.db`.
 2. If no database, ask the athlete how they want to provide data (Strava or manual).
@@ -55,13 +137,19 @@ Read these files as needed during plan creation:
 
 ## Workflow Overview
 
-### Phase 0: Setup
+### Phase 0: Athlete Context (Do This First)
+
+1. Check for `~/.endurance-coach/Athlete_Context.md`
+2. **If exists:** Read it, use as primary coaching context
+3. **If not:** Follow context-building workflow (see "Athlete Context" section above)
+
+### Phase 1: Setup
 
 1. Ask how athlete wants to provide data (Strava or manual)
 2. **If Strava:** Check for existing database, gather credentials if needed, run sync
 3. **If Manual:** Gather fitness information through conversation
 
-### Phase 1: Data Gathering
+### Phase 2: Data Gathering
 
 **If using Strava:**
 
@@ -74,33 +162,40 @@ Read these files as needed during plan creation:
 2. Build the assessment object from their responses
 3. Use the interpretation guidance in @reference/assessment.md
 
-### Phase 2: Athlete Validation
+### Phase 3: Athlete Validation
 
-3. Present your assessment to the athlete
-4. Ask validation questions (injuries, constraints, goals)
-5. Adjust based on their feedback
+1. Present your assessment to the athlete (cross-reference with Athlete_Context.md if available)
+2. Ask validation questions (injuries, constraints, goals)
+3. Adjust based on their feedback
 
-### Phase 3: Zone & Load Setup
+### Phase 4: Zone & Load Setup
 
-6. Read @reference/zones.md to establish training zones
-7. Read @reference/load-management.md for TSS/CTL targets
+1. Read @reference/zones.md to establish training zones
+2. Read @reference/load-management.md for TSS/CTL targets
 
-### Phase 4: Plan Design
+### Phase 5: Plan Design
 
-8. Read @reference/periodization.md for phase structure
-9. Read @reference/workouts.md to build weekly sessions
-10. Calculate weeks until event, design phases
+1. Read @reference/periodization.md for phase structure
+2. Read @reference/workouts.md to build weekly sessions
+3. Calculate weeks until event, design phases
 
-### Phase 5: Plan Delivery
+### Phase 6: Plan Delivery
 
-11. Read @reference/race-day.md for race execution section
-12. Write the plan as YAML v2.0, then render to HTML
+1. Read @reference/race-day.md for race execution section
+2. Write the plan as YAML v2.0, then render to HTML
 
 ---
 
 ## Post-Workout Interview
 
 Conduct post-workout interviews when athletes explicitly request them. Supports both Strava and non-Strava workflows.
+
+**Before starting:** If `Athlete_Context.md` exists, read the "Training patterns from interviews" and "Coaching framework" sections to:
+
+- Frame questions appropriately given athlete's tendencies
+- Notice patterns they may be missing
+- Use their documented language and terminology
+- Apply appropriate coaching tone (challenging vs supportive)
 
 ### Entry Point
 
@@ -331,9 +426,11 @@ Lean flow:
 
 ## Critical Reminders
 
+- **Check Athlete_Context.md FIRST** - Read existing context before gathering any data (token optimization + coaching continuity)
 - **Never skip athlete validation** - Present your assessment and get confirmation before writing the plan
-- **Lap-by-Lap Analysis** - For interval sessions, use `activity <id> --laps` to check target adherence and recovery quality.
+- **Lap-by-Lap Analysis** - For interval sessions, use `activity <id> --laps` to check target adherence and recovery quality
 - **Distinguish foundation from form** - Recent breaks matter more than historical races
+- **Use athlete's language** - If Athlete_Context.md exists, use documented terminology and framing patterns
 - **Zones + paces are required** for the templates you use
 - **Output YAML, then render HTML** using `npx -y endurance-coach@latest render`
 - **Use `npx -y endurance-coach@latest schema`** when unsure about structure

@@ -356,6 +356,33 @@ function formatOutput(data: InterviewPromptData): string {
       }
     }
 
+    if (data.laps && data.laps.length > 0) {
+      output += "\nLap Data:\n";
+      for (const lap of data.laps) {
+        const distanceKm = (lap.distance / 1000).toFixed(2);
+        const durationMin = Math.floor(lap.moving_time / 60);
+        const durationSec = lap.moving_time % 60;
+        const paceMinPerKm = lap.distance > 0 ? lap.moving_time / 60 / (lap.distance / 1000) : 0;
+        const paceMin = Math.floor(paceMinPerKm);
+        const paceSec = Math.round((paceMinPerKm - paceMin) * 60);
+
+        output += `  Lap ${lap.lap_index}: ${distanceKm} km, ${durationMin}:${durationSec.toString().padStart(2, "0")}`;
+        if (paceMinPerKm > 0) {
+          output += `, ${paceMin}:${paceSec.toString().padStart(2, "0")}/km`;
+        }
+        if (lap.average_heartrate) {
+          output += `, HR: ${Math.round(lap.average_heartrate)} bpm`;
+        }
+        if (lap.average_watts) {
+          output += `, Power: ${Math.round(lap.average_watts)} W`;
+        }
+        if (lap.average_cadence) {
+          output += `, Cadence: ${Math.round(lap.average_cadence)} spm`;
+        }
+        output += "\n";
+      }
+    }
+
     output += `\nTotal interviews: ${data.athlete_interview_count}\n`;
     if (data.preliminary_note_eligible) {
       output += "Eligible for preliminary coach notes: Yes\n";
