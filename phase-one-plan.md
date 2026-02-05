@@ -706,17 +706,17 @@ npx endurance-coach interviews get <interview_id>
 
 Before release:
 
-- [ ] Fresh install works (no prior database)
-- [ ] Upgrade from 1.3.0 works (existing database)
+- [x] Fresh install works (no prior database)
+- [x] Upgrade from 1.3.0 works (existing database)
 - [x] `interview --list` auto-syncs when data is stale
 - [x] `interview --list` skips sync when data is fresh (today's activity exists)
 - [x] `interview --list` handles sync failure gracefully (returns cached + warning)
 - [x] `interview --latest` auto-syncs and selects most recent activity
 - [ ] `interview --latest --laps` includes lap data
 - [x] `interview <id>` works with specific workout ID (no auto-sync needed)
-- [ ] Interview with Strava-synced workout includes lap data and triggers
+- [x] Interview with Strava-synced workout includes lap data and triggers
 - [ ] `interview --manual` returns conversational capture prompt
-- [ ] `activity-record` persists manual activity
+- [x] `activity-record` persists manual activity
 - [ ] Interview without Strava (manual entry) works end-to-end
 - [ ] Multiple interviews same workout works
 - [ ] Trigger configuration persists across sessions
