@@ -95,7 +95,7 @@ export async function savePreliminaryNote(args: PreliminaryNoteSaveArgs): Promis
   const result = db
     .prepare(
       `
-      INSERT INTO preliminary_coach_notes (workout_id, note_draft)
+      INSERT OR REPLACE INTO preliminary_coach_notes (workout_id, note_draft)
       VALUES (?, ?)
       `
     )

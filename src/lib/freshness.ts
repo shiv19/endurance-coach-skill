@@ -41,6 +41,25 @@ function getMostRecentActivityDate(): Date | null {
 }
 
 /**
+ * Query the database for the most recent sync timestamp.
+ */
+function getMostRecentSyncTime(): Date | null {
+  try {
+    const rows = queryJson<{ completed_at: string }>(
+      "SELECT completed_at FROM sync_log ORDER BY completed_at DESC LIMIT 1"
+    );
+    if (rows.length === 0) {
+      return null;
+    }
+    // SQLite stores timestamps in UTC without 'Z' suffix
+    // Append 'Z' to parse as UTC instead of local time
+    return new Date(rows[0].completed_at + "Z");
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Ensure that activity data is fresh before any command reads it.
  *
  * This function:
@@ -92,32 +111,42 @@ export async function ensureFreshData(options: FreshnessOptions = {}): Promise<F
     return { synced: true, syncedCount: result.syncedCount };
   }
 
+  // Check when we last synced (supports multiple workouts per day)
+  const lastSyncTime = getMostRecentSyncTime();
+  const now = new Date();
+
+  // Consider data fresh if we synced within the last 2 hours
+  const FRESHNESS_THRESHOLD_HOURS = 2;
+  if (lastSyncTime) {
+    const hoursSinceSync = (now.getTime() - lastSyncTime.getTime()) / (1000 * 60 * 60);
+    if (hoursSinceSync < FRESHNESS_THRESHOLD_HOURS) {
+      if (verbose) {
+        log.info(`Data is fresh (synced ${Math.round(hoursSinceSync * 60)} minutes ago).`);
+      }
+      return { synced: false, reason: "fresh" };
+    }
+  }
+
+  // Calculate how many days back to sync based on latest activity date
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const latestDateNormalized = new Date(latestDate);
   latestDateNormalized.setHours(0, 0, 0, 0);
 
-  if (latestDateNormalized >= today) {
-    if (verbose) {
-      log.info("Activity data is fresh (latest activity is from today).");
-    }
-    return { synced: false, reason: "fresh" };
-  }
-
   const daysDiff = Math.floor(
     (today.getTime() - latestDateNormalized.getTime()) / (1000 * 60 * 60 * 24)
   );
-  const syncDays = Math.min(daysDiff, 30);
-
-  if (syncDays <= 0) {
-    if (verbose) {
-      log.info("Activity data is fresh.");
-    }
-    return { synced: false, reason: "fresh" };
-  }
+  const syncDays = Math.max(Math.min(daysDiff + 1, 30), 1); // At least 1 day to catch today's activities
 
   if (verbose) {
-    log.info(`Latest activity is from ${daysDiff} days ago. Syncing last ${syncDays} days...`);
+    if (lastSyncTime) {
+      const hoursSinceSync = (now.getTime() - lastSyncTime.getTime()) / (1000 * 60 * 60);
+      log.info(
+        `Last sync was ${Math.round(hoursSinceSync * 60)} minutes ago. Syncing last ${syncDays} days...`
+      );
+    } else {
+      log.info(`Latest activity is from ${daysDiff} days ago. Syncing last ${syncDays} days...`);
+    }
   }
 
   if (noSync) {

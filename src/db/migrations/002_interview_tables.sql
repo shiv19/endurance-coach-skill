@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS workout_interviews (
   coach_notes TEXT,
   coach_confidence TEXT NOT NULL CHECK (coach_confidence IN ('Low', 'Medium', 'High')),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (workout_id) REFERENCES activities(id) ON DELETE CASCADE
+  FOREIGN KEY (workout_id) REFERENCES activities(id)
 );
 
 -- Indexes for performance and pattern detection queries
@@ -26,10 +26,10 @@ CREATE INDEX IF NOT EXISTS idx_workout_interviews_workout_created ON workout_int
 
 CREATE TABLE IF NOT EXISTS preliminary_coach_notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  workout_id INTEGER NOT NULL,
+  workout_id INTEGER NOT NULL UNIQUE,
   note_draft TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (workout_id) REFERENCES activities(id) ON DELETE CASCADE
+  FOREIGN KEY (workout_id) REFERENCES activities(id)
 );
 
 -- Index for looking up preliminary notes by workout
