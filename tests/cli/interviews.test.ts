@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { initDatabase, resetDatabaseCache, getDb } from "../../src/db/client.js";
-import { listInterviews, getInterview } from "../../src/cli/commands/interviews.js";
+import {
+  queryInterviews,
+  queryInterviewById,
+  listInterviews,
+  getInterview,
+} from "../../src/cli/commands/interviews.js";
 import { log } from "../../src/lib/logging.js";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -74,7 +79,7 @@ describe("interviews", () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  describe("listInterviews", () => {
+  describe("queryInterviews", () => {
     beforeEach(async () => {
       const db = getDb();
 
@@ -89,79 +94,59 @@ describe("interviews", () => {
       ).run(1, "Another interview", "Consistency is key", "Low");
     });
 
-    it("should list all interviews with no filters", async () => {
+    it("should return all interviews with no filters", async () => {
       const args = {
         command: "interviews" as const,
         subcommand: "list" as const,
       };
 
-      await listInterviews(args);
+      const interviews = await queryInterviews(args);
 
-      const db = getDb();
-      const allInterviews = db
-        .prepare("SELECT COUNT(*) as count FROM workout_interviews")
-        .get() as {
-        count: number;
-      };
-
-      expect(allInterviews.count).toBe(3);
+      expect(interviews).toHaveLength(3);
+      expect(interviews[0]).toHaveProperty("id");
+      expect(interviews[0]).toHaveProperty("workout_id");
+      expect(interviews[0]).toHaveProperty("created_at");
+      expect(interviews[0]).toHaveProperty("coach_confidence");
+      expect(interviews[0]).toHaveProperty("athlete_reflection_summary");
     });
 
-    it("should list interviews filtered by workout ID", async () => {
+    it("should return interviews filtered by workout ID", async () => {
       const args = {
         command: "interviews" as const,
         subcommand: "list" as const,
         workout: 1,
       };
 
-      await listInterviews(args);
+      const interviews = await queryInterviews(args);
 
-      const db = getDb();
-      const filteredInterviews = db
-        .prepare("SELECT COUNT(*) as count FROM workout_interviews WHERE workout_id = ?")
-        .get(1) as { count: number };
-
-      expect(filteredInterviews.count).toBe(2);
+      expect(interviews).toHaveLength(2);
+      expect(interviews.every((i) => i.workout_id === 1)).toBe(true);
     });
 
-    it("should list interviews with custom limit", async () => {
+    it("should return interviews with custom limit", async () => {
       const args = {
         command: "interviews" as const,
         subcommand: "list" as const,
         limit: 1,
       };
 
-      await listInterviews(args);
+      const interviews = await queryInterviews(args);
 
-      const db = getDb();
-      const interviews = db
-        .prepare("SELECT id FROM workout_interviews ORDER BY created_at DESC LIMIT 1")
-        .all() as {
-        id: number;
-      }[];
-
-      expect(interviews.length).toBe(1);
+      expect(interviews).toHaveLength(1);
     });
 
-    it("should handle default limit of 10", async () => {
+    it("should respect default limit of 10", async () => {
       const args = {
         command: "interviews" as const,
         subcommand: "list" as const,
       };
 
-      await listInterviews(args);
+      const interviews = await queryInterviews(args);
 
-      const db = getDb();
-      const allInterviews = db
-        .prepare("SELECT COUNT(*) as count FROM workout_interviews")
-        .get() as {
-        count: number;
-      };
-
-      expect(allInterviews.count).toBe(3);
+      expect(interviews).toHaveLength(3);
     });
 
-    it("should handle empty database gracefully", async () => {
+    it("should return empty array when database is empty", async () => {
       const db = getDb();
       db.exec("DELETE FROM workout_interviews");
 
@@ -170,112 +155,84 @@ describe("interviews", () => {
         subcommand: "list" as const,
       };
 
-      await listInterviews(args);
+      const interviews = await queryInterviews(args);
 
-      const interviews = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
-        count: number;
-      };
-
-      expect(interviews.count).toBe(0);
+      expect(interviews).toHaveLength(0);
     });
 
-    it("should list all interviews with no filters", async () => {
+    it("should return interviews ordered by created_at DESC", async () => {
       const args = {
         command: "interviews" as const,
         subcommand: "list" as const,
       };
 
-      const logInfoSpy = vi.spyOn(log, "info");
-      await listInterviews(args);
+      const interviews = await queryInterviews(args);
 
+      expect(interviews.length).toBeGreaterThan(1);
+      const dates = interviews.map((i) => new Date(i.created_at).getTime());
+      expect(dates).toEqual([...dates].sort((a, b) => b - a));
+    });
+  });
+
+  describe("queryInterviewById", () => {
+    beforeEach(async () => {
       const db = getDb();
-      const allInterviews = db
-        .prepare("SELECT COUNT(*) as count FROM workout_interviews")
-        .get() as {
-        count: number;
-      };
 
-      expect(logInfoSpy).toHaveBeenCalled();
-      // Find the call that contains the table output (has "ID" header)
-      const tableCall = logInfoSpy.mock.calls.find((call) => (call[0] as string).includes("ID"));
-      expect(tableCall).toBeDefined();
-      const output = tableCall![0] as string;
-      expect(output).toContain("Workout");
-      expect(output).toContain("Created At");
-      expect(output).toContain("Confidence");
-      expect(output).toContain("Reflection");
-      expect(allInterviews.count).toBe(3);
-      logInfoSpy.mockRestore();
+      db.prepare(
+        "INSERT INTO workout_interviews (workout_id, athlete_reflection_summary, coach_notes, coach_confidence) VALUES (?, ?, ?, ?)"
+      ).run(1, "Felt great today", "Good pace control", "High");
     });
 
-    it("should list interviews filtered by workout ID", async () => {
-      const args = {
-        command: "interviews" as const,
-        subcommand: "list" as const,
-        workout: 1,
-      };
-
-      const logInfoSpy = vi.spyOn(log, "info");
-      await listInterviews(args);
-
+    it("should return interview by ID with all fields", async () => {
       const db = getDb();
-      const filteredInterviews = db
-        .prepare("SELECT COUNT(*) as count FROM workout_interviews WHERE workout_id = ?")
-        .get(1) as { count: number };
+      const interview = db
+        .prepare("SELECT id FROM workout_interviews WHERE workout_id = ?")
+        .get(1) as { id: number };
 
-      expect(logInfoSpy).toHaveBeenCalled();
-      // Find the call that contains the table output (has "ID" header)
-      const tableCall = logInfoSpy.mock.calls.find((call) => (call[0] as string).includes("ID"));
-      expect(tableCall).toBeDefined();
-      const output = tableCall![0] as string;
-      expect(output).toContain("Workout");
-      expect(filteredInterviews.count).toBe(2);
-      logInfoSpy.mockRestore();
+      const result = await queryInterviewById(interview.id);
+
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(interview.id);
+      expect(result!.workout_id).toBe(1);
+      expect(result!.athlete_reflection_summary).toBe("Felt great today");
+      expect(result!.coach_notes).toBe("Good pace control");
+      expect(result!.coach_confidence).toBe("High");
+      expect(result!.created_at).toBeDefined();
     });
 
-    it("should list interviews with custom limit", async () => {
-      const args = {
-        command: "interviews" as const,
-        subcommand: "list" as const,
-        limit: 1,
-      };
+    it("should return null for non-existent interview", async () => {
+      const result = await queryInterviewById(999);
 
-      const logInfoSpy = vi.spyOn(log, "info");
-      await listInterviews(args);
-
-      // Find the call that contains the table output (has "ID" header)
-      const tableCall = logInfoSpy.mock.calls.find((call) => (call[0] as string).includes("ID"));
-      expect(tableCall).toBeDefined();
-      const output = tableCall![0] as string;
-      const lines = output.split("\n");
-
-      // Table has header + separator + 1 data row = at least 3 lines
-      expect(lines.length).toBeGreaterThanOrEqual(3);
-      logInfoSpy.mockRestore();
+      expect(result).toBeNull();
     });
 
-    it("should handle default limit of 10", async () => {
-      const args = {
-        command: "interviews" as const,
-        subcommand: "list" as const,
-      };
-
-      const logInfoSpy = vi.spyOn(log, "info");
-      await listInterviews(args);
-
+    it("should return interview with all required fields", async () => {
       const db = getDb();
-      const allInterviews = db
-        .prepare("SELECT COUNT(*) as count FROM workout_interviews")
-        .get() as {
-        count: number;
-      };
+      const interview = db
+        .prepare("SELECT id FROM workout_interviews WHERE workout_id = ?")
+        .get(1) as { id: number };
 
-      expect(logInfoSpy).toHaveBeenCalled();
-      expect(allInterviews.count).toBe(3);
-      logInfoSpy.mockRestore();
+      const result = await queryInterviewById(interview.id);
+
+      expect(result).toHaveProperty("id");
+      expect(result).toHaveProperty("workout_id");
+      expect(result).toHaveProperty("created_at");
+      expect(result).toHaveProperty("coach_confidence");
+      expect(result).toHaveProperty("athlete_reflection_summary");
+      expect(result).toHaveProperty("coach_notes");
+    });
+  });
+
+  describe("listInterviews", () => {
+    beforeEach(async () => {
+      const db = getDb();
+
+      db.prepare(
+        "INSERT INTO workout_interviews (workout_id, athlete_reflection_summary, coach_notes, coach_confidence) VALUES (?, ?, ?, ?)"
+      ).run(1, "Felt great today", "Good pace control", "High");
     });
 
-    it("should display no interviews message when database is empty", async () => {
+    it("should log message when no interviews found", async () => {
       const db = getDb();
       db.exec("DELETE FROM workout_interviews");
 
@@ -290,6 +247,19 @@ describe("interviews", () => {
       expect(logInfoSpy).toHaveBeenCalledWith("No interviews found.");
       logInfoSpy.mockRestore();
     });
+
+    it("should log formatted table when interviews exist", async () => {
+      const args = {
+        command: "interviews" as const,
+        subcommand: "list" as const,
+      };
+
+      const logInfoSpy = vi.spyOn(log, "info");
+      await listInterviews(args);
+
+      expect(logInfoSpy).toHaveBeenCalled();
+      logInfoSpy.mockRestore();
+    });
   });
 
   describe("getInterview", () => {
@@ -301,7 +271,34 @@ describe("interviews", () => {
       ).run(1, "Felt great today", "Good pace control", "High");
     });
 
-    it("should get interview by ID", async () => {
+    it("should log error and exit for non-existent interview", async () => {
+      const args = {
+        command: "interviews" as const,
+        subcommand: "get" as const,
+        interviewId: 999,
+      };
+
+      const logErrorSpy = vi.spyOn(log, "error");
+      const originalExit = process.exit;
+      let exitCalled = false;
+      process.exit = () => {
+        exitCalled = true;
+        throw new Error("Exit called");
+      };
+
+      try {
+        await expect(async () => {
+          await getInterview(args);
+        }).rejects.toThrow("Exit called");
+        expect(exitCalled).toBe(true);
+        expect(logErrorSpy).toHaveBeenCalledWith("Interview with ID 999 not found");
+      } finally {
+        process.exit = originalExit;
+        logErrorSpy.mockRestore();
+      }
+    });
+
+    it("should log interview JSON when found", async () => {
       const db = getDb();
       const interview = db
         .prepare("SELECT id FROM workout_interviews WHERE workout_id = ?")
@@ -317,72 +314,12 @@ describe("interviews", () => {
       await getInterview(args);
 
       expect(logInfoSpy).toHaveBeenCalled();
-      // Find the call that contains JSON output (starts with '{')
       const jsonCall = logInfoSpy.mock.calls.find((call) =>
         (call[0] as string).trim().startsWith("{")
       );
       expect(jsonCall).toBeDefined();
-      const output = JSON.parse(jsonCall![0] as string);
-      expect(output.id).toBe(interview.id);
-      expect(output.workout_id).toBe(1);
-      expect(output.athlete_reflection_summary).toBe("Felt great today");
-      expect(output.coach_notes).toBe("Good pace control");
-      expect(output.coach_confidence).toBe("High");
-      expect(output.created_at).toBeDefined();
-      logInfoSpy.mockRestore();
-    });
-
-    it("should exit with error for non-existent interview", async () => {
-      const args = {
-        command: "interviews" as const,
-        subcommand: "get" as const,
-        interviewId: 999,
-      };
-
-      const originalExit = process.exit;
-      let exitCalled = false;
-      process.exit = () => {
-        exitCalled = true;
-        throw new Error("Exit called");
-      };
-
-      try {
-        await expect(async () => {
-          await getInterview(args);
-        }).rejects.toThrow("Exit called");
-        expect(exitCalled).toBe(true);
-      } finally {
-        process.exit = originalExit;
-      }
-    });
-
-    it("should return full interview with all fields", async () => {
-      const db = getDb();
-      const interview = db
-        .prepare("SELECT id FROM workout_interviews WHERE workout_id = ?")
-        .get(1) as { id: number };
-
-      const args = {
-        command: "interviews" as const,
-        subcommand: "get" as const,
-        interviewId: interview.id,
-      };
-
-      const logInfoSpy = vi.spyOn(log, "info");
-      await getInterview(args);
-
-      // Find the call that contains JSON output (starts with '{')
-      const jsonCall = logInfoSpy.mock.calls.find((call) =>
-        (call[0] as string).trim().startsWith("{")
-      );
-      expect(jsonCall).toBeDefined();
-      const output = JSON.parse(jsonCall![0] as string);
-      expect(Object.keys(output)).toContain("id");
-      expect(Object.keys(output)).toContain("workout_id");
-      expect(Object.keys(output)).toContain("created_at");
-      expect(Object.keys(output)).toContain("coach_confidence");
-      expect(Object.keys(output)).toContain("athlete_reflection_summary");
-      expect(Object.keys(output)).toContain("coach_notes");
+      const parsed = JSON.parse(jsonCall![0] as string);
+      expect(parsed.id).toBe(interview.id);
       logInfoSpy.mockRestore();
     });
   });

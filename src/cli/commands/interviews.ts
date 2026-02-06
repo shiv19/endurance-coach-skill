@@ -15,7 +15,7 @@ interface InterviewDetail extends InterviewSummary {
   coach_notes: string;
 }
 
-export async function listInterviews(args: InterviewsListArgs): Promise<void> {
+export async function queryInterviews(args: InterviewsListArgs): Promise<InterviewSummary[]> {
   await initDatabase();
 
   const db = getDb();
@@ -41,20 +41,10 @@ export async function listInterviews(args: InterviewsListArgs): Promise<void> {
   params.push(limit);
 
   const stmt = db.prepare(sql);
-  const interviews = stmt.all(...params) as InterviewSummary[];
-
-  if (interviews.length === 0) {
-    log.info("No interviews found.");
-    return;
-  }
-
-  const headers = ["ID", "Workout", "Created At", "Confidence", "Reflection"];
-  const keys = ["id", "workout_id", "created_at", "coach_confidence", "athlete_reflection_summary"];
-
-  log.info(formatTable(interviews as unknown as Record<string, unknown>[], headers, keys));
+  return stmt.all(...params) as InterviewSummary[];
 }
 
-export async function getInterview(args: InterviewsGetArgs): Promise<void> {
+export async function queryInterviewById(interviewId: number): Promise<InterviewDetail | null> {
   await initDatabase();
 
   const db = getDb();
@@ -71,14 +61,36 @@ export async function getInterview(args: InterviewsGetArgs): Promise<void> {
   `;
 
   const stmt = db.prepare(sql);
-  const interviews = stmt.all(args.interviewId) as InterviewDetail[];
+  const interviews = stmt.all(interviewId) as InterviewDetail[];
 
   if (interviews.length === 0) {
+    return null;
+  }
+
+  return interviews[0];
+}
+
+export async function listInterviews(args: InterviewsListArgs): Promise<void> {
+  const interviews = await queryInterviews(args);
+
+  if (interviews.length === 0) {
+    log.info("No interviews found.");
+    return;
+  }
+
+  const headers = ["ID", "Workout", "Created At", "Confidence", "Reflection"];
+  const keys = ["id", "workout_id", "created_at", "coach_confidence", "athlete_reflection_summary"];
+
+  log.info(formatTable(interviews as unknown as Record<string, unknown>[], headers, keys));
+}
+
+export async function getInterview(args: InterviewsGetArgs): Promise<void> {
+  const interview = await queryInterviewById(args.interviewId);
+
+  if (!interview) {
     log.error(`Interview with ID ${args.interviewId} not found`);
     process.exit(1);
   }
-
-  const interview = interviews[0];
 
   log.info(JSON.stringify(interview, null, 2));
 }

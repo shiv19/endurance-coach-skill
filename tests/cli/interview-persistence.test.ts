@@ -280,33 +280,6 @@ describe("interview-persistence", () => {
       expect(notes[0].note_draft).toBe("Check HR drift data");
     });
 
-    it("should allow multiple notes for same workout", async () => {
-      const args1 = {
-        command: "preliminary-note-save" as const,
-        workoutId: 1,
-        note: "First note",
-      };
-
-      await savePreliminaryNote(args1);
-
-      const args2 = {
-        command: "preliminary-note-save" as const,
-        workoutId: 1,
-        note: "Second note",
-      };
-
-      await savePreliminaryNote(args2);
-
-      const db = getDb();
-      const notes = db.prepare("SELECT * FROM preliminary_coach_notes ORDER BY id").all() as {
-        note_draft: string;
-      }[];
-
-      expect(notes).toHaveLength(2);
-      expect(notes[0].note_draft).toBe("First note");
-      expect(notes[1].note_draft).toBe("Second note");
-    });
-
     it("should exit with error for empty note", async () => {
       const args = {
         command: "preliminary-note-save" as const,

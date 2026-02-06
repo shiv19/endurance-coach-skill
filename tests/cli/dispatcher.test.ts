@@ -72,12 +72,6 @@ describe("cli dispatcher", () => {
       printHelp: vi.fn(),
     }));
 
-    vi.doMock("../../src/lib/logging.js", () => ({
-      log: {
-        error: vi.fn(),
-      },
-    }));
-
     await import("../../src/cli/index.js");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -85,6 +79,22 @@ describe("cli dispatcher", () => {
   });
 
   it("logs errors and exits when a handler throws", async () => {
+    const errorSpy = vi.fn();
+    vi.doMock("../../src/lib/logging.js", () => ({
+      log: {
+        error: errorSpy,
+        info: vi.fn(),
+        warn: vi.fn(),
+        success: vi.fn(),
+        debug: vi.fn(),
+        box: vi.fn(),
+        start: vi.fn(),
+        ready: vi.fn(),
+        progress: vi.fn(),
+        progressEnd: vi.fn(),
+      },
+    }));
+
     const mocks = mockCommandModules();
     const args = { command: "sync" } as const;
 
@@ -92,19 +102,12 @@ describe("cli dispatcher", () => {
       parseArgs: () => args,
     }));
 
-    const errorSpy = vi.fn();
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
 
     mocks.runSync.mockRejectedValue(new Error("boom"));
 
     vi.doMock("../../src/cli/help.js", () => ({
       printHelp: vi.fn(),
-    }));
-
-    vi.doMock("../../src/lib/logging.js", () => ({
-      log: {
-        error: errorSpy,
-      },
     }));
 
     await import("../../src/cli/index.js");
@@ -131,12 +134,6 @@ describe("cli dispatcher", () => {
 
     vi.doMock("../../src/cli/help.js", () => ({
       printHelp: vi.fn(),
-    }));
-
-    vi.doMock("../../src/lib/logging.js", () => ({
-      log: {
-        error: vi.fn(),
-      },
     }));
 
     const undici = await import("undici");

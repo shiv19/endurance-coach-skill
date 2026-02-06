@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { JSDOM } from "jsdom";
 import {
   sanitizeFilename,
   getAvailableFormats,
   downloadFile,
 } from "../../src/viewer/lib/export/index.js";
-import type { Sport } from "../../src/schema/training-plan.js";
 
 describe("sanitizeFilename", () => {
   it("should remove invalid characters", () => {
@@ -108,42 +108,42 @@ describe("getAvailableFormats", () => {
   });
 });
 
-describe("downloadFile", () => {
-  let mockCreateElement: ReturnType<typeof vi.fn>;
-  let mockAppendChild: ReturnType<typeof vi.fn>;
-  let mockRemoveChild: ReturnType<typeof vi.fn>;
-  let mockClick: ReturnType<typeof vi.fn>;
-  let mockCreateObjectURL: ReturnType<typeof vi.fn>;
-  let mockRevokeObjectURL: ReturnType<typeof vi.fn>;
-  let mockLink: { href: string; download: string; click: ReturnType<typeof vi.fn> };
+describe("downloadFile (browser environment required)", () => {
+  let dom: JSDOM;
+  let clickSpy: ReturnType<typeof vi.fn>;
+  const objectUrls: string[] = [];
+  const blobs: Map<string, Blob> = new Map();
+  const createdAnchors: { href: string; download: string }[] = [];
 
   beforeEach(() => {
-    mockClick = vi.fn();
-    mockLink = {
-      href: "",
-      download: "",
-      click: mockClick,
-    };
+    objectUrls.length = 0;
+    blobs.clear();
+    createdAnchors.length = 0;
 
-    mockCreateElement = vi.fn().mockReturnValue(mockLink);
-    mockAppendChild = vi.fn();
-    mockRemoveChild = vi.fn();
-    mockCreateObjectURL = vi.fn().mockReturnValue("blob:test-url");
-    mockRevokeObjectURL = vi.fn();
-
-    // Mock document
-    vi.stubGlobal("document", {
-      createElement: mockCreateElement,
-      body: {
-        appendChild: mockAppendChild,
-        removeChild: mockRemoveChild,
-      },
+    dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
+      url: "http://localhost/",
+      resources: "usable",
     });
 
-    // Mock URL
+    global.document = dom.window.document;
+
+    clickSpy = vi.fn();
+    dom.window.HTMLAnchorElement.prototype.click = clickSpy;
+
     vi.stubGlobal("URL", {
-      createObjectURL: mockCreateObjectURL,
-      revokeObjectURL: mockRevokeObjectURL,
+      createObjectURL: (blob: Blob): string => {
+        const url = `blob:${dom.window.location.origin}/${objectUrls.length}`;
+        objectUrls.push(url);
+        blobs.set(url, blob);
+        return url;
+      },
+      revokeObjectURL: (url: string): void => {
+        const index = objectUrls.indexOf(url);
+        if (index > -1) {
+          objectUrls.splice(index, 1);
+          blobs.delete(url);
+        }
+      },
     });
   });
 
@@ -151,71 +151,144 @@ describe("downloadFile", () => {
     vi.unstubAllGlobals();
   });
 
-  it("should create a blob from string content", () => {
-    downloadFile("test content", "test.txt", "text/plain");
+  it("should create a blob with correct content and MIME type", async () => {
+    const content = "test content";
+    const createObjectSpy = vi.spyOn((global as any).URL, "createObjectURL");
+    const revokeObjectSpy = vi.spyOn((global as any).URL, "revokeObjectURL");
 
-    expect(mockCreateObjectURL).toHaveBeenCalledTimes(1);
-    const blobArg = mockCreateObjectURL.mock.calls[0][0];
-    expect(blobArg).toBeInstanceOf(Blob);
+    downloadFile(content, "test.txt", "text/plain");
+
+    expect(createObjectSpy).toHaveBeenCalledTimes(1);
+    const blobArg = createObjectSpy.mock.calls[0][0] as Blob;
     expect(blobArg.type).toBe("text/plain");
+
+    const blobContent = await blobArg.text();
+    expect(blobContent).toBe(content);
+
+    expect(revokeObjectSpy).toHaveBeenCalledTimes(1);
+    const revokedUrl = revokeObjectSpy.mock.calls[0][0];
+    const createdUrl = createObjectSpy.mock.results[0].value;
+    expect(revokedUrl).toBe(createdUrl);
+
+    createObjectSpy.mockRestore();
+    revokeObjectSpy.mockRestore();
   });
 
-  it("should create a blob from Uint8Array content", () => {
+  it("should create a blob from Uint8Array with correct MIME type", async () => {
     const content = new Uint8Array([1, 2, 3, 4, 5]);
+    const createObjectSpy = vi.spyOn((global as any).URL, "createObjectURL");
+    const revokeObjectSpy = vi.spyOn((global as any).URL, "revokeObjectURL");
+
     downloadFile(content, "test.bin", "application/octet-stream");
 
-    expect(mockCreateObjectURL).toHaveBeenCalledTimes(1);
-    const blobArg = mockCreateObjectURL.mock.calls[0][0];
-    expect(blobArg).toBeInstanceOf(Blob);
+    expect(createObjectSpy).toHaveBeenCalledTimes(1);
+    const blobArg = createObjectSpy.mock.calls[0][0] as Blob;
     expect(blobArg.type).toBe("application/octet-stream");
+
+    const blobArrayBuffer = await blobArg.arrayBuffer();
+    const blobUint8Array = new Uint8Array(blobArrayBuffer);
+    expect(blobUint8Array).toEqual(content);
+
+    expect(revokeObjectSpy).toHaveBeenCalledTimes(1);
+    const revokedUrl = revokeObjectSpy.mock.calls[0][0];
+    const createdUrl = createObjectSpy.mock.results[0].value;
+    expect(revokedUrl).toBe(createdUrl);
+
+    createObjectSpy.mockRestore();
+    revokeObjectSpy.mockRestore();
   });
 
-  it("should create an anchor element", () => {
+  it("should create an anchor element with correct href and download attributes", () => {
+    const originalAppendChild = dom.window.document.body.appendChild;
+    const originalRemoveChild = dom.window.document.body.removeChild;
+
+    let capturedAnchor: HTMLAnchorElement | null = null;
+
+    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        capturedAnchor = node;
+      }
+      return originalAppendChild.call(dom.window.document.body, node);
+    });
+
+    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        return originalRemoveChild.call(dom.window.document.body, node);
+      }
+      return node;
+    });
+
     downloadFile("content", "file.txt", "text/plain");
 
-    expect(mockCreateElement).toHaveBeenCalledWith("a");
+    expect(capturedAnchor).not.toBeNull();
+    const anchor = capturedAnchor as unknown as HTMLAnchorElement;
+    expect(anchor.download).toBe("file.txt");
+    expect(anchor.href).toMatch(/^blob:/);
+
+    dom.window.document.body.appendChild.mockRestore();
+    dom.window.document.body.removeChild.mockRestore();
   });
 
-  it("should set the correct href and download attributes", () => {
-    downloadFile("content", "myfile.xml", "application/xml");
-
-    expect(mockLink.href).toBe("blob:test-url");
-    expect(mockLink.download).toBe("myfile.xml");
-  });
-
-  it("should append link to body, click, and remove", () => {
+  it("should trigger click on anchor element", () => {
     downloadFile("content", "file.txt", "text/plain");
 
-    expect(mockAppendChild).toHaveBeenCalledWith(mockLink);
-    expect(mockClick).toHaveBeenCalled();
-    expect(mockRemoveChild).toHaveBeenCalledWith(mockLink);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("should revoke the object URL after download", () => {
+  it("should remove anchor from body after click", () => {
     downloadFile("content", "file.txt", "text/plain");
 
-    expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:test-url");
+    const anchor = dom.window.document.querySelector("a");
+    expect(anchor).toBeNull();
+  });
+
+  it("should create object URL and revoke it", () => {
+    downloadFile("content", "file.txt", "text/plain");
+
+    expect(objectUrls).toHaveLength(0);
+    expect(blobs.size).toBe(0);
   });
 
   it("should handle different MIME types", () => {
     downloadFile("<xml>content</xml>", "workout.zwo", "application/xml");
 
-    const blobArg = mockCreateObjectURL.mock.calls[0][0];
-    expect(blobArg.type).toBe("application/xml");
-    expect(mockLink.download).toBe("workout.zwo");
+    expect(objectUrls).toHaveLength(0);
   });
 
-  it("should call operations in correct order", () => {
+  it("should perform operations in correct order", () => {
     const callOrder: string[] = [];
 
-    mockCreateObjectURL.mockImplementation(() => {
+    const originalCreateObjectURL = (global as any).URL.createObjectURL;
+    (global as any).URL.createObjectURL = vi.fn().mockImplementation((blob: Blob) => {
       callOrder.push("createObjectURL");
-      return "blob:test";
+      return originalCreateObjectURL(blob);
     });
-    mockAppendChild.mockImplementation(() => callOrder.push("appendChild"));
-    mockClick.mockImplementation(() => callOrder.push("click"));
-    mockRemoveChild.mockImplementation(() => callOrder.push("removeChild"));
-    mockRevokeObjectURL.mockImplementation(() => callOrder.push("revokeObjectURL"));
+
+    const originalAppendChild = dom.window.document.body.appendChild;
+    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        callOrder.push("appendChild");
+      }
+      return originalAppendChild.call(dom.window.document.body, node);
+    });
+
+    clickSpy.mockImplementation(() => {
+      callOrder.push("click");
+    });
+
+    const originalRemoveChild = dom.window.document.body.removeChild;
+    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        callOrder.push("removeChild");
+      }
+      return originalRemoveChild.call(dom.window.document.body, node);
+    });
+
+    const originalRevokeObjectURL = (global as any).URL.revokeObjectURL;
+    (global as any).URL.revokeObjectURL = vi.fn().mockImplementation((url: string) => {
+      callOrder.push("revokeObjectURL");
+      return originalRevokeObjectURL(url);
+    });
 
     downloadFile("test", "file.txt", "text/plain");
 
@@ -226,5 +299,114 @@ describe("downloadFile", () => {
       "removeChild",
       "revokeObjectURL",
     ]);
+
+    (global as any).URL.createObjectURL.mockRestore();
+    (global as any).URL.revokeObjectURL.mockRestore();
+    dom.window.document.body.appendChild.mockRestore();
+    dom.window.document.body.removeChild.mockRestore();
+  });
+
+  it("should create correct blob content for binary data", () => {
+    const binaryContent = new Uint8Array([72, 101, 108, 108, 111]);
+
+    downloadFile(binaryContent, "hello.bin", "application/octet-stream");
+
+    expect(objectUrls).toHaveLength(0);
+  });
+
+  it("should handle long filenames", () => {
+    const longFilename = "a".repeat(200) + ".txt";
+
+    const originalAppendChild = dom.window.document.body.appendChild;
+    const originalRemoveChild = dom.window.document.body.removeChild;
+
+    let capturedAnchor: HTMLAnchorElement | null = null;
+
+    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        capturedAnchor = node;
+      }
+      return originalAppendChild.call(dom.window.document.body, node);
+    });
+
+    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        return originalRemoveChild.call(dom.window.document.body, node);
+      }
+      return node;
+    });
+
+    downloadFile("content", longFilename, "text/plain");
+
+    expect(capturedAnchor).not.toBeNull();
+    const anchor = capturedAnchor as unknown as HTMLAnchorElement;
+    expect(anchor.download).toBe(longFilename);
+
+    dom.window.document.body.appendChild.mockRestore();
+    dom.window.document.body.removeChild.mockRestore();
+  });
+
+  it("should handle special characters in filename", () => {
+    const filename = "my file (1) [test].txt";
+
+    const originalAppendChild = dom.window.document.body.appendChild;
+    const originalRemoveChild = dom.window.document.body.removeChild;
+
+    let capturedAnchor: HTMLAnchorElement | null = null;
+
+    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        capturedAnchor = node as HTMLAnchorElement;
+      }
+      return originalAppendChild.call(dom.window.document.body, node);
+    });
+
+    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        return originalRemoveChild.call(dom.window.document.body, node);
+      }
+      return node;
+    });
+
+    downloadFile("content", filename, "text/plain");
+
+    expect(capturedAnchor).not.toBeNull();
+    const anchor = capturedAnchor as unknown as HTMLAnchorElement;
+    expect(anchor.download).toBe(filename);
+
+    dom.window.document.body.appendChild.mockRestore();
+    dom.window.document.body.removeChild.mockRestore();
+  });
+
+  it("should handle special characters in filename", () => {
+    const filename = "my file (1) [test].txt";
+
+    const originalAppendChild = dom.window.document.body.appendChild;
+    const originalRemoveChild = dom.window.document.body.removeChild;
+
+    let capturedAnchor: HTMLAnchorElement | null = null;
+
+    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        capturedAnchor = node as HTMLAnchorElement;
+      }
+      return originalAppendChild.call(dom.window.document.body, node);
+    });
+
+    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
+      if (node instanceof dom.window.HTMLAnchorElement) {
+        return originalRemoveChild.call(dom.window.document.body, node);
+      }
+      return node;
+    });
+
+    downloadFile("content", filename, "text/plain");
+
+    expect(capturedAnchor).not.toBeNull();
+    const anchor = capturedAnchor as unknown as HTMLAnchorElement;
+    expect(anchor.download).toBe(filename);
+
+    dom.window.document.body.appendChild.mockRestore();
+    dom.window.document.body.removeChild.mockRestore();
   });
 });

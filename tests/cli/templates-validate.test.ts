@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdirSync, rmSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
@@ -39,7 +39,7 @@ describe("templates validate command", () => {
   });
 
   describe("valid templates", () => {
-    it("should validate a valid built-in template", () => {
+    it("should not throw error for valid built-in template", () => {
       const args: TemplatesArgs = {
         command: "templates",
         validate: "run.easy",
@@ -48,7 +48,7 @@ describe("templates validate command", () => {
       expect(() => runTemplates(args)).not.toThrow();
     });
 
-    it("should validate a valid user template", () => {
+    it("should not throw error for valid user template", () => {
       const userTemplate = `id: custom_easy
 name: Custom Easy Run
 sport: run
@@ -67,17 +67,34 @@ humanReadable: Easy run at comfortable pace`;
       expect(() => runTemplates(args)).not.toThrow();
     });
 
-    it("should report success for valid template", () => {
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    it("should load valid user template from correct file path", () => {
+      const userTemplate = `id: path_test
+name: Path Test
+sport: run
+type: easy
+category: recovery
+humanReadable: Test`;
+
+      createTemplateFile(testDir, "run", "path_test.yaml", userTemplate);
+
       const args: TemplatesArgs = {
         command: "templates",
-        validate: "run.easy",
+        validate: "path_test",
+        userTemplatesDir: testDir,
       };
 
-      runTemplates(args);
+      const templates = loadTemplates({
+        includeUserTemplates: true,
+        userTemplatesDir: testDir,
+      });
 
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("valid"));
-      logSpy.mockRestore();
+      const template = templates.get("path_test");
+      expect(template).toBeDefined();
+      expect(template?.id).toBe("path_test");
+      expect(template?.name).toBe("Path Test");
+      expect(template?.sport).toBe("run");
+
+      expect(() => runTemplates(args)).not.toThrow();
     });
   });
 
@@ -88,7 +105,21 @@ humanReadable: Easy run at comfortable pace`;
         validate: "nonexistent_template",
       };
 
-      expect(() => runTemplates(args)).toThrow();
+      expect(() => runTemplates(args)).toThrow(/Template not found/);
+    });
+
+    it("should include template ID in error message for non-existent template", () => {
+      const args: TemplatesArgs = {
+        command: "templates",
+        validate: "nonexistent_template",
+      };
+
+      try {
+        runTemplates(args);
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect((e as Error).message).toContain("nonexistent_template");
+      }
     });
 
     it("should provide suggestions for similar template IDs", () => {
@@ -101,13 +132,29 @@ humanReadable: Easy run at comfortable pace`;
         runTemplates(args);
         expect.fail("Should have thrown");
       } catch (e) {
-        expect((e as Error).message).toContain("eazy");
+        const error = e as Error;
+        expect(error.message).toContain("eazy");
+        expect(error.message).toContain("Did you mean");
+      }
+    });
+
+    it("should list all templates hint in error for non-existent template", () => {
+      const args: TemplatesArgs = {
+        command: "templates",
+        validate: "unknown_template",
+      };
+
+      try {
+        runTemplates(args);
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect((e as Error).message).toContain("templates list");
       }
     });
   });
 
   describe("schema validation errors", () => {
-    it("should detect missing required fields", () => {
+    it("should throw error for template with missing required fields", () => {
       const invalidTemplate = `id: invalid_test
 name: Invalid Test
 sport: run
@@ -124,7 +171,7 @@ sport: run
       expect(() => runTemplates(args)).toThrow(/Validation errors:/);
     });
 
-    it("should detect invalid sport type", () => {
+    it("should throw error for template with invalid sport type", () => {
       const invalidTemplate = `id: invalid_sport
 name: Invalid Sport
 sport: invalid_sport
@@ -143,7 +190,7 @@ humanReadable: Test workout`;
       expect(() => runTemplates(args)).toThrow(/sport/i);
     });
 
-    it("should detect invalid category type", () => {
+    it("should throw error for template with invalid category type", () => {
       const invalidTemplate = `id: invalid_category
 name: Invalid Category
 sport: run
@@ -162,7 +209,7 @@ humanReadable: Test workout`;
       expect(() => runTemplates(args)).toThrow(/category/i);
     });
 
-    it("should detect invalid params type definition", () => {
+    it("should throw error for template with invalid params type definition", () => {
       const invalidTemplate = `id: invalid_params
 name: Invalid Params
 sport: run
@@ -184,10 +231,32 @@ humanReadable: Intervals with \${reps} repeats`;
 
       expect(() => runTemplates(args)).toThrow(/params/);
     });
+
+    it("should include template ID in validation error message", () => {
+      const invalidTemplate = `id: id_in_error
+name: ID In Error
+sport: run
+# Missing required fields`;
+
+      createTemplateFile(testDir, "run", "id_in_error.yaml", invalidTemplate);
+
+      const args: TemplatesArgs = {
+        command: "templates",
+        validate: "id_in_error",
+        userTemplatesDir: testDir,
+      };
+
+      try {
+        runTemplates(args);
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect((e as Error).message).toContain("id_in_error");
+      }
+    });
   });
 
   describe("YAML syntax errors", () => {
-    it("should detect malformed YAML", () => {
+    it("should throw error for malformed YAML", () => {
       const invalidYaml = `id: malformed
 name: Malformed YAML
 sport: run
@@ -207,7 +276,7 @@ humanReadable: Test`;
       expect(() => runTemplates(args)).toThrow(/Invalid YAML/);
     });
 
-    it("should detect indentation errors", () => {
+    it("should throw error for YAML with indentation errors", () => {
       const invalidYaml = `id: indentation
 name: Indentation Error
 sport: run
@@ -228,71 +297,35 @@ humanReadable: Test`;
 
       expect(() => runTemplates(args)).toThrow();
     });
-  });
 
-  describe("template source information", () => {
-    it("should identify built-in template source", () => {
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const args: TemplatesArgs = {
-        command: "templates",
-        validate: "run.easy",
-      };
-
-      runTemplates(args);
-
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("builtin"));
-      logSpy.mockRestore();
-    });
-
-    it("should identify user template source", () => {
-      const userTemplate = `id: user_template
-name: User Template
+    it("should include YAML parsing details in error message", () => {
+      const invalidYaml = `id: yaml_error
+name: YAML Error
 sport: run
 type: easy
 category: recovery
-humanReadable: Easy run`;
-
-      createTemplateFile(testDir, "run", "user_template.yaml", userTemplate);
-
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const args: TemplatesArgs = {
-        command: "templates",
-        validate: "user_template",
-        userTemplatesDir: testDir,
-      };
-
-      runTemplates(args);
-
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("user"));
-      logSpy.mockRestore();
-    });
-
-    it("should show file path for user templates", () => {
-      const userTemplate = `id: path_test
-name: Path Test
-sport: run
-type: easy
-category: recovery
+invalid: [unclosed bracket
 humanReadable: Test`;
 
-      createTemplateFile(testDir, "run", "path_test.yaml", userTemplate);
+      createTemplateFile(testDir, "run", "yaml_error.yaml", invalidYaml);
 
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       const args: TemplatesArgs = {
         command: "templates",
-        validate: "path_test",
+        validate: "yaml_error",
         userTemplatesDir: testDir,
       };
 
-      runTemplates(args);
-
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining(testDir));
-      logSpy.mockRestore();
+      try {
+        runTemplates(args);
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect((e as Error).message).toMatch(/Invalid YAML/i);
+      }
     });
   });
 
-  describe("user template priority", () => {
-    it("should validate user template when it overrides built-in", () => {
+  describe("template source priority", () => {
+    it("should load user template when it overrides built-in with same ID", () => {
       const userTemplate = `id: easy
 name: My Custom Easy Run
 sport: run
@@ -302,22 +335,95 @@ humanReadable: My custom easy run`;
 
       createTemplateFile(testDir, "run", "easy.yaml", userTemplate);
 
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const templates = loadTemplates({
+        includeUserTemplates: true,
+        userTemplatesDir: testDir,
+      });
+
+      const template = templates.get("easy");
+      expect(template).toBeDefined();
+      expect(template?.name).toBe("My Custom Easy Run");
+
+      const source = templates.getSource?.("easy");
+      expect(source).toBe("user");
+
       const args: TemplatesArgs = {
         command: "templates",
         validate: "easy",
         userTemplatesDir: testDir,
       };
 
-      runTemplates(args);
+      expect(() => runTemplates(args)).not.toThrow();
+    });
 
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("user"));
-      logSpy.mockRestore();
+    it("should identify built-in template source", () => {
+      const templates = loadTemplates();
+      const template = templates.get("run.easy");
+
+      expect(template).toBeDefined();
+
+      const source = templates.getSource?.("run.easy");
+      expect(source).toBe("builtin");
+    });
+
+    it("should identify user template source", () => {
+      const userTemplate = `id: user_source_test
+name: User Source Test
+sport: run
+type: easy
+category: recovery
+humanReadable: Test`;
+
+      createTemplateFile(testDir, "run", "user_source_test.yaml", userTemplate);
+
+      const templates = loadTemplates({
+        includeUserTemplates: true,
+        userTemplatesDir: testDir,
+      });
+
+      const template = templates.get("user_source_test");
+      expect(template).toBeDefined();
+
+      const source = templates.getSource?.("user_source_test");
+      expect(source).toBe("user");
+    });
+  });
+
+  describe("template file path resolution", () => {
+    it("should return correct file path for user template", () => {
+      const userTemplate = `id: path_test
+name: Path Test
+sport: run
+type: easy
+category: recovery
+humanReadable: Test`;
+
+      createTemplateFile(testDir, "run", "path_test.yaml", userTemplate);
+
+      const templates = loadTemplates({
+        includeUserTemplates: true,
+        userTemplatesDir: testDir,
+      });
+
+      const sourcePath = templates.getSourcePath?.("path_test");
+      expect(sourcePath).toBeDefined();
+      expect(sourcePath).toContain(testDir);
+      expect(sourcePath).toContain("path_test.yaml");
+    });
+
+    it("should return file path for built-in template", () => {
+      const templates = loadTemplates();
+      const sourcePath = templates.getSourcePath?.("run.easy");
+
+      expect(sourcePath).toBeDefined();
+      expect(sourcePath).toContain("templates/");
+      expect(sourcePath).toContain("run");
+      expect(sourcePath).toContain("easy.yaml");
     });
   });
 
   describe("validation error reporting", () => {
-    it("should show clear validation error messages", () => {
+    it("should throw error with non-empty message for invalid template", () => {
       const invalidTemplate = `id: clear_error
 name: Clear Error
 sport: run
@@ -340,7 +446,7 @@ sport: run
       }
     });
 
-    it("should include file path in validation errors", () => {
+    it("should include template ID in validation error", () => {
       const invalidTemplate = `id: file_path_error
 name: File Path Error
 sport: run
@@ -365,7 +471,7 @@ sport: run
   });
 
   describe("edge cases", () => {
-    it("should handle templates with no params", () => {
+    it("should validate templates with no params", () => {
       const noParamsTemplate = `id: no_params
 name: No Params
 sport: run
@@ -384,7 +490,7 @@ humanReadable: Simple easy run`;
       expect(() => runTemplates(args)).not.toThrow();
     });
 
-    it("should handle templates with complex params", () => {
+    it("should validate templates with complex params", () => {
       const complexTemplate = `id: complex_params
 name: Complex Params
 sport: run
@@ -421,7 +527,7 @@ humanReadable: \${reps} x \${work_duration} work, \${recovery_duration} recovery
       expect(() => runTemplates(args)).not.toThrow();
     });
 
-    it("should handle templates with structure section", () => {
+    it("should validate templates with structure section", () => {
       const structuredTemplate = `id: structured
 name: Structured
 sport: run
@@ -463,10 +569,33 @@ humanReadable: \${reps} x 4min intervals`;
 
       expect(() => runTemplates(args)).not.toThrow();
     });
+
+    it("should validate templates with optional metadata fields", () => {
+      const metadataTemplate = `id: metadata_test
+name: Metadata Test
+sport: run
+type: tempo
+category: tempo
+humanReadable: Tempo workout
+targetZone: "Z3"
+rpe: "6-7"
+estimatedDuration: "\${30 + 10 + 10}"
+notes: Optional notes here`;
+
+      createTemplateFile(testDir, "run", "metadata_test.yaml", metadataTemplate);
+
+      const args: TemplatesArgs = {
+        command: "templates",
+        validate: "metadata_test",
+        userTemplatesDir: testDir,
+      };
+
+      expect(() => runTemplates(args)).not.toThrow();
+    });
   });
 
   describe("integration with existing templates", () => {
-    it("should validate all sport types", () => {
+    it("should validate at least one template from each sport", () => {
       const templates = loadTemplates();
       const sports = ["swim", "bike", "run", "strength", "brick"];
 
@@ -481,6 +610,47 @@ humanReadable: \${reps} x 4min intervals`;
           expect(() => runTemplates(args)).not.toThrow();
         }
       }
+    });
+
+    it("should load all built-in templates without errors", () => {
+      const templates = loadTemplates();
+      const allIds = templates.ids();
+
+      expect(allIds.length).toBeGreaterThan(0);
+
+      for (const id of allIds) {
+        const template = templates.get(id);
+        expect(template).toBeDefined();
+        expect(template?.id).toBe(id);
+      }
+    });
+  });
+
+  describe("console logging side effects", () => {
+    it("should log validation success message when template is valid", () => {
+      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const args: TemplatesArgs = {
+        command: "templates",
+        validate: "run.easy",
+      };
+
+      runTemplates(args);
+
+      expect(logSpy).toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
+
+    it("should not log to error console when template is valid", () => {
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const args: TemplatesArgs = {
+        command: "templates",
+        validate: "run.easy",
+      };
+
+      runTemplates(args);
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      errorSpy.mockRestore();
     });
   });
 });

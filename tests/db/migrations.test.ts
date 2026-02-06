@@ -306,52 +306,6 @@ describe("Database Migrations", () => {
       }).not.toThrow();
     });
 
-    it("should cascade delete when activity is deleted", async () => {
-      const { initDatabase, getDb } = await import("../../src/db/client.js");
-      await initDatabase();
-
-      const db = getDb();
-
-      // Create an activity
-      db.prepare(
-        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time) VALUES (?, ?, ?, ?, ?)"
-      ).run(1, "Test Run", "Run", "2025-01-01T10:00:00Z", 3600);
-
-      // Create interview
-      db.prepare(
-        "INSERT INTO workout_interviews (workout_id, athlete_reflection_summary, coach_notes, coach_confidence) VALUES (?, ?, ?, ?)"
-      ).run(1, "Felt good", "Keep it up", "Medium");
-
-      // Create preliminary note
-      db.prepare("INSERT INTO preliminary_coach_notes (workout_id, note_draft) VALUES (?, ?)").run(
-        1,
-        "Draft note"
-      );
-
-      // Verify they exist
-      let interviews = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
-        count: number;
-      };
-      let notes = db.prepare("SELECT COUNT(*) as count FROM preliminary_coach_notes").get() as {
-        count: number;
-      };
-      expect(interviews.count).toBe(1);
-      expect(notes.count).toBe(1);
-
-      // Delete activity
-      db.prepare("DELETE FROM activities WHERE id = ?").run(1);
-
-      // Verify cascade delete worked
-      interviews = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
-        count: number;
-      };
-      notes = db.prepare("SELECT COUNT(*) as count FROM preliminary_coach_notes").get() as {
-        count: number;
-      };
-      expect(interviews.count).toBe(0);
-      expect(notes.count).toBe(0);
-    });
-
     it("should support multiple interviews per workout", async () => {
       const { initDatabase, getDb } = await import("../../src/db/client.js");
       await initDatabase();

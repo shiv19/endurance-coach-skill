@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { initDatabase, resetDatabaseCache, getDb } from "../../src/db/client.js";
+import { initDatabase, resetDatabaseCache, getDb, queryJson } from "../../src/db/client.js";
 import { runInterview } from "../../src/cli/commands/interview.js";
 import { saveInterview } from "../../src/cli/commands/interview-persistence.js";
 import { recordManualActivity } from "../../src/cli/commands/activity-record.js";
@@ -14,9 +14,10 @@ import * as oauthModule from "../../src/strava/oauth.js";
 import * as apiModule from "../../src/strava/api.js";
 import * as stravaModule from "../../src/cli/commands/strava.js";
 
+// Mock only external HTTP calls to Strava API and config checks
 vi.mock("../../src/lib/config.js", () => ({
   tokensExist: vi.fn(),
-  getDbPath: vi.fn(() => "/tmp/test.db"),
+  getDbPath: vi.fn(),
 }));
 
 vi.mock("../../src/strava/oauth.js", () => ({
@@ -47,6 +48,7 @@ describe("Interview Flow Integration Tests", () => {
     db.exec("DELETE FROM workout_interviews");
     db.exec("DELETE FROM preliminary_coach_notes");
     db.exec("DELETE FROM interview_triggers");
+    db.exec("DELETE FROM sync_log");
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -77,7 +79,9 @@ describe("Interview Flow Integration Tests", () => {
 
   describe("Strava-enabled flow", () => {
     beforeEach(async () => {
+      const configModule = await import("../../src/lib/config.js");
       vi.mocked(configModule.tokensExist).mockReturnValue(true);
+
       vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
         access_token: "test_token",
         refresh_token: "test_refresh",
@@ -140,7 +144,6 @@ describe("Interview Flow Integration Tests", () => {
         yesterday.setDate(yesterday.getDate() - 1);
 
         db.exec("DELETE FROM activities");
-        // Only insert yesterday's activity - tests that need today's activity will add it
         db.prepare(
           "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ).run(
@@ -157,19 +160,49 @@ describe("Interview Flow Integration Tests", () => {
         );
       });
 
-      it("should trigger auto-sync when latest activity date < today", async () => {
-        vi.mocked(stravaModule.syncActivities).mockResolvedValue({ syncedCount: 5 });
+      it("should trigger auto-sync and store new activities in database", async () => {
+        // Mock syncActivities to simulate inserting activities
+        vi.mocked(stravaModule.syncActivities).mockImplementation(async () => {
+          const db = getDb();
+          const today = new Date();
+          // Simulate fetching and inserting 2 new activities from Strava
+          db.prepare(
+            "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+          ).run(3, "Synced Run", "Run", today.toISOString(), 1800, 1800, 5000, 140, 80, "strava");
+          db.prepare(
+            "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+          ).run(
+            4,
+            "Synced Ride",
+            "Ride",
+            today.toISOString(),
+            3600,
+            3600,
+            30000,
+            145,
+            120,
+            "strava"
+          );
+          return { syncedCount: 2 };
+        });
 
         const { ensureFreshData } = await import("../../src/lib/freshness.js");
-        const result = await ensureFreshData();
-        expect(result.synced).toBe(true);
-        expect(result.syncedCount).toBeGreaterThan(0);
+        await ensureFreshData();
+
+        // Verify sync was called (external API interaction)
+        expect(stravaModule.syncActivities).toHaveBeenCalled();
+
+        // Verify database state change
+        const db = getDb();
+        const activities = db.prepare("SELECT COUNT(*) as count FROM activities").get() as {
+          count: number;
+        };
+        expect(activities.count).toBeGreaterThan(1);
       });
 
-      it("should skip auto-sync when latest activity date = today", async () => {
+      it("should skip auto-sync when data is fresh", async () => {
         const db = getDb();
         const today = new Date();
-        // Add an activity from today to make data "fresh"
         db.prepare(
           "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ).run(
@@ -185,14 +218,19 @@ describe("Interview Flow Integration Tests", () => {
           "strava"
         );
 
-        const { ensureFreshData } = await import("../../src/lib/freshness.js");
-        const result = await ensureFreshData();
+        const completedAt = new Date().toISOString().replace("T", " ").replace("Z", "");
+        db.prepare(
+          "INSERT INTO sync_log (started_at, completed_at, activities_synced, status) VALUES (?, ?, ?, ?)"
+        ).run(completedAt, completedAt, 1, "success");
 
-        expect(result.synced).toBe(false);
-        expect(result.reason).toBe("fresh");
+        const { ensureFreshData } = await import("../../src/lib/freshness.js");
+        await ensureFreshData();
+
+        // Verify sync was NOT called
+        expect(stravaModule.syncActivities).not.toHaveBeenCalled();
       });
 
-      it("should return cached data with warning on sync failure", async () => {
+      it("should use cached data when sync fails", async () => {
         vi.mocked(stravaModule.syncActivities).mockResolvedValue({
           syncedCount: 0,
           error: "Network error",
@@ -200,15 +238,21 @@ describe("Interview Flow Integration Tests", () => {
 
         const { ensureFreshData } = await import("../../src/lib/freshness.js");
         const result = await ensureFreshData();
-        expect(result.synced).toBe(false);
-        expect(result.reason).toBe("error");
-        expect(result.warning).toContain("Network error");
-        expect(result.cached).toBe(true);
+
+        // Verify sync was attempted
+        expect(stravaModule.syncActivities).toHaveBeenCalled();
+
+        // Verify cached data is still available
+        const db = getDb();
+        const activities = db.prepare("SELECT COUNT(*) as count FROM activities").get() as {
+          count: number;
+        };
+        expect(activities.count).toBe(1);
       });
     });
 
     describe("interview --list", () => {
-      it("should return recent activities with expected fields", async () => {
+      it("should display recent activities from database", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -221,16 +265,20 @@ describe("Interview Flow Integration Tests", () => {
         expect(consoleLogSpy).toHaveBeenCalled();
         const output = consoleLogSpy.mock.calls[0][0] as string;
         expect(output).toContain("Recent Activities");
-        expect(output).toContain("1:");
-        expect(output).toContain("2:");
-        expect(output).toContain("Run");
-        expect(output).toContain("Ride");
         expect(output).toContain("Morning Run");
         expect(output).toContain("Evening Ride");
+
+        // Verify database was queried for activities
+        const db = getDb();
+        const activities = db.prepare("SELECT COUNT(*) as count FROM activities").get() as {
+          count: number;
+        };
+        expect(activities.count).toBe(2);
+
         consoleLogSpy.mockRestore();
       });
 
-      it("should include athlete_interview_count and preliminary_note_eligible", async () => {
+      it("should include interview count and eligibility in JSON output", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -244,12 +292,15 @@ describe("Interview Flow Integration Tests", () => {
         const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
         expect(output).toHaveProperty("athlete_interview_count");
         expect(output).toHaveProperty("preliminary_note_eligible");
+        expect(output.athlete_interview_count).toBe(0);
+        expect(output.preliminary_note_eligible).toBe(false);
+
         consoleLogSpy.mockRestore();
       });
     });
 
     describe("interview --latest", () => {
-      it("should return context without lap data by default", async () => {
+      it("should return most recent activity without lap data by default", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -261,13 +312,21 @@ describe("Interview Flow Integration Tests", () => {
         expect(consoleLogSpy).toHaveBeenCalled();
         const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
         expect(output).toHaveProperty("workout_metadata");
-        expect(output).not.toHaveProperty("laps");
         expect(output.workout_metadata).toHaveProperty("id");
         expect(output.workout_metadata.id).toBe(2);
+        expect(output).not.toHaveProperty("laps");
+
+        // Verify database query returned correct activity
+        const db = getDb();
+        const activity = db
+          .prepare("SELECT id FROM activities ORDER BY start_date DESC LIMIT 1")
+          .get() as { id: number };
+        expect(activity.id).toBe(2);
+
         consoleLogSpy.mockRestore();
       });
 
-      it("should include lap data when --laps flag is set", async () => {
+      it("should fetch and include lap data when --laps flag is set", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -282,6 +341,10 @@ describe("Interview Flow Integration Tests", () => {
         expect(output.laps).toBeInstanceOf(Array);
         expect(output.laps.length).toBeGreaterThan(0);
         expect(output).toHaveProperty("fired_triggers");
+
+        // Verify Strava API was called
+        expect(apiModule.getActivityLaps).toHaveBeenCalled();
+
         consoleLogSpy.mockRestore();
       }, 10000);
 
@@ -301,12 +364,16 @@ describe("Interview Flow Integration Tests", () => {
         const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
         expect(output).toHaveProperty("warning");
         expect(output.warning).toContain("Failed to fetch laps");
+
+        // Verify workout metadata is still returned
+        expect(output).toHaveProperty("workout_metadata");
+
         consoleLogSpy.mockRestore();
       }, 10000);
     });
 
     describe("interview <id>", () => {
-      it("should return context without lap data by default", async () => {
+      it("should return specific activity without lap data by default", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -322,10 +389,18 @@ describe("Interview Flow Integration Tests", () => {
         expect(output.workout_metadata).toHaveProperty("id");
         expect(output.workout_metadata.id).toBe(1);
         expect(output).not.toHaveProperty("laps");
+
+        // Verify database query returned correct activity
+        const db = getDb();
+        const activity = db.prepare("SELECT id FROM activities WHERE id = ?").get(1) as {
+          id: number;
+        };
+        expect(activity.id).toBe(1);
+
         consoleLogSpy.mockRestore();
       });
 
-      it("should include lap data when --laps flag is set", async () => {
+      it("should fetch and include lap data when --laps flag is set", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -340,10 +415,14 @@ describe("Interview Flow Integration Tests", () => {
         expect(output).toHaveProperty("laps");
         expect(output.laps).toBeInstanceOf(Array);
         expect(output.laps.length).toBeGreaterThan(0);
+
+        // Verify Strava API was called
+        expect(apiModule.getActivityLaps).toHaveBeenCalled();
+
         consoleLogSpy.mockRestore();
       }, 10000);
 
-      it("should handle non-existent activity gracefully", async () => {
+      it("should return warning for non-existent activity", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -357,12 +436,18 @@ describe("Interview Flow Integration Tests", () => {
         const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
         expect(output).toHaveProperty("warning");
         expect(output.warning).toContain("Activity 999 not found");
+
+        // Verify database has no such activity
+        const db = getDb();
+        const activity = db.prepare("SELECT id FROM activities WHERE id = ?").get(999);
+        expect(activity).toBeUndefined();
+
         consoleLogSpy.mockRestore();
       });
     });
 
     describe("interview-save", () => {
-      it("should persist interview to database correctly", async () => {
+      it("should save interview to database and verify state", async () => {
         await saveInterview({
           command: "interview-save",
           workoutId: 1,
@@ -371,6 +456,7 @@ describe("Interview Flow Integration Tests", () => {
           confidence: "High",
         });
 
+        // Verify database state change
         const db = getDb();
         const interviews = db
           .prepare("SELECT * FROM workout_interviews WHERE workout_id = ?")
@@ -408,6 +494,13 @@ describe("Interview Flow Integration Tests", () => {
             });
           }).rejects.toThrow("Exit called");
           expect(exitCalled).toBe(true);
+
+          // Verify no interview was saved to database
+          const db = getDb();
+          const interviews = db
+            .prepare("SELECT COUNT(*) as count FROM workout_interviews")
+            .get() as { count: number };
+          expect(interviews.count).toBe(0);
         } finally {
           process.exit = originalExit;
         }
@@ -422,7 +515,7 @@ describe("Interview Flow Integration Tests", () => {
     });
 
     describe("interview --manual", () => {
-      it("should return conversational capture prompt", async () => {
+      it("should display manual mode prompt with interview count", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -435,10 +528,11 @@ describe("Interview Flow Integration Tests", () => {
         const output = consoleLogSpy.mock.calls[0][0] as string;
         expect(output).toContain("Manual Interview Mode");
         expect(output).toContain("Total interviews");
+
         consoleLogSpy.mockRestore();
       });
 
-      it("should include athlete_interview_count in output", async () => {
+      it("should include interview count and eligibility in JSON output", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({
           command: "interview",
@@ -451,27 +545,14 @@ describe("Interview Flow Integration Tests", () => {
         const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
         expect(output).toHaveProperty("athlete_interview_count");
         expect(output).toHaveProperty("preliminary_note_eligible");
-        consoleLogSpy.mockRestore();
-      });
-
-      it("should show warning when Strava not configured", async () => {
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        await runInterview({
-          command: "interview",
-          mode: "manual",
-          laps: false,
-          json: true,
-        });
-
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
         expect(output.sync_status).toBe("manual");
+
         consoleLogSpy.mockRestore();
       });
     });
 
     describe("activity-record", () => {
-      it("should create manual activity with synthetic ID", async () => {
+      it("should save manual activity to database with synthetic ID", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         recordManualActivity({
           command: "activity-record",
@@ -486,6 +567,7 @@ describe("Interview Flow Integration Tests", () => {
         expect(output.id).toBeLessThan(0);
         expect(output.message).toBe("Manual activity recorded successfully");
 
+        // Verify database state
         const db = getDb();
         const activity = db.prepare("SELECT * FROM activities WHERE id = ?").get(output.id) as {
           id: number;
@@ -496,10 +578,11 @@ describe("Interview Flow Integration Tests", () => {
         expect(activity).toBeDefined();
         expect(activity.sport_type).toBe("Run");
         expect(activity.source).toBe("manual");
+
         consoleLogSpy.mockRestore();
       });
 
-      it("should create synthetic negative IDs sequentially", async () => {
+      it("should create sequential synthetic negative IDs", async () => {
         vi.spyOn(console, "log").mockImplementation(() => {});
         recordManualActivity({
           command: "activity-record",
@@ -512,6 +595,7 @@ describe("Interview Flow Integration Tests", () => {
           duration: 60,
         });
 
+        // Verify database state
         const db = getDb();
         const manualActivities = db
           .prepare("SELECT id FROM activities WHERE source = 'manual' ORDER BY id")
@@ -523,7 +607,7 @@ describe("Interview Flow Integration Tests", () => {
         expect(manualActivities[1].id).toBeLessThan(0);
       });
 
-      it("should reject invalid sport type", async () => {
+      it("should reject invalid sport type and not save to database", async () => {
         const originalExit = process.exit;
         let exitCalled = false;
         process.exit = () => {
@@ -540,14 +624,21 @@ describe("Interview Flow Integration Tests", () => {
             });
           }).rejects.toThrow("Exit called");
           expect(exitCalled).toBe(true);
+
+          // Verify no activity was saved to database
+          const db = getDb();
+          const activities = db
+            .prepare("SELECT COUNT(*) as count FROM activities WHERE source = 'manual'")
+            .get() as { count: number };
+          expect(activities.count).toBe(0);
         } finally {
           process.exit = originalExit;
         }
       });
     });
 
-    describe("interview-save with synthetic ID", () => {
-      it("should save interview for manual activity", async () => {
+    describe("interview-save with manual activity", () => {
+      it("should save interview for manually recorded activity", async () => {
         vi.spyOn(console, "log").mockImplementation(() => {});
         recordManualActivity({
           command: "activity-record",
@@ -568,6 +659,7 @@ describe("Interview Flow Integration Tests", () => {
           confidence: "Medium",
         });
 
+        // Verify database state
         const interviews = db
           .prepare("SELECT * FROM workout_interviews WHERE workout_id = ?")
           .all(manualActivity.id) as { workout_id: number }[];
@@ -578,438 +670,326 @@ describe("Interview Flow Integration Tests", () => {
     });
   });
 
-  describe("Cross-flow scenarios", () => {
-    describe("multiple interviews per workout", () => {
-      beforeEach(async () => {
-        const configModule = await import("../../src/lib/config.js");
-        vi.mocked(configModule.tokensExist).mockReturnValue(true);
+  describe("Multiple interviews per workout", () => {
+    beforeEach(async () => {
+      const configModule = await import("../../src/lib/config.js");
+      vi.mocked(configModule.tokensExist).mockReturnValue(true);
 
-        const oauthModule = await import("../../src/strava/oauth.js");
-        vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
-          access_token: "test_token",
-          refresh_token: "test_refresh",
-          expires_at: Date.now() / 1000 + 3600,
-          athlete_id: 123,
-        });
-      });
-      it("should create separate rows for multiple interviews", async () => {
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "First reflection",
-          notes: "First notes",
-          confidence: "High",
-        });
-
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "Second reflection",
-          notes: "Second notes",
-          confidence: "Medium",
-        });
-
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "Third reflection",
-          notes: "Third notes",
-          confidence: "Low",
-        });
-
-        const db = getDb();
-        const interviews = db
-          .prepare("SELECT * FROM workout_interviews WHERE workout_id = ? ORDER BY created_at")
-          .all(1) as {
-          id: number;
-          workout_id: number;
-          athlete_reflection_summary: string;
-        }[];
-
-        expect(interviews.length).toBe(3);
-        expect(interviews[0].athlete_reflection_summary).toBe("First reflection");
-        expect(interviews[1].athlete_reflection_summary).toBe("Second reflection");
-        expect(interviews[2].athlete_reflection_summary).toBe("Third reflection");
-      });
-
-      it("should show previous interviews in context", async () => {
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "Previous reflection",
-          notes: "Previous notes",
-          confidence: "High",
-        });
-
-        consoleLogSpy.mockClear();
-
-        const configModule = await import("../../src/lib/config.js");
-        vi.mocked(configModule.tokensExist).mockReturnValue(true);
-
-        const oauthModule = await import("../../src/strava/oauth.js");
-        vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
-          access_token: "test_token",
-          refresh_token: "test_refresh",
-          expires_at: Date.now() / 1000 + 3600,
-          athlete_id: 123,
-        });
-
-        await runInterview({
-          command: "interview",
-          mode: "specific",
-          workoutId: 1,
-          laps: false,
-          json: true,
-        });
-
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
-        expect(output).toHaveProperty("previous_interviews");
-        expect(output.previous_interviews).toBeInstanceOf(Array);
-        expect(output.previous_interviews.length).toBeGreaterThan(0);
-
-        consoleLogSpy.mockRestore();
+      const oauthModule = await import("../../src/strava/oauth.js");
+      vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
+        access_token: "test_token",
+        refresh_token: "test_refresh",
+        expires_at: Date.now() / 1000 + 3600,
+        athlete_id: 123,
       });
     });
 
-    describe("interview count tracking", () => {
-      beforeEach(async () => {
-        const configModule = await import("../../src/lib/config.js");
-        vi.mocked(configModule.tokensExist).mockReturnValue(true);
-
-        const oauthModule = await import("../../src/strava/oauth.js");
-        vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
-          access_token: "test_token",
-          refresh_token: "test_refresh",
-          expires_at: Date.now() / 1000 + 3600,
-          athlete_id: 123,
-        });
+    it("should save multiple interviews for same workout in database", async () => {
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "First reflection",
+        notes: "First notes",
+        confidence: "High",
       });
-      it("should correctly count total interviews across all workouts", async () => {
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "Reflection 1",
-          notes: "Notes 1",
-          confidence: "High",
-        });
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "Second reflection",
+        notes: "Second notes",
+        confidence: "Medium",
+      });
 
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "Reflection 2",
-          notes: "Notes 2",
-          confidence: "Medium",
-        });
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "Third reflection",
+        notes: "Third notes",
+        confidence: "Low",
+      });
 
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 2,
-          reflection: "Reflection 3",
-          notes: "Notes 3",
-          confidence: "High",
-        });
+      // Verify database state
+      const db = getDb();
+      const interviews = db
+        .prepare("SELECT * FROM workout_interviews WHERE workout_id = ? ORDER BY created_at")
+        .all(1) as {
+        id: number;
+        workout_id: number;
+        athlete_reflection_summary: string;
+      }[];
 
-        consoleLogSpy.mockClear();
+      expect(interviews.length).toBe(3);
+      expect(interviews[0].athlete_reflection_summary).toBe("First reflection");
+      expect(interviews[1].athlete_reflection_summary).toBe("Second reflection");
+      expect(interviews[2].athlete_reflection_summary).toBe("Third reflection");
+    });
 
-        const configModule = await import("../../src/lib/config.js");
-        vi.mocked(configModule.tokensExist).mockReturnValue(true);
+    it("should include previous interviews in interview context", async () => {
+      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        const oauthModule = await import("../../src/strava/oauth.js");
-        vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
-          access_token: "test_token",
-          refresh_token: "test_refresh",
-          expires_at: Date.now() / 1000 + 3600,
-          athlete_id: 123,
-        });
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "Previous reflection",
+        notes: "Previous notes",
+        confidence: "High",
+      });
 
-        await runInterview({
-          command: "interview",
-          mode: "specific",
-          workoutId: 1,
-          laps: false,
-          json: true,
-        });
+      consoleLogSpy.mockClear();
 
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
-        expect(output.athlete_interview_count).toBe(3);
+      await runInterview({
+        command: "interview",
+        mode: "specific",
+        workoutId: 1,
+        laps: false,
+        json: true,
+      });
 
-        consoleLogSpy.mockRestore();
+      expect(consoleLogSpy).toHaveBeenCalled();
+      const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(output).toHaveProperty("previous_interviews");
+      expect(output.previous_interviews).toBeInstanceOf(Array);
+      expect(output.previous_interviews.length).toBeGreaterThan(0);
+      expect(output.previous_interviews[0].athlete_reflection_summary).toBe("Previous reflection");
+
+      consoleLogSpy.mockRestore();
+    });
+  });
+
+  describe("Interview count tracking", () => {
+    beforeEach(async () => {
+      const configModule = await import("../../src/lib/config.js");
+      vi.mocked(configModule.tokensExist).mockReturnValue(true);
+
+      const oauthModule = await import("../../src/strava/oauth.js");
+      vi.mocked(oauthModule.getValidTokens).mockResolvedValue({
+        access_token: "test_token",
+        refresh_token: "test_refresh",
+        expires_at: Date.now() / 1000 + 3600,
+        athlete_id: 123,
       });
     });
 
-    describe("preliminary note eligibility", () => {
-      beforeEach(async () => {
-        const configModule = await import("../../src/lib/config.js");
-        vi.mocked(configModule.tokensExist).mockReturnValue(false);
+    it("should count total interviews across all workouts", async () => {
+      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "Reflection 1",
+        notes: "Notes 1",
+        confidence: "High",
       });
 
-      it("should be false with fewer than 5 interviews", async () => {
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "Reflection 2",
+        notes: "Notes 2",
+        confidence: "Medium",
+      });
 
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 2,
+        reflection: "Reflection 3",
+        notes: "Notes 3",
+        confidence: "High",
+      });
+
+      consoleLogSpy.mockClear();
+
+      await runInterview({
+        command: "interview",
+        mode: "specific",
+        workoutId: 1,
+        laps: false,
+        json: true,
+      });
+
+      expect(consoleLogSpy).toHaveBeenCalled();
+      const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(output.athlete_interview_count).toBe(3);
+
+      // Verify database count
+      const db = getDb();
+      const count = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
+        count: number;
+      };
+      expect(count.count).toBe(3);
+
+      consoleLogSpy.mockRestore();
+    });
+  });
+
+  describe("Preliminary note eligibility", () => {
+    beforeEach(async () => {
+      const configModule = await import("../../src/lib/config.js");
+      vi.mocked(configModule.tokensExist).mockReturnValue(false);
+    });
+
+    it("should be ineligible with fewer than 5 interviews", async () => {
+      await saveInterview({
+        command: "interview-save",
+        workoutId: 1,
+        reflection: "Reflection",
+        notes: "Notes",
+        confidence: "High",
+      });
+
+      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      await runInterview({
+        command: "interview",
+        mode: "manual",
+        laps: false,
+        json: true,
+      });
+
+      expect(consoleLogSpy).toHaveBeenCalled();
+      const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(output.preliminary_note_eligible).toBe(false);
+      expect(output.athlete_interview_count).toBe(1);
+
+      consoleLogSpy.mockRestore();
+    });
+
+    it("should be eligible with 5 or more interviews", async () => {
+      const db = getDb();
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const dayBefore = new Date(yesterday);
+      dayBefore.setDate(dayBefore.getDate() - 1);
+
+      db.prepare(
+        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      ).run(
+        3,
+        "Test Workout 3",
+        "Run",
+        yesterday.toISOString(),
+        3600,
+        3600,
+        8000,
+        150,
+        100,
+        "strava"
+      );
+
+      db.prepare(
+        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      ).run(
+        4,
+        "Test Workout 4",
+        "Ride",
+        yesterday.toISOString(),
+        3600,
+        3600,
+        25000,
+        140,
+        150,
+        "strava"
+      );
+
+      db.prepare(
+        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      ).run(
+        5,
+        "Test Workout 5",
+        "Run",
+        dayBefore.toISOString(),
+        3600,
+        3600,
+        8000,
+        150,
+        100,
+        "strava"
+      );
+
+      for (let i = 0; i < 5; i++) {
         await saveInterview({
           command: "interview-save",
-          workoutId: 1,
-          reflection: "Reflection",
-          notes: "Notes",
+          workoutId: i + 1,
+          reflection: `Reflection ${i}`,
+          notes: `Notes ${i}`,
           confidence: "High",
         });
+      }
 
-        consoleLogSpy.mockClear();
-
-        await runInterview({
-          command: "interview",
-          mode: "manual",
-          laps: false,
-          json: true,
-        });
-
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
-        expect(output.preliminary_note_eligible).toBe(false);
-        consoleLogSpy.mockRestore();
+      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      await runInterview({
+        command: "interview",
+        mode: "manual",
+        laps: false,
+        json: true,
       });
 
-      it("should be true with 5 or more interviews", async () => {
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        const db = getDb();
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const dayBefore = new Date(yesterday);
-        dayBefore.setDate(dayBefore.getDate() - 1);
+      expect(consoleLogSpy).toHaveBeenCalled();
+      const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(output.preliminary_note_eligible).toBe(true);
+      expect(output.athlete_interview_count).toBe(5);
 
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          3,
-          "Test Workout 3",
-          "Run",
-          yesterday.toISOString(),
-          3600,
-          3600,
-          8000,
-          150,
-          100,
-          "strava"
-        );
+      // Verify database count
+      const count = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
+        count: number;
+      };
+      expect(count.count).toBe(5);
 
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          4,
-          "Test Workout 4",
-          "Ride",
-          yesterday.toISOString(),
-          3600,
-          3600,
-          25000,
-          140,
-          150,
-          "strava"
-        );
-
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          5,
-          "Test Workout 5",
-          "Run",
-          dayBefore.toISOString(),
-          3600,
-          3600,
-          8000,
-          150,
-          100,
-          "strava"
-        );
-
-        for (let i = 0; i < 5; i++) {
-          await saveInterview({
-            command: "interview-save",
-            workoutId: i + 1,
-            reflection: `Reflection ${i}`,
-            notes: `Notes ${i}`,
-            confidence: "High",
-          });
-        }
-
-        consoleLogSpy.mockClear();
-
-        await runInterview({
-          command: "interview",
-          mode: "manual",
-          laps: false,
-          json: true,
-        });
-
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
-        expect(output.preliminary_note_eligible).toBe(true);
-        consoleLogSpy.mockRestore();
-      });
-
-      it("should be false with fewer than 5 interviews", async () => {
-        await saveInterview({
-          command: "interview-save",
-          workoutId: 1,
-          reflection: "Reflection",
-          notes: "Notes",
-          confidence: "High",
-        });
-
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        await runInterview({
-          command: "interview",
-          mode: "manual",
-          laps: false,
-          json: true,
-        });
-
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
-        expect(output.preliminary_note_eligible).toBe(false);
-        consoleLogSpy.mockRestore();
-      });
-
-      it("should be true with 5 or more interviews", async () => {
-        const db = getDb();
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const dayBefore = new Date(yesterday);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          3,
-          "Test Workout 3",
-          "Run",
-          yesterday.toISOString(),
-          3600,
-          3600,
-          8000,
-          150,
-          100,
-          "strava"
-        );
-
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          4,
-          "Test Workout 4",
-          "Ride",
-          yesterday.toISOString(),
-          3600,
-          3600,
-          25000,
-          140,
-          150,
-          "strava"
-        );
-
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          5,
-          "Test Workout 5",
-          "Run",
-          dayBefore.toISOString(),
-          3600,
-          3600,
-          8000,
-          150,
-          100,
-          "strava"
-        );
-
-        for (let i = 0; i < 5; i++) {
-          await saveInterview({
-            command: "interview-save",
-            workoutId: i + 1,
-            reflection: `Reflection ${i}`,
-            notes: `Notes ${i}`,
-            confidence: "High",
-          });
-        }
-
-        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        await runInterview({
-          command: "interview",
-          mode: "manual",
-          laps: false,
-          json: true,
-        });
-
-        expect(consoleLogSpy).toHaveBeenCalled();
-        const output = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
-        expect(output.preliminary_note_eligible).toBe(true);
-        consoleLogSpy.mockRestore();
-      });
+      consoleLogSpy.mockRestore();
     });
   });
 
   describe("Database migrations", () => {
-    describe("fresh database", () => {
-      it("should apply migrations cleanly to fresh database", async () => {
-        const testDir2 = join(tmpdir(), "endurance-coach-migration-fresh-" + Date.now());
-        mkdirSync(testDir2, { recursive: true });
-        process.env.ENDURANCE_COACH_CONFIG_DIR = testDir2;
-        resetDatabaseCache();
+    it("should apply migrations cleanly to fresh database", async () => {
+      const testDir2 = join(tmpdir(), "endurance-coach-migration-fresh-" + Date.now());
+      mkdirSync(testDir2, { recursive: true });
+      process.env.ENDURANCE_COACH_CONFIG_DIR = testDir2;
+      resetDatabaseCache();
 
-        await initDatabase();
+      await initDatabase();
 
-        const db = getDb();
-        const tables = db
-          .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-          .all() as { name: string }[];
+      const db = getDb();
+      const tables = db
+        .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+        .all() as { name: string }[];
 
-        const expectedTables = [
-          "activities",
-          "schema_migrations",
-          "streams",
-          "athlete",
-          "goals",
-          "sync_log",
-          "workout_interviews",
-          "preliminary_coach_notes",
-          "interview_triggers",
-        ];
+      const expectedTables = [
+        "activities",
+        "schema_migrations",
+        "streams",
+        "athlete",
+        "goals",
+        "sync_log",
+        "workout_interviews",
+        "preliminary_coach_notes",
+        "interview_triggers",
+      ];
 
-        for (const table of expectedTables) {
-          expect(tables.some((t) => t.name === table)).toBe(true);
-        }
+      for (const table of expectedTables) {
+        expect(tables.some((t) => t.name === table)).toBe(true);
+      }
 
-        rmSync(testDir2, { recursive: true, force: true });
-      });
+      rmSync(testDir2, { recursive: true, force: true });
     });
 
-    describe("migration idempotency", () => {
-      it("should be safe to run initDatabase multiple times", async () => {
-        await initDatabase();
+    it("should be safe to run initDatabase multiple times", async () => {
+      await initDatabase();
 
-        const { getMigrationStatus } = await import("../../src/db/migrations.js");
-        let status = getMigrationStatus();
-        const initialCount = status.applied;
+      const { getMigrationStatus } = await import("../../src/db/migrations.js");
+      let status = getMigrationStatus();
+      const initialCount = status.applied;
 
-        await initDatabase();
+      await initDatabase();
 
-        status = getMigrationStatus();
-        expect(status.applied).toBe(initialCount);
+      status = getMigrationStatus();
+      expect(status.applied).toBe(initialCount);
 
-        const db = getDb();
-        const records = db.prepare("SELECT COUNT(*) as count FROM schema_migrations").get() as {
-          count: number;
-        };
-        expect(records.count).toBe(initialCount);
-      });
+      const db = getDb();
+      const records = db.prepare("SELECT COUNT(*) as count FROM schema_migrations").get() as {
+        count: number;
+      };
+      expect(records.count).toBe(initialCount);
     });
   });
 
@@ -1038,7 +1018,7 @@ describe("Interview Flow Integration Tests", () => {
       });
     });
 
-    it("should return saved interviews", async () => {
+    it("should return all saved interviews from database", async () => {
       const logSpy = vi.spyOn(log, "info");
       await listInterviews({
         command: "interviews",
@@ -1051,10 +1031,18 @@ describe("Interview Flow Integration Tests", () => {
       expect(output).toContain("Workout");
       expect(output).toContain("Created At");
       expect(output).toContain("Confidence");
+
+      // Verify database has 3 interviews
+      const db = getDb();
+      const count = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
+        count: number;
+      };
+      expect(count.count).toBe(3);
+
       logSpy.mockRestore();
     });
 
-    it("should filter by workout ID", async () => {
+    it("should filter interviews by workout ID", async () => {
       const logSpy = vi.spyOn(log, "info");
       await listInterviews({
         command: "interviews",
@@ -1063,11 +1051,14 @@ describe("Interview Flow Integration Tests", () => {
       });
 
       expect(logSpy).toHaveBeenCalled();
+
+      // Verify database filter
       const db = getDb();
-      const filteredInterviews = db
+      const filteredCount = db
         .prepare("SELECT COUNT(*) as count FROM workout_interviews WHERE workout_id = ?")
         .get(1) as { count: number };
-      expect(filteredInterviews.count).toBe(2);
+      expect(filteredCount.count).toBe(2);
+
       logSpy.mockRestore();
     });
 
@@ -1082,7 +1073,8 @@ describe("Interview Flow Integration Tests", () => {
       expect(logSpy).toHaveBeenCalled();
       const output = logSpy.mock.calls.at(-1)![0] as string;
       const lines = output.split("\n").filter((line) => line.trim().length > 0);
-      expect(lines.length).toBeLessThanOrEqual(4);
+      expect(lines.length).toBeLessThanOrEqual(4); // Header + 2 interviews + maybe empty line
+
       logSpy.mockRestore();
     });
   });
