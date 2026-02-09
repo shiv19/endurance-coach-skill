@@ -1,13 +1,5 @@
-import { execute } from "./client.js";
+import { getDb } from "./client.js";
 import type { StravaActivity } from "../strava/types.js";
-
-/**
- * Produce a SQL literal for a string value.
- */
-export function escapeString(str: string | null | undefined): string {
-  if (str == null) return "NULL";
-  return `'${str.replace(/'/g, "''")}'`;
-}
 
 /**
  * Insert or replace a Strava activity row into local `activities` table.
@@ -25,35 +17,35 @@ export function insertActivity(activity: StravaActivity): void {
       average_heartrate, max_heartrate, average_watts, max_watts,
       weighted_average_watts, kilojoules, suffer_score, average_cadence,
       calories, description, workout_type, gear_id, raw_json, synced_at
-    ) VALUES (
-      ${activity.id},
-      ${escapeString(activity.name)},
-      ${escapeString(activity.sport_type)},
-      ${escapeString(activity.start_date)},
-      ${activity.elapsed_time ?? "NULL"},
-      ${activity.moving_time ?? "NULL"},
-      ${activity.distance ?? "NULL"},
-      ${activity.total_elevation_gain ?? "NULL"},
-      ${activity.average_speed ?? "NULL"},
-      ${activity.max_speed ?? "NULL"},
-      ${activity.average_heartrate ?? "NULL"},
-      ${activity.max_heartrate ?? "NULL"},
-      ${activity.average_watts ?? "NULL"},
-      ${activity.max_watts ?? "NULL"},
-      ${activity.weighted_average_watts ?? "NULL"},
-      ${activity.kilojoules ?? "NULL"},
-      ${activity.suffer_score ?? "NULL"},
-      ${activity.average_cadence ?? "NULL"},
-      ${activity.calories ?? "NULL"},
-      ${escapeString(activity.description)},
-      ${activity.workout_type ?? "NULL"},
-      ${escapeString(activity.gear_id)},
-      ${escapeString(JSON.stringify(activity))},
-      datetime('now')
-    );
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `;
 
-  execute(sql);
+  const stmt = getDb().prepare(sql);
+  stmt.run(
+    activity.id,
+    activity.name,
+    activity.sport_type,
+    activity.start_date,
+    activity.elapsed_time ?? null,
+    activity.moving_time ?? null,
+    activity.distance ?? null,
+    activity.total_elevation_gain ?? null,
+    activity.average_speed ?? null,
+    activity.max_speed ?? null,
+    activity.average_heartrate ?? null,
+    activity.max_heartrate ?? null,
+    activity.average_watts ?? null,
+    activity.max_watts ?? null,
+    activity.weighted_average_watts ?? null,
+    activity.kilojoules ?? null,
+    activity.suffer_score ?? null,
+    activity.average_cadence ?? null,
+    activity.calories ?? null,
+    activity.description ?? null,
+    activity.workout_type ?? null,
+    activity.gear_id ?? null,
+    JSON.stringify(activity)
+  );
 }
 
 /**
@@ -78,15 +70,15 @@ export function insertAthlete(athlete: {
 }): void {
   const sql = `
     INSERT OR REPLACE INTO athlete (id, firstname, lastname, weight, ftp, raw_json, updated_at)
-    VALUES (
-      ${athlete.id},
-      ${escapeString(athlete.firstname)},
-      ${escapeString(athlete.lastname)},
-      ${athlete.weight ?? "NULL"},
-      ${athlete.ftp ?? "NULL"},
-      ${escapeString(JSON.stringify(athlete))},
-      datetime('now')
-    );
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
   `;
-  execute(sql);
+  const stmt = getDb().prepare(sql);
+  stmt.run(
+    athlete.id,
+    athlete.firstname,
+    athlete.lastname,
+    athlete.weight ?? null,
+    athlete.ftp ?? null,
+    JSON.stringify(athlete)
+  );
 }

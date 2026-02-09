@@ -22,47 +22,6 @@ describe("interviews", () => {
     await initDatabase();
     const db = getDb();
 
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS activities (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        sport_type TEXT,
-        start_date TEXT,
-        elapsed_time INTEGER,
-        moving_time INTEGER,
-        distance REAL,
-        total_elevation_gain REAL,
-        average_speed REAL,
-        max_speed REAL,
-        average_heartrate REAL,
-        max_heartrate REAL,
-        average_watts REAL,
-        max_watts REAL,
-        weighted_average_watts REAL,
-        kilojoules REAL,
-        suffer_score INTEGER,
-        average_cadence REAL,
-        calories REAL,
-        description TEXT,
-        workout_type INTEGER,
-        gear_id TEXT,
-        raw_json TEXT,
-        synced_at TEXT DEFAULT (datetime('now'))
-      )
-    `);
-
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS workout_interviews (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        workout_id INTEGER NOT NULL,
-        athlete_reflection_summary TEXT,
-        coach_notes TEXT,
-        coach_confidence TEXT NOT NULL CHECK (coach_confidence IN ('Low', 'Medium', 'High')),
-        created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (workout_id) REFERENCES activities(id) ON DELETE CASCADE
-      )
-    `);
-
     db.exec("DELETE FROM workout_interviews");
     db.exec("DELETE FROM activities");
     db.prepare(

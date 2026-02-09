@@ -248,7 +248,7 @@ export async function runSync(args: SyncArgs): Promise<void> {
     }
 
     // Initialize database
-    migrate();
+    await migrate();
 
     // Fetch athlete to get ID and validate tokens
     log.start("Validating tokens and fetching athlete profile...");
@@ -289,7 +289,7 @@ export async function runSync(args: SyncArgs): Promise<void> {
   const configSyncDays = args.days || config.sync_days || 730;
 
   // Initialize database
-  migrate();
+  await migrate();
 
   // Authenticate with Strava (opens browser)
   const tokens = await getValidTokens();

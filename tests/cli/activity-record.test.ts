@@ -90,6 +90,31 @@ describe("activity-record command", () => {
       consoleSpy.mockRestore();
     });
 
+    it("should not store Infinity average speed when duration is zero", () => {
+      const args: ActivityRecordArgs = {
+        command: "activity-record",
+        type: "run",
+        duration: 0,
+        distance: 5,
+      };
+
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      recordManualActivity(args);
+
+      const db = getDb();
+      const activity = db
+        .prepare(
+          "SELECT distance, average_speed, elapsed_time FROM activities WHERE source = 'manual'"
+        )
+        .get() as { distance: number; average_speed: number | null; elapsed_time: number };
+
+      expect(activity.elapsed_time).toBe(0);
+      expect(activity.distance).toBe(5000);
+      expect(activity.average_speed).toBe(0);
+
+      consoleSpy.mockRestore();
+    });
+
     it("should store structure and notes in raw_json", () => {
       const args: ActivityRecordArgs = {
         command: "activity-record",

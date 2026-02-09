@@ -614,9 +614,9 @@ Example:
 
     for (const arg of args) {
       if (arg.startsWith("--reflection=")) {
-        interviewSaveArgs.reflection = arg.split("=")[1];
+        interviewSaveArgs.reflection = arg.slice(arg.indexOf("=") + 1);
       } else if (arg.startsWith("--notes=")) {
-        interviewSaveArgs.notes = arg.split("=")[1];
+        interviewSaveArgs.notes = arg.slice(arg.indexOf("=") + 1);
       } else if (arg.startsWith("--confidence=")) {
         const confidence = arg.split("=")[1];
         if (confidence === "Low" || confidence === "Medium" || confidence === "High") {
@@ -677,7 +677,7 @@ Example:
 
     for (const arg of args) {
       if (arg.startsWith("--note=")) {
-        preliminaryNoteSaveArgs.note = arg.split("=")[1];
+        preliminaryNoteSaveArgs.note = arg.slice(arg.indexOf("=") + 1);
       }
     }
 

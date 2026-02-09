@@ -3,7 +3,7 @@ import { formatTable } from "../utils/format-table.js";
 import { log } from "../../lib/logging.js";
 import type { InterviewsListArgs, InterviewsGetArgs } from "../args.js";
 
-interface InterviewSummary {
+export interface InterviewSummary {
   id: number;
   workout_id: number;
   created_at: string;
@@ -11,7 +11,7 @@ interface InterviewSummary {
   athlete_reflection_summary: string;
 }
 
-interface InterviewDetail extends InterviewSummary {
+export interface InterviewDetail extends InterviewSummary {
   coach_notes: string;
 }
 
@@ -61,13 +61,13 @@ export async function queryInterviewById(interviewId: number): Promise<Interview
   `;
 
   const stmt = db.prepare(sql);
-  const interviews = stmt.all(interviewId) as InterviewDetail[];
+  const interview = stmt.get(interviewId) as InterviewDetail | undefined;
 
-  if (interviews.length === 0) {
+  if (!interview) {
     return null;
   }
 
-  return interviews[0];
+  return interview;
 }
 
 export async function listInterviews(args: InterviewsListArgs): Promise<void> {

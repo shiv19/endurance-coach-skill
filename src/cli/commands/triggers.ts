@@ -1,4 +1,4 @@
-import { initDatabase, getDb, queryJson } from "../../db/client.js";
+import { initDatabase, getDb } from "../../db/client.js";
 import type { TriggersArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { log } from "../../lib/logging.js";

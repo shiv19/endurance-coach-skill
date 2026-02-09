@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { rmSync, mkdirSync, readFileSync, existsSync } from "fs";
+import { rmSync, mkdirSync, readFileSync, existsSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { runRender } from "../../src/cli/commands/render.js";
@@ -44,7 +44,7 @@ weeks:
     const inputFile = join(tempDir, "plan.yaml");
     const outputFile = join(tempDir, "output.html");
 
-    require("fs").writeFileSync(inputFile, yamlContent);
+    writeFileSync(inputFile, yamlContent);
 
     const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -87,7 +87,7 @@ weeks:
 `;
     const inputFile = join(tempDir, "stdout-plan.yaml");
 
-    require("fs").writeFileSync(inputFile, yamlContent);
+    writeFileSync(inputFile, yamlContent);
 
     expect(existsSync(inputFile)).toBe(true);
 
@@ -112,7 +112,7 @@ weeks:
 
   it("exits with error for invalid JSON file", () => {
     const inputFile = join(tempDir, "invalid.json");
-    require("fs").writeFileSync(inputFile, "{ not valid json }");
+    writeFileSync(inputFile, "{ not valid json }");
 
     const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -133,7 +133,7 @@ weeks:
 athlete: invalid: structure`;
 
     const inputFile = join(tempDir, "invalid.yaml");
-    require("fs").writeFileSync(inputFile, yamlContent);
+    writeFileSync(inputFile, yamlContent);
 
     const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -191,7 +191,7 @@ weeks:
     const inputFile = join(tempDir, "plan.yaml");
     const outputFile = join(tempDir, "custom-output.html");
 
-    require("fs").writeFileSync(inputFile, yamlContent);
+    writeFileSync(inputFile, yamlContent);
 
     const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);

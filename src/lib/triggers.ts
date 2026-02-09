@@ -116,7 +116,7 @@ export function evaluateHRDrift(laps: Lap[], threshold: number): TriggerEvaluati
     value: drift,
     threshold,
     unit: "%",
-    percentageOver: fired ? drift : undefined,
+    percentageOver: fired ? drift - threshold : undefined,
   };
 }
 
@@ -139,7 +139,7 @@ export function evaluatePaceDeviation(laps: Lap[], threshold: number): TriggerEv
     value: cv,
     threshold,
     unit: "%",
-    percentageOver: fired ? cv : undefined,
+    percentageOver: fired ? cv - threshold : undefined,
   };
 }
 
@@ -173,7 +173,7 @@ export function evaluateLapVariability(laps: Lap[], threshold: number): TriggerE
     value: cv,
     threshold,
     unit: "%",
-    percentageOver: fired ? cv : undefined,
+    percentageOver: fired ? cv - threshold : undefined,
   };
 }
 
@@ -232,7 +232,7 @@ export function evaluateEarlyFade(laps: Lap[], threshold: number): TriggerEvalua
       value: fade,
       threshold,
       unit: "%",
-      percentageOver: fired ? fade : undefined,
+      percentageOver: fired ? fade - threshold : undefined,
     };
   }
 
@@ -252,7 +252,7 @@ export function evaluateEarlyFade(laps: Lap[], threshold: number): TriggerEvalua
       value: fade,
       threshold,
       unit: "%",
-      percentageOver: fired ? fade : undefined,
+      percentageOver: fired ? fade - threshold : undefined,
     };
   }
 

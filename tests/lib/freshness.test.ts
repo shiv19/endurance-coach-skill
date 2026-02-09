@@ -263,7 +263,7 @@ describe("ensureFreshData", () => {
         expect(result.synced).toBe(false);
         expect(result.reason).toBe("error");
         expect(result.warning).toBe("Network error");
-        expect(result.cached).toBe(true);
+        expect(result.cached).toBe(false);
       });
     });
 

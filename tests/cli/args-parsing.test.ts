@@ -186,4 +186,38 @@ describe("parseArgs", () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe("interview-save parsing", () => {
+    it("preserves '=' characters in reflection and notes", () => {
+      setArgv([
+        "interview-save",
+        "123",
+        "--reflection=Felt=good=overall",
+        "--notes=Coach=note=kept",
+        "--confidence=High",
+      ]);
+      const result = parseArgs();
+
+      expect(result.command).toBe("interview-save");
+      if (result.command === "interview-save") {
+        expect(result.workoutId).toBe(123);
+        expect(result.reflection).toBe("Felt=good=overall");
+        expect(result.notes).toBe("Coach=note=kept");
+        expect(result.confidence).toBe("High");
+      }
+    });
+  });
+
+  describe("preliminary-note-save parsing", () => {
+    it("preserves '=' characters in note", () => {
+      setArgv(["preliminary-note-save", "123", "--note=Key=Value=More"]);
+      const result = parseArgs();
+
+      expect(result.command).toBe("preliminary-note-save");
+      if (result.command === "preliminary-note-save") {
+        expect(result.workoutId).toBe(123);
+        expect(result.note).toBe("Key=Value=More");
+      }
+    });
+  });
 });

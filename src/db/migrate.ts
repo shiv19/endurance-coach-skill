@@ -3,9 +3,9 @@ import { runMigrations, getMigrationStatus } from "./migrations.js";
 import { ensureConfigDir } from "../lib/config.js";
 import { log } from "../lib/logging.js";
 
-export function migrate(): void {
+export async function migrate(): Promise<void> {
   ensureConfigDir();
-  initDatabase();
+  await initDatabase();
 
   // Show current status before running migrations
   const statusBefore = getMigrationStatus();

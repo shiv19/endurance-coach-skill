@@ -56,7 +56,7 @@ describe("interview-persistence", () => {
         coach_notes TEXT,
         coach_confidence TEXT NOT NULL CHECK (coach_confidence IN ('Low', 'Medium', 'High')),
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (workout_id) REFERENCES activities(id) ON DELETE CASCADE
+        FOREIGN KEY (workout_id) REFERENCES activities(id)
       )
     `);
 
@@ -66,7 +66,7 @@ describe("interview-persistence", () => {
         workout_id INTEGER NOT NULL,
         note_draft TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (workout_id) REFERENCES activities(id) ON DELETE CASCADE
+        FOREIGN KEY (workout_id) REFERENCES activities(id)
       )
     `);
 

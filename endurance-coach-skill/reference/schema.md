@@ -57,12 +57,12 @@
 
 ### workout_interviews
 
-- workout_id: FOREIGN KEY → activities(id) ON DELETE CASCADE
+- workout_id: FOREIGN KEY → activities(id)
 - coach_confidence: CHECK constraint ('Low', 'Medium', 'High')
 
 ### preliminary_coach_notes
 
-- workout_id: FOREIGN KEY → activities(id) ON DELETE CASCADE
+- workout_id: FOREIGN KEY → activities(id)
 
 ### interview_triggers
 

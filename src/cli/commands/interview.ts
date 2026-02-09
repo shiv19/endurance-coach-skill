@@ -1,4 +1,4 @@
-import { initDatabase, queryJson } from "../../db/client.js";
+import { initDatabase, queryJson, getDb } from "../../db/client.js";
 import type { InterviewArgs } from "../args.js";
 import { ensureFreshData } from "../../lib/freshness.js";
 import { evaluateAllTriggers, type TriggerConfig } from "../../lib/triggers.js";
@@ -80,24 +80,29 @@ async function loadTriggerConfigs(): Promise<TriggerConfig[]> {
 }
 
 async function loadActivityMetadata(workoutId: number): Promise<ActivityMetadata | null> {
-  const rows = queryJson<ActivityMetadata>(
+  const stmt = getDb().prepare(
     `SELECT id, name, sport_type, start_date, moving_time, distance,
             average_heartrate, max_heartrate, average_watts, suffer_score,
             total_elevation_gain, description
-     FROM activities WHERE id = ${workoutId}`
+     FROM activities WHERE id = ?`
   );
+  const rows = stmt.all(workoutId) as ActivityMetadata[];
 
   return rows.length > 0 ? rows[0] : null;
 }
 
 async function loadPreviousInterviews(workoutId: number, limit = 3): Promise<InterviewSummary[]> {
-  const rows = queryJson<{ created_at: string; athlete_reflection_summary: string | null }>(
+  const stmt = getDb().prepare(
     `SELECT created_at, athlete_reflection_summary
      FROM workout_interviews
-     WHERE workout_id = ${workoutId}
+     WHERE workout_id = ?
      ORDER BY created_at DESC
-     LIMIT ${limit}`
+     LIMIT ?`
   );
+  const rows = stmt.all(workoutId, limit) as {
+    created_at: string;
+    athlete_reflection_summary: string | null;
+  }[];
 
   return rows.map((row) => ({
     created_at: row.created_at,
@@ -113,16 +118,16 @@ async function getMostRecentActivityId(): Promise<number | null> {
 }
 
 async function getRecentActivities(days: number): Promise<ActivitySummary[]> {
-  const rows = queryJson<ActivitySummary>(
+  const stmt = getDb().prepare(
     `SELECT id, date(start_date) as date, sport_type, name,
             ROUND(moving_time / 60.0) as duration_minutes,
             ROUND(distance / 1000.0, 2) as distance_km
      FROM activities
-     WHERE start_date >= date('now', '-${days} days')
+     WHERE start_date >= date('now', ?)
      ORDER BY start_date DESC`
   );
 
-  return rows;
+  return stmt.all(`-${days} days`) as ActivitySummary[];
 }
 
 async function getTotalInterviewCount(): Promise<number> {

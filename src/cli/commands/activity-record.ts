@@ -37,7 +37,7 @@ export function recordManualActivity(args: ActivityRecordArgs): void {
 
   if (args.distance !== undefined) {
     distanceMeters = args.distance * 1000;
-    averageSpeed = distanceMeters / elapsedSeconds;
+    averageSpeed = elapsedSeconds > 0 ? distanceMeters / elapsedSeconds : 0;
   }
 
   const activityId = generateSyntheticId(db);
