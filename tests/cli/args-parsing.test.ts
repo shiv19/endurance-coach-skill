@@ -132,4 +132,58 @@ describe("parseArgs", () => {
 
     exitSpy.mockRestore();
   });
+
+  describe("activity-record --help", () => {
+    it("displays help when --help flag is provided", () => {
+      setArgv(["activity-record", "--help"]);
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+        throw new Error(`exit:${code}`);
+      }) as never);
+
+      expect(() => parseArgs()).toThrow("exit:0");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("activity-record - Manually record an activity")
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("--type=TYPE"));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("--duration=MINUTES"));
+
+      consoleSpy.mockRestore();
+      exitSpy.mockRestore();
+    });
+
+    it("displays help when -h flag is provided", () => {
+      setArgv(["activity-record", "-h"]);
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+        throw new Error(`exit:${code}`);
+      }) as never);
+
+      expect(() => parseArgs()).toThrow("exit:0");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("activity-record - Manually record an activity")
+      );
+
+      consoleSpy.mockRestore();
+      exitSpy.mockRestore();
+    });
+
+    it("does not display help when --help is not present", () => {
+      setArgv(["activity-record", "--type=Run", "--duration=30"]);
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      const result = parseArgs();
+
+      expect(result.command).toBe("activity-record");
+      if (result.command === "activity-record") {
+        expect(result.type).toBe("Run");
+        expect(result.duration).toBe(30);
+      }
+      expect(consoleSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining("activity-record - Manually record an activity")
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
 });

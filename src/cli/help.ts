@@ -19,6 +19,7 @@ Commands:
   sync              Sync activities from Strava
   auth              Get Strava authorization URL or exchange code for tokens
   activity <id>     Fetch activity data from Strava (use subcommand flags)
+  activity-record   Manually record an activity (bypassing Strava)
   schema            Print the YAML v2.0 plan format reference
   validate <file>   Validate a training plan (YAML recommended)
   expand <file>     Expand a compact YAML plan to full format
@@ -32,6 +33,11 @@ Commands:
   hr-zones          HR summaries for zone estimation
   query <sql>       Run a SQL query against the database
   modify            Apply backup changes to a training plan
+  interview         Interactive athlete interview
+  interview-save    Save interview results for an activity
+  preliminary-note-save  Save preliminary coach note for an activity
+  interviews        List saved interviews
+  triggers          Analyze training trigger patterns
   help              Show this help message
 
 Auth Options (for headless/Claude environments):

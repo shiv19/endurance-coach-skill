@@ -502,6 +502,39 @@ export function parseArgs(): CliArgs {
   }
 
   if (args[0] === "interview") {
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log(`
+interview - Interactive athlete interview system
+
+Usage: npx endurance-coach interview [mode|id] [options]
+
+Modes:
+  [none]                    Manual interview mode (default)
+  --latest                  Interview for most recent activity
+  --list                    List recent activities for interview selection
+  <id>                      Specific workout ID to interview
+
+Options:
+  --laps                    Include lap-by-lap data in specific/latest modes
+  --days=N                  Days to show in list mode (default: 7)
+  --json                    Output as JSON instead of formatted text
+
+Examples:
+  # Manual interview mode
+  npx endurance-coach interview
+
+  # Interview most recent activity with lap data
+  npx endurance-coach interview --latest --laps
+
+  # List activities from last 7 days
+  npx endurance-coach interview --list --days=14
+
+  # Interview specific activity with lap data
+  npx endurance-coach interview 17213185177 --laps --json
+`);
+      process.exit(0);
+    }
+
     let mode: "latest" | "list" | "manual" | "specific" = "manual";
     let workoutId: number | undefined;
     let laps = false;
@@ -663,6 +696,32 @@ Example:
   }
 
   if (args[0] === "activity-record") {
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log(`
+activity-record - Manually record an activity (bypassing Strava)
+
+Usage: npx endurance-coach activity-record [options]
+
+Required:
+  --type=TYPE               Sport type: Run, Bike, Swim, Strength, or Brick
+  --duration=MINUTES        Duration in minutes
+
+Optional:
+  --distance=KM             Distance in kilometers (for activities with distance)
+  --structure="TEXT"        Workout structure description (e.g., "3x8min tempo")
+  --notes="TEXT"            Free-form notes about the activity
+
+Example:
+  npx endurance-coach activity-record \\
+    --type=Run \\
+    --duration=45 \\
+    --distance=8.5 \\
+    --structure="4x10min tempo w/2min easy" \\
+    --notes="Felt strong, maintained good form"
+`);
+      process.exit(0);
+    }
+
     const activityRecordArgs: ActivityRecordArgs = {
       command: "activity-record",
       type: "",
@@ -712,6 +771,52 @@ Example:
   }
 
   if (args[0] === "triggers") {
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log(`
+triggers - Manage interview trigger thresholds
+
+Triggers automatically flag workouts that may need coaching attention based on
+performance patterns. They are evaluated during interview sessions when lap data
+is fetched.
+
+Usage: npx endurance-coach triggers <subcommand> [options]
+
+Subcommands:
+  list                      List all configured triggers
+  set                       Configure or update a trigger threshold
+  disable                   Disable a specific trigger
+
+Trigger Types:
+  hr_drift                  Heart rate drift across the workout
+  pace_deviation            Pace variability between segments
+  lap_variability           Inconsistency in lap performance
+  early_fade                Performance drop-off early in workout
+
+Set Options:
+  --type=TYPE               Trigger type (see above)
+  --threshold=NUM           Threshold value (positive number)
+  --unit=UNIT               Unit: percent, bpm, or seconds
+  --enabled                 Enable the trigger (default: enabled)
+
+Disable Options:
+  --type=TYPE               Trigger type to disable
+
+Examples:
+  # List all triggers
+  npx endurance-coach triggers list
+
+  # Set HR drift threshold to 10%
+  npx endurance-coach triggers set --type=hr_drift --threshold=10 --unit=percent
+
+  # Set pace deviation to 15 bpm
+  npx endurance-coach triggers set --type=pace_deviation --threshold=15 --unit=bpm
+
+  # Disable lap variability trigger
+  npx endurance-coach triggers disable --type=lap_variability
+`);
+      process.exit(0);
+    }
+
     if (!args[1] || (args[1] !== "list" && args[1] !== "set" && args[1] !== "disable")) {
       log.error("triggers command requires a subcommand: list, set, or disable");
       process.exit(1);
@@ -766,6 +871,39 @@ Example:
   }
 
   if (args[0] === "interviews") {
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log(`
+interviews - Query saved workout interviews
+
+Usage: npx endurance-coach interviews <subcommand> [options]
+
+Subcommands:
+  list                      List saved interviews
+  get <id>                  Get full details of a specific interview
+
+List Options:
+  --workout=ID              Filter by workout ID
+  --limit=N                 Maximum number of interviews to show (default: 10)
+
+Get Arguments:
+  <id>                      Interview ID to retrieve
+
+Examples:
+  # List all interviews
+  npx endurance-coach interviews list
+
+  # List interviews for specific workout
+  npx endurance-coach interviews list --workout=17213185177
+
+  # List last 5 interviews
+  npx endurance-coach interviews list --limit=5
+
+  # Get full interview details
+  npx endurance-coach interviews get 42
+`);
+      process.exit(0);
+    }
+
     if (!args[1] || (args[1] !== "list" && args[1] !== "get")) {
       log.error("interviews command requires a subcommand: list or get");
       process.exit(1);
