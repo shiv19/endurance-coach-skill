@@ -68,6 +68,7 @@ export type {
 
 export function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
+  const readEqualsValue = (value: string): string => value.slice(value.indexOf("=") + 1);
 
   if (args.length === 0 || args[0] === "sync") {
     // Sync command (default)
@@ -75,15 +76,15 @@ export function parseArgs(): CliArgs {
 
     for (const arg of args) {
       if (arg.startsWith("--client-id=")) {
-        syncArgs.clientId = arg.split("=")[1];
+        syncArgs.clientId = readEqualsValue(arg);
       } else if (arg.startsWith("--client-secret=")) {
-        syncArgs.clientSecret = arg.split("=")[1];
+        syncArgs.clientSecret = readEqualsValue(arg);
       } else if (arg.startsWith("--access-token=")) {
-        syncArgs.accessToken = arg.split("=")[1];
+        syncArgs.accessToken = readEqualsValue(arg);
       } else if (arg.startsWith("--refresh-token=")) {
-        syncArgs.refreshToken = arg.split("=")[1];
+        syncArgs.refreshToken = readEqualsValue(arg);
       } else if (arg.startsWith("--days=")) {
-        const parsed = parseInt(arg.split("=")[1], 10);
+        const parsed = parseInt(readEqualsValue(arg), 10);
         if (Number.isNaN(parsed)) {
           log.error("Invalid --days value: must be a number");
           process.exit(1);
@@ -111,7 +112,7 @@ export function parseArgs(): CliArgs {
         renderArgs.outputFile = args[i + 1];
         i++;
       } else if (args[i].startsWith("--output=")) {
-        renderArgs.outputFile = args[i].split("=")[1];
+        renderArgs.outputFile = readEqualsValue(args[i]);
       } else if (!args[i].startsWith("-") && !renderArgs.outputFile) {
         // Accept positional output argument (helps when npm consumes -o)
         renderArgs.outputFile = args[i];
@@ -134,12 +135,12 @@ export function parseArgs(): CliArgs {
         statsArgs.weeks = parseInt(args[i + 1], 10);
         i++;
       } else if (args[i].startsWith("--weeks=")) {
-        statsArgs.weeks = parseInt(args[i].split("=")[1], 10);
+        statsArgs.weeks = parseInt(readEqualsValue(args[i]), 10);
       } else if (args[i] === "--longest-weeks") {
         statsArgs.longestWeeks = parseInt(args[i + 1], 10);
         i++;
       } else if (args[i].startsWith("--longest-weeks=")) {
-        statsArgs.longestWeeks = parseInt(args[i].split("=")[1], 10);
+        statsArgs.longestWeeks = parseInt(readEqualsValue(args[i]), 10);
       }
     }
 
@@ -159,7 +160,7 @@ export function parseArgs(): CliArgs {
         trainingLoadArgs.weeks = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--weeks=")) {
-        trainingLoadArgs.weeks = parseInt(args[i].split("=")[1]);
+        trainingLoadArgs.weeks = parseInt(readEqualsValue(args[i]));
       }
     }
 
@@ -177,7 +178,7 @@ export function parseArgs(): CliArgs {
         foundationArgs.topWeeks = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--top-weeks=")) {
-        foundationArgs.topWeeks = parseInt(args[i].split("=")[1]);
+        foundationArgs.topWeeks = parseInt(readEqualsValue(args[i]));
       }
     }
 
@@ -195,27 +196,27 @@ export function parseArgs(): CliArgs {
         strengthArgs.months = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--months=")) {
-        strengthArgs.months = parseInt(args[i].split("=")[1]);
+        strengthArgs.months = parseInt(readEqualsValue(args[i]));
       } else if (args[i] === "--long-months") {
         strengthArgs.longMonths = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--long-months=")) {
-        strengthArgs.longMonths = parseInt(args[i].split("=")[1]);
+        strengthArgs.longMonths = parseInt(readEqualsValue(args[i]));
       } else if (args[i] === "--easy-hr-max") {
         strengthArgs.easyHrMax = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--easy-hr-max=")) {
-        strengthArgs.easyHrMax = parseInt(args[i].split("=")[1]);
+        strengthArgs.easyHrMax = parseInt(readEqualsValue(args[i]));
       } else if (args[i] === "--long-minutes") {
         strengthArgs.longMinutes = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--long-minutes=")) {
-        strengthArgs.longMinutes = parseInt(args[i].split("=")[1]);
+        strengthArgs.longMinutes = parseInt(readEqualsValue(args[i]));
       } else if (args[i] === "--years") {
         strengthArgs.years = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--years=")) {
-        strengthArgs.years = parseInt(args[i].split("=")[1]);
+        strengthArgs.years = parseInt(readEqualsValue(args[i]));
       }
     }
 
@@ -233,12 +234,12 @@ export function parseArgs(): CliArgs {
         scheduleArgs.rideMinutes = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--ride-minutes=")) {
-        scheduleArgs.rideMinutes = parseInt(args[i].split("=")[1]);
+        scheduleArgs.rideMinutes = parseInt(readEqualsValue(args[i]));
       } else if (args[i] === "--run-minutes") {
         scheduleArgs.runMinutes = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--run-minutes=")) {
-        scheduleArgs.runMinutes = parseInt(args[i].split("=")[1]);
+        scheduleArgs.runMinutes = parseInt(readEqualsValue(args[i]));
       }
     }
 
@@ -256,12 +257,12 @@ export function parseArgs(): CliArgs {
         hrArgs.weeks = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--weeks=")) {
-        hrArgs.weeks = parseInt(args[i].split("=")[1]);
+        hrArgs.weeks = parseInt(readEqualsValue(args[i]));
       } else if (args[i] === "--distribution-weeks") {
         hrArgs.distributionWeeks = parseInt(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--distribution-weeks=")) {
-        hrArgs.distributionWeeks = parseInt(args[i].split("=")[1]);
+        hrArgs.distributionWeeks = parseInt(readEqualsValue(args[i]));
       }
     }
 
@@ -362,12 +363,12 @@ export function parseArgs(): CliArgs {
         expandArgs.outputFile = args[i + 1];
         i++;
       } else if (args[i].startsWith("--output=")) {
-        expandArgs.outputFile = args[i].split("=")[1];
+        expandArgs.outputFile = readEqualsValue(args[i]);
       } else if (args[i] === "--format") {
         expandArgs.format = args[i + 1] as "json" | "yaml";
         i++;
       } else if (args[i].startsWith("--format=")) {
-        expandArgs.format = args[i].split("=")[1] as "json" | "yaml";
+        expandArgs.format = readEqualsValue(args[i]) as "json" | "yaml";
       } else if (args[i] === "--verbose" || args[i] === "-v") {
         expandArgs.verbose = true;
       }
@@ -429,11 +430,11 @@ export function parseArgs(): CliArgs {
       } else if (args[i] === "--example") {
         templatesArgs.example = true;
       } else if (args[i].startsWith("--sport=")) {
-        templatesArgs.sport = args[i].split("=")[1];
+        templatesArgs.sport = readEqualsValue(args[i]);
       } else if (args[i].startsWith("--type=")) {
-        templatesArgs.type = args[i].split("=")[1];
+        templatesArgs.type = readEqualsValue(args[i]);
       } else if (args[i].startsWith("--source=")) {
-        const sourceVal = args[i].split("=")[1];
+        const sourceVal = readEqualsValue(args[i]);
         if (sourceVal === "user" || sourceVal === "builtin" || sourceVal === "all") {
           templatesArgs.source = sourceVal;
         } else {
@@ -441,9 +442,9 @@ export function parseArgs(): CliArgs {
           process.exit(1);
         }
       } else if (args[i].startsWith("--category=")) {
-        templatesArgs.category = args[i].split("=")[1];
+        templatesArgs.category = readEqualsValue(args[i]);
       } else if (args[i].startsWith("--template-file=")) {
-        templatesArgs.templateFile = args[i].split("=")[1];
+        templatesArgs.templateFile = readEqualsValue(args[i]);
       } else if (
         !args[i].startsWith("-") &&
         !templatesArgs.show &&
@@ -479,17 +480,17 @@ export function parseArgs(): CliArgs {
         modifyArgs.backup = args[i + 1];
         i++;
       } else if (args[i].startsWith("--backup=")) {
-        modifyArgs.backup = args[i].split("=")[1];
+        modifyArgs.backup = readEqualsValue(args[i]);
       } else if (args[i] === "--plan" || args[i] === "-p") {
         modifyArgs.plan = args[i + 1];
         i++;
       } else if (args[i].startsWith("--plan=")) {
-        modifyArgs.plan = args[i].split("=")[1];
+        modifyArgs.plan = readEqualsValue(args[i]);
       } else if (args[i] === "--output" || args[i] === "-o") {
         modifyArgs.output = args[i + 1];
         i++;
       } else if (args[i].startsWith("--output=")) {
-        modifyArgs.output = args[i].split("=")[1];
+        modifyArgs.output = readEqualsValue(args[i]);
       }
     }
 
@@ -551,7 +552,7 @@ Examples:
       } else if (args[i] === "--laps") {
         laps = true;
       } else if (args[i].startsWith("--days=")) {
-        days = parseInt(args[i].split("=")[1], 10);
+        days = parseInt(readEqualsValue(args[i]), 10);
       } else if (args[i] === "--days") {
         days = parseInt(args[i + 1], 10);
         i++;
@@ -618,7 +619,7 @@ Example:
       } else if (arg.startsWith("--notes=")) {
         interviewSaveArgs.notes = arg.slice(arg.indexOf("=") + 1);
       } else if (arg.startsWith("--confidence=")) {
-        const confidence = arg.split("=")[1];
+        const confidence = readEqualsValue(arg);
         if (confidence === "Low" || confidence === "Medium" || confidence === "High") {
           interviewSaveArgs.confidence = confidence;
         } else {
@@ -733,27 +734,27 @@ Example:
         activityRecordArgs.type = args[i + 1];
         i++;
       } else if (args[i].startsWith("--type=")) {
-        activityRecordArgs.type = args[i].split("=")[1];
+        activityRecordArgs.type = readEqualsValue(args[i]);
       } else if (args[i] === "--duration") {
         activityRecordArgs.duration = parseInt(args[i + 1], 10);
         i++;
       } else if (args[i].startsWith("--duration=")) {
-        activityRecordArgs.duration = parseInt(args[i].split("=")[1], 10);
+        activityRecordArgs.duration = parseInt(readEqualsValue(args[i]), 10);
       } else if (args[i] === "--distance") {
         activityRecordArgs.distance = parseFloat(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--distance=")) {
-        activityRecordArgs.distance = parseFloat(args[i].split("=")[1]);
+        activityRecordArgs.distance = parseFloat(readEqualsValue(args[i]));
       } else if (args[i] === "--structure") {
         activityRecordArgs.structure = args[i + 1];
         i++;
       } else if (args[i].startsWith("--structure=")) {
-        activityRecordArgs.structure = args[i].split("=")[1];
+        activityRecordArgs.structure = readEqualsValue(args[i]);
       } else if (args[i] === "--notes") {
         activityRecordArgs.notes = args[i + 1];
         i++;
       } else if (args[i].startsWith("--notes=")) {
-        activityRecordArgs.notes = args[i].split("=")[1];
+        activityRecordArgs.notes = readEqualsValue(args[i]);
       }
     }
 
@@ -833,17 +834,17 @@ Examples:
         triggersArgs.type = args[i + 1];
         i++;
       } else if (args[i].startsWith("--type=")) {
-        triggersArgs.type = args[i].split("=")[1];
+        triggersArgs.type = readEqualsValue(args[i]);
       } else if (args[i] === "--threshold") {
         triggersArgs.threshold = parseFloat(args[i + 1]);
         i++;
       } else if (args[i].startsWith("--threshold=")) {
-        triggersArgs.threshold = parseFloat(args[i].split("=")[1]);
+        triggersArgs.threshold = parseFloat(readEqualsValue(args[i]));
       } else if (args[i] === "--unit") {
         triggersArgs.unit = args[i + 1];
         i++;
       } else if (args[i].startsWith("--unit=")) {
-        triggersArgs.unit = args[i].split("=")[1];
+        triggersArgs.unit = readEqualsValue(args[i]);
       } else if (args[i] === "--enabled") {
         triggersArgs.enabled = true;
       }
@@ -922,12 +923,12 @@ Examples:
           interviewsListArgs.workout = parseInt(args[i + 1], 10);
           i++;
         } else if (args[i].startsWith("--workout=")) {
-          interviewsListArgs.workout = parseInt(args[i].split("=")[1], 10);
+          interviewsListArgs.workout = parseInt(readEqualsValue(args[i]), 10);
         } else if (args[i] === "--limit") {
           interviewsListArgs.limit = parseInt(args[i + 1], 10);
           i++;
         } else if (args[i].startsWith("--limit=")) {
-          interviewsListArgs.limit = parseInt(args[i].split("=")[1], 10);
+          interviewsListArgs.limit = parseInt(readEqualsValue(args[i]), 10);
         }
       }
 
