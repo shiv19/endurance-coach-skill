@@ -110,7 +110,7 @@ describe("getAvailableFormats", () => {
 
 describe("downloadFile (browser environment required)", () => {
   let dom: JSDOM;
-  let clickSpy: ReturnType<typeof vi.fn>;
+  let clickSpy: ReturnType<typeof vi.spyOn>;
   const objectUrls: string[] = [];
   const blobs: Map<string, Blob> = new Map();
   const createdAnchors: { href: string; download: string }[] = [];
@@ -127,8 +127,9 @@ describe("downloadFile (browser environment required)", () => {
 
     global.document = dom.window.document;
 
-    clickSpy = vi.fn();
-    dom.window.HTMLAnchorElement.prototype.click = clickSpy;
+    clickSpy = vi
+      .spyOn(dom.window.HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
 
     vi.stubGlobal("URL", {
       createObjectURL: (blob: Blob): string => {
@@ -204,19 +205,23 @@ describe("downloadFile (browser environment required)", () => {
 
     let capturedAnchor: HTMLAnchorElement | null = null;
 
-    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        capturedAnchor = node;
-      }
-      return originalAppendChild.call(dom.window.document.body, node);
-    });
+    const appendChildSpy = vi
+      .spyOn(dom.window.document.body, "appendChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          capturedAnchor = node;
+        }
+        return originalAppendChild.call(dom.window.document.body, node);
+      });
 
-    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        return originalRemoveChild.call(dom.window.document.body, node);
-      }
-      return node;
-    });
+    const removeChildSpy = vi
+      .spyOn(dom.window.document.body, "removeChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          return originalRemoveChild.call(dom.window.document.body, node);
+        }
+        return node;
+      });
 
     downloadFile("content", "file.txt", "text/plain");
 
@@ -225,8 +230,8 @@ describe("downloadFile (browser environment required)", () => {
     expect(anchor.download).toBe("file.txt");
     expect(anchor.href).toMatch(/^blob:/);
 
-    dom.window.document.body.appendChild.mockRestore();
-    dom.window.document.body.removeChild.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
   });
 
   it("should trigger click on anchor element", () => {
@@ -265,24 +270,28 @@ describe("downloadFile (browser environment required)", () => {
     });
 
     const originalAppendChild = dom.window.document.body.appendChild;
-    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        callOrder.push("appendChild");
-      }
-      return originalAppendChild.call(dom.window.document.body, node);
-    });
+    const appendChildSpy = vi
+      .spyOn(dom.window.document.body, "appendChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          callOrder.push("appendChild");
+        }
+        return originalAppendChild.call(dom.window.document.body, node);
+      });
 
     clickSpy.mockImplementation(() => {
       callOrder.push("click");
     });
 
     const originalRemoveChild = dom.window.document.body.removeChild;
-    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        callOrder.push("removeChild");
-      }
-      return originalRemoveChild.call(dom.window.document.body, node);
-    });
+    const removeChildSpy = vi
+      .spyOn(dom.window.document.body, "removeChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          callOrder.push("removeChild");
+        }
+        return originalRemoveChild.call(dom.window.document.body, node);
+      });
 
     const originalRevokeObjectURL = (global as any).URL.revokeObjectURL;
     (global as any).URL.revokeObjectURL = vi.fn().mockImplementation((url: string) => {
@@ -302,8 +311,8 @@ describe("downloadFile (browser environment required)", () => {
 
     (global as any).URL.createObjectURL.mockRestore();
     (global as any).URL.revokeObjectURL.mockRestore();
-    dom.window.document.body.appendChild.mockRestore();
-    dom.window.document.body.removeChild.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
   });
 
   it("should create correct blob content for binary data", () => {
@@ -322,19 +331,23 @@ describe("downloadFile (browser environment required)", () => {
 
     let capturedAnchor: HTMLAnchorElement | null = null;
 
-    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        capturedAnchor = node;
-      }
-      return originalAppendChild.call(dom.window.document.body, node);
-    });
+    const appendChildSpy = vi
+      .spyOn(dom.window.document.body, "appendChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          capturedAnchor = node;
+        }
+        return originalAppendChild.call(dom.window.document.body, node);
+      });
 
-    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        return originalRemoveChild.call(dom.window.document.body, node);
-      }
-      return node;
-    });
+    const removeChildSpy = vi
+      .spyOn(dom.window.document.body, "removeChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          return originalRemoveChild.call(dom.window.document.body, node);
+        }
+        return node;
+      });
 
     downloadFile("content", longFilename, "text/plain");
 
@@ -342,8 +355,8 @@ describe("downloadFile (browser environment required)", () => {
     const anchor = capturedAnchor as unknown as HTMLAnchorElement;
     expect(anchor.download).toBe(longFilename);
 
-    dom.window.document.body.appendChild.mockRestore();
-    dom.window.document.body.removeChild.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
   });
 
   it("should handle special characters in filename", () => {
@@ -354,51 +367,23 @@ describe("downloadFile (browser environment required)", () => {
 
     let capturedAnchor: HTMLAnchorElement | null = null;
 
-    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        capturedAnchor = node as HTMLAnchorElement;
-      }
-      return originalAppendChild.call(dom.window.document.body, node);
-    });
+    const appendChildSpy = vi
+      .spyOn(dom.window.document.body, "appendChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          capturedAnchor = node as HTMLAnchorElement;
+        }
+        return originalAppendChild.call(dom.window.document.body, node);
+      });
 
-    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        return originalRemoveChild.call(dom.window.document.body, node);
-      }
-      return node;
-    });
-
-    downloadFile("content", filename, "text/plain");
-
-    expect(capturedAnchor).not.toBeNull();
-    const anchor = capturedAnchor as unknown as HTMLAnchorElement;
-    expect(anchor.download).toBe(filename);
-
-    dom.window.document.body.appendChild.mockRestore();
-    dom.window.document.body.removeChild.mockRestore();
-  });
-
-  it("should handle special characters in filename", () => {
-    const filename = "my file (1) [test].txt";
-
-    const originalAppendChild = dom.window.document.body.appendChild;
-    const originalRemoveChild = dom.window.document.body.removeChild;
-
-    let capturedAnchor: HTMLAnchorElement | null = null;
-
-    dom.window.document.body.appendChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        capturedAnchor = node as HTMLAnchorElement;
-      }
-      return originalAppendChild.call(dom.window.document.body, node);
-    });
-
-    dom.window.document.body.removeChild = vi.fn().mockImplementation((node) => {
-      if (node instanceof dom.window.HTMLAnchorElement) {
-        return originalRemoveChild.call(dom.window.document.body, node);
-      }
-      return node;
-    });
+    const removeChildSpy = vi
+      .spyOn(dom.window.document.body, "removeChild")
+      .mockImplementation((node) => {
+        if (node instanceof dom.window.HTMLAnchorElement) {
+          return originalRemoveChild.call(dom.window.document.body, node);
+        }
+        return node;
+      });
 
     downloadFile("content", filename, "text/plain");
 
@@ -406,7 +391,7 @@ describe("downloadFile (browser environment required)", () => {
     const anchor = capturedAnchor as unknown as HTMLAnchorElement;
     expect(anchor.download).toBe(filename);
 
-    dom.window.document.body.appendChild.mockRestore();
-    dom.window.document.body.removeChild.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
   });
 });
