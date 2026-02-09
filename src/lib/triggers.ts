@@ -148,17 +148,21 @@ export function evaluateLapVariability(laps: Lap[], threshold: number): TriggerE
     return { fired: false, threshold, unit: "%" };
   }
 
-  const values: number[] = [];
+  const paceValues = laps.map(getPace).filter((pace): pace is number => pace > 0);
+  const powerValues = laps
+    .map(getPower)
+    .filter((power): power is number => power !== null && power > 0);
 
-  for (const lap of laps) {
-    const pace = getPace(lap);
-    const power = getPower(lap);
+  let values: number[] = [];
 
-    if (power !== null && power > 0) {
-      values.push(power);
-    } else if (pace > 0) {
-      values.push(pace);
-    }
+  if (powerValues.length === laps.length) {
+    values = powerValues;
+  } else if (paceValues.length === laps.length) {
+    values = paceValues;
+  } else if (paceValues.length >= 2) {
+    values = paceValues;
+  } else if (powerValues.length >= 2) {
+    values = powerValues;
   }
 
   if (values.length < 2) {
