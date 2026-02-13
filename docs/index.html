@@ -204,12 +204,37 @@
 
       .hero-grid {
         position: absolute;
-        inset: 0;
+        inset: -50%;
+        width: 200%;
+        height: 200%;
         background-image:
           linear-gradient(var(--border-subtle) 1px, transparent 1px),
           linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-        background-size: 60px 60px;
-        mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, black, transparent);
+        background-size: 80px 80px;
+        transform: rotate(45deg);
+        mask-image: radial-gradient(ellipse 40% 30% at 50% 50%, black 20%, transparent 70%);
+        -webkit-mask-image: radial-gradient(ellipse 40% 30% at 50% 50%, black 20%, transparent 70%);
+        animation: mesh-drift 20s linear infinite;
+      }
+
+      .hero-grid::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border-medium) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-medium) 1px, transparent 1px);
+        background-size: 240px 240px;
+        opacity: 0.5;
+      }
+
+      @keyframes mesh-drift {
+        0% {
+          transform: rotate(45deg) translate(0, 0);
+        }
+        100% {
+          transform: rotate(45deg) translate(80px, 80px);
+        }
       }
 
       .hero-content {

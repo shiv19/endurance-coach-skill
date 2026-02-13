@@ -40,6 +40,7 @@
     "build:viewer": "vite build --config vite.config.viewer.ts",
     "build:skill": "mkdir -p dist && cd endurance-coach-skill && zip -r ../dist/endurance-coach-skill.zip . -x '*.DS_Store' && echo 'Skill packaged to dist/endurance-coach-skill.zip'",
     "build:website": "node scripts/build-website.js",
+    "serve:website": "browser-sync start --server docs --files 'docs/**/*.*' --port 3131",
     "dev": "tsx watch src/cli.ts",
     "dev:viewer": "vite --config vite.config.viewer.ts",
     "test": "vitest",
