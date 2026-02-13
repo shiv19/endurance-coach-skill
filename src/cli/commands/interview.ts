@@ -1,6 +1,6 @@
 import { initDatabase, queryJson, getDb } from "../../db/client.js";
 import type { InterviewArgs } from "../args.js";
-import { ensureFreshData } from "../../lib/freshness.js";
+import { ensureFreshData, type FreshnessResult } from "../../lib/freshness.js";
 import { evaluateAllTriggers, TriggerType, type TriggerConfig } from "../../lib/triggers.js";
 import { getActivityLaps } from "../../strava/api.js";
 import { getValidTokens } from "../../strava/oauth.js";
@@ -135,47 +135,16 @@ async function getTotalInterviewCount(): Promise<number> {
   return rows[0]?.count ?? 0;
 }
 
-async function runLatestMode(
-  args: InterviewArgs & { mode: "latest" }
+async function buildInterviewData(
+  metadata: ActivityMetadata,
+  workoutId: number,
+  fetchLaps: boolean,
+  syncResult: FreshnessResult
 ): Promise<InterviewPromptData> {
-  const syncResult = await ensureFreshData();
-
-  if (syncResult.reason === "not_configured") {
-    return {
-      mode: "manual",
-      sync_status: "manual",
-      athlete_interview_count: await getTotalInterviewCount(),
-      preliminary_note_eligible: false,
-      warning: "Strava not configured. Use manual entry mode.",
-    };
-  }
-
-  const workoutId = await getMostRecentActivityId();
-  if (!workoutId) {
-    return {
-      mode: "manual",
-      sync_status: syncResult.cached ? "cached" : "synced",
-      athlete_interview_count: await getTotalInterviewCount(),
-      preliminary_note_eligible: false,
-      warning: "No activities found in database.",
-    };
-  }
-
-  const metadata = await loadActivityMetadata(workoutId);
-  if (!metadata) {
-    return {
-      mode: "manual",
-      sync_status: syncResult.synced ? "synced" : "cached",
-      athlete_interview_count: await getTotalInterviewCount(),
-      preliminary_note_eligible: false,
-      warning: `Activity ${workoutId} not found in database.`,
-    };
-  }
-
   let laps: Lap[] | undefined;
   let firedTriggers: TriggerInfo[] | undefined;
 
-  if (args.laps) {
+  if (fetchLaps) {
     try {
       const tokens = await getValidTokens();
       laps = await getActivityLaps(tokens, workoutId);
@@ -215,6 +184,46 @@ async function runLatestMode(
     preliminary_note_eligible: totalInterviews >= 5,
     previous_interviews: previousInterviews,
   };
+}
+
+async function runLatestMode(
+  args: InterviewArgs & { mode: "latest" }
+): Promise<InterviewPromptData> {
+  const syncResult = await ensureFreshData();
+
+  if (syncResult.reason === "not_configured") {
+    return {
+      mode: "manual",
+      sync_status: "manual",
+      athlete_interview_count: await getTotalInterviewCount(),
+      preliminary_note_eligible: false,
+      warning: "Strava not configured. Use manual entry mode.",
+    };
+  }
+
+  const workoutId = await getMostRecentActivityId();
+  if (!workoutId) {
+    return {
+      mode: "manual",
+      sync_status: syncResult.cached ? "cached" : "synced",
+      athlete_interview_count: await getTotalInterviewCount(),
+      preliminary_note_eligible: false,
+      warning: "No activities found in database.",
+    };
+  }
+
+  const metadata = await loadActivityMetadata(workoutId);
+  if (!metadata) {
+    return {
+      mode: "manual",
+      sync_status: syncResult.cached ? "cached" : "synced",
+      athlete_interview_count: await getTotalInterviewCount(),
+      preliminary_note_eligible: false,
+      warning: `Activity ${workoutId} not found in database.`,
+    };
+  }
+
+  return buildInterviewData(metadata, workoutId, args.laps ?? false, syncResult);
 }
 
 async function runListMode(args: InterviewArgs & { mode: "list" }): Promise<InterviewPromptData> {
@@ -259,49 +268,7 @@ async function runSpecificMode(
     };
   }
 
-  let laps: Lap[] | undefined;
-  let firedTriggers: TriggerInfo[] | undefined;
-
-  if (args.laps) {
-    try {
-      const tokens = await getValidTokens();
-      laps = await getActivityLaps(tokens, args.workoutId!);
-
-      const triggers = await loadTriggerConfigs();
-      firedTriggers = evaluateAllTriggers(laps, triggers).map((t) => ({
-        trigger_type: t.trigger_type,
-        actual_value: t.actual_value,
-        threshold: t.threshold,
-        unit: t.unit,
-        percentage_over: t.percentage_over,
-      }));
-    } catch (error) {
-      const warning = error instanceof Error ? error.message : String(error);
-      return {
-        mode: "strava",
-        sync_status: syncResult.synced ? "synced" : "cached",
-        workout_metadata: metadata,
-        athlete_interview_count: await getTotalInterviewCount(),
-        preliminary_note_eligible: false,
-        previous_interviews: await loadPreviousInterviews(args.workoutId!),
-        warning: `Failed to fetch laps: ${warning}`,
-      };
-    }
-  }
-
-  const totalInterviews = await getTotalInterviewCount();
-  const previousInterviews = await loadPreviousInterviews(args.workoutId!);
-
-  return {
-    mode: "strava",
-    sync_status: syncResult.synced ? "synced" : "cached",
-    workout_metadata: metadata,
-    laps,
-    fired_triggers: firedTriggers,
-    athlete_interview_count: totalInterviews,
-    preliminary_note_eligible: totalInterviews >= 5,
-    previous_interviews: previousInterviews,
-  };
+  return buildInterviewData(metadata, args.workoutId!, args.laps ?? false, syncResult);
 }
 
 async function runManualMode(): Promise<InterviewPromptData> {

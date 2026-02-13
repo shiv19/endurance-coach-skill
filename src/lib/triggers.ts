@@ -34,7 +34,8 @@ function standardDeviation(values: number[]): number {
   if (values.length < 2) return 0;
   const avg = mean(values);
   const squareDiffs = values.map((val) => Math.pow(val - avg, 2));
-  return Math.sqrt(mean(squareDiffs));
+  const sumSquareDiffs = squareDiffs.reduce((sum, val) => sum + val, 0);
+  return Math.sqrt(sumSquareDiffs / (values.length - 1));
 }
 
 function coefficientOfVariation(values: number[]): number {

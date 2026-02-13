@@ -13,6 +13,102 @@ import * as oauthModule from "../../src/strava/oauth.js";
 import * as apiModule from "../../src/strava/api.js";
 import * as stravaModule from "../../src/cli/commands/strava.js";
 
+interface MockLap {
+  id: number;
+  resource_state: number;
+  name: string;
+  activity: { id: number; resource_state: number };
+  athlete: { id: number; resource_state: number };
+  elapsed_time: number;
+  moving_time: number;
+  start_date: string;
+  start_date_local: string;
+  distance: number;
+  start_index: number;
+  end_index: number;
+  total_elevation_gain: number;
+  average_speed: number;
+  max_speed: number;
+  average_heartrate: number;
+  max_heartrate: number;
+  device_watts: boolean;
+  lap_index: number;
+  split: number;
+}
+
+function createMockLap(overrides: Partial<MockLap> = {}): MockLap {
+  const now = new Date().toISOString();
+  const defaults: MockLap = {
+    id: 1,
+    resource_state: 2,
+    name: "Lap 1",
+    activity: { id: 1, resource_state: 1 },
+    athlete: { id: 123, resource_state: 1 },
+    elapsed_time: 1800,
+    moving_time: 1800,
+    start_date: now,
+    start_date_local: now,
+    distance: 4000,
+    start_index: 0,
+    end_index: 100,
+    total_elevation_gain: 50,
+    average_speed: 2.22,
+    max_speed: 3.5,
+    average_heartrate: 145,
+    max_heartrate: 160,
+    device_watts: false,
+    lap_index: 0,
+    split: 1,
+  };
+  return { ...defaults, ...overrides };
+}
+
+interface TestActivity {
+  id: number;
+  name: string;
+  sport_type: string;
+  start_date: string;
+  elapsed_time: number;
+  moving_time: number;
+  distance: number;
+  average_heartrate: number;
+  suffer_score: number;
+  source: string;
+}
+
+function insertTestActivity(
+  db: ReturnType<typeof getDb>,
+  overrides: Partial<TestActivity> = {}
+): void {
+  const defaults: TestActivity = {
+    id: 1,
+    name: "Test Workout",
+    sport_type: "Run",
+    start_date: new Date().toISOString(),
+    elapsed_time: 3600,
+    moving_time: 3600,
+    distance: 8000,
+    average_heartrate: 150,
+    suffer_score: 100,
+    source: "strava",
+  };
+  const activity = { ...defaults, ...overrides };
+  db.prepare(
+    "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  ).run(
+    activity.id,
+    activity.name,
+    activity.sport_type,
+    activity.start_date,
+    activity.elapsed_time,
+    activity.moving_time,
+    activity.distance,
+    activity.average_heartrate,
+    activity.suffer_score,
+    activity.source
+  );
+}
+
 // Mock only external HTTP calls to Strava API and config checks
 vi.mock("../../src/lib/config.js", () => ({
   tokensExist: vi.fn(),
@@ -53,13 +149,20 @@ describe("Interview Flow Integration Tests", () => {
     yesterday.setDate(yesterday.getDate() - 1);
     const today = new Date();
 
-    db.prepare(
-      "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(1, "Morning Run", "Run", yesterday.toISOString(), 3600, 3600, 8000, 150, 100, "strava");
+    insertTestActivity(db, {
+      id: 1,
+      name: "Morning Run",
+      start_date: yesterday.toISOString(),
+    });
 
-    db.prepare(
-      "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(2, "Evening Ride", "Ride", today.toISOString(), 3600, 3600, 25000, 140, 150, "strava");
+    insertTestActivity(db, {
+      id: 2,
+      name: "Evening Ride",
+      sport_type: "Ride",
+      start_date: today.toISOString(),
+      distance: 25000,
+      suffer_score: 150,
+    });
 
     db.prepare(
       "INSERT INTO interview_triggers (trigger_type, threshold_value, threshold_unit, enabled) VALUES (?, ?, ?, ?)"
@@ -89,50 +192,16 @@ describe("Interview Flow Integration Tests", () => {
       });
 
       vi.mocked(apiModule.getActivityLaps).mockResolvedValue([
-        {
-          id: 1,
-          resource_state: 2,
-          name: "Lap 1",
-          activity: { id: 1, resource_state: 1 },
-          athlete: { id: 123, resource_state: 1 },
-          elapsed_time: 1800,
-          moving_time: 1800,
-          start_date: new Date().toISOString(),
-          start_date_local: new Date().toISOString(),
-          distance: 4000,
-          start_index: 0,
-          end_index: 100,
-          total_elevation_gain: 50,
-          average_speed: 2.22,
-          max_speed: 3.5,
-          average_heartrate: 145,
-          max_heartrate: 160,
-          device_watts: false,
-          lap_index: 0,
-          split: 1,
-        },
-        {
+        createMockLap(),
+        createMockLap({
           id: 2,
-          resource_state: 2,
           name: "Lap 2",
-          activity: { id: 1, resource_state: 1 },
-          athlete: { id: 123, resource_state: 1 },
-          elapsed_time: 1800,
-          moving_time: 1800,
-          start_date: new Date().toISOString(),
-          start_date_local: new Date().toISOString(),
-          distance: 4000,
           start_index: 100,
           end_index: 200,
-          total_elevation_gain: 50,
-          average_speed: 2.22,
-          max_speed: 3.5,
           average_heartrate: 155,
           max_heartrate: 170,
-          device_watts: false,
           lap_index: 1,
-          split: 1,
-        },
+        }),
       ]);
     });
 
@@ -143,20 +212,11 @@ describe("Interview Flow Integration Tests", () => {
         yesterday.setDate(yesterday.getDate() - 1);
 
         db.exec("DELETE FROM activities");
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          1,
-          "Morning Run",
-          "Run",
-          yesterday.toISOString(),
-          3600,
-          3600,
-          8000,
-          150,
-          100,
-          "strava"
-        );
+        insertTestActivity(db, {
+          id: 1,
+          name: "Morning Run",
+          start_date: yesterday.toISOString(),
+        });
       });
 
       it("should trigger auto-sync and store new activities in database", async () => {
@@ -164,24 +224,25 @@ describe("Interview Flow Integration Tests", () => {
         vi.mocked(stravaModule.syncActivities).mockImplementation(async () => {
           const db = getDb();
           const today = new Date();
-          // Simulate fetching and inserting 2 new activities from Strava
-          db.prepare(
-            "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-          ).run(3, "Synced Run", "Run", today.toISOString(), 1800, 1800, 5000, 140, 80, "strava");
-          db.prepare(
-            "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-          ).run(
-            4,
-            "Synced Ride",
-            "Ride",
-            today.toISOString(),
-            3600,
-            3600,
-            30000,
-            145,
-            120,
-            "strava"
-          );
+          insertTestActivity(db, {
+            id: 3,
+            name: "Synced Run",
+            start_date: today.toISOString(),
+            elapsed_time: 1800,
+            moving_time: 1800,
+            distance: 5000,
+            average_heartrate: 140,
+            suffer_score: 80,
+          });
+          insertTestActivity(db, {
+            id: 4,
+            name: "Synced Ride",
+            sport_type: "Ride",
+            start_date: today.toISOString(),
+            distance: 30000,
+            average_heartrate: 145,
+            suffer_score: 120,
+          });
           return { syncedCount: 2 };
         });
 
@@ -202,20 +263,14 @@ describe("Interview Flow Integration Tests", () => {
       it("should skip auto-sync when data is fresh", async () => {
         const db = getDb();
         const today = new Date();
-        db.prepare(
-          "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-          2,
-          "Evening Ride",
-          "Ride",
-          today.toISOString(),
-          3600,
-          3600,
-          25000,
-          140,
-          150,
-          "strava"
-        );
+        insertTestActivity(db, {
+          id: 2,
+          name: "Evening Ride",
+          sport_type: "Ride",
+          start_date: today.toISOString(),
+          distance: 25000,
+          suffer_score: 150,
+        });
 
         const completedAt = new Date().toISOString().replace("T", " ").replace("Z", "");
         db.prepare(
@@ -861,50 +916,26 @@ describe("Interview Flow Integration Tests", () => {
       const dayBefore = new Date(yesterday);
       dayBefore.setDate(dayBefore.getDate() - 1);
 
-      db.prepare(
-        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-      ).run(
-        3,
-        "Test Workout 3",
-        "Run",
-        yesterday.toISOString(),
-        3600,
-        3600,
-        8000,
-        150,
-        100,
-        "strava"
-      );
+      insertTestActivity(db, {
+        id: 3,
+        name: "Test Workout 3",
+        start_date: yesterday.toISOString(),
+      });
 
-      db.prepare(
-        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-      ).run(
-        4,
-        "Test Workout 4",
-        "Ride",
-        yesterday.toISOString(),
-        3600,
-        3600,
-        25000,
-        140,
-        150,
-        "strava"
-      );
+      insertTestActivity(db, {
+        id: 4,
+        name: "Test Workout 4",
+        sport_type: "Ride",
+        start_date: yesterday.toISOString(),
+        distance: 25000,
+        suffer_score: 150,
+      });
 
-      db.prepare(
-        "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time, distance, average_heartrate, suffer_score, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-      ).run(
-        5,
-        "Test Workout 5",
-        "Run",
-        dayBefore.toISOString(),
-        3600,
-        3600,
-        8000,
-        150,
-        100,
-        "strava"
-      );
+      insertTestActivity(db, {
+        id: 5,
+        name: "Test Workout 5",
+        start_date: dayBefore.toISOString(),
+      });
 
       for (let i = 0; i < 5; i++) {
         await saveInterview({

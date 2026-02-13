@@ -712,14 +712,14 @@ Before release:
 - [x] `interview --list` skips sync when data is fresh (today's activity exists)
 - [x] `interview --list` handles sync failure gracefully (returns cached + warning)
 - [x] `interview --latest` auto-syncs and selects most recent activity
-- [ ] `interview --latest --laps` includes lap data
+- [x] `interview --latest --laps` includes lap data
 - [x] `interview <id>` works with specific workout ID (no auto-sync needed)
 - [x] Interview with Strava-synced workout includes lap data and triggers
-- [ ] `interview --manual` returns conversational capture prompt
+- [x] `interview --manual` returns conversational capture prompt
 - [x] `activity-record` persists manual activity
-- [ ] Interview without Strava (manual entry) works end-to-end
-- [ ] Multiple interviews same workout works
-- [ ] Trigger configuration persists across sessions
+- [x] Interview without Strava (manual entry) works end-to-end
+- [x] Multiple interviews same workout works
+- [x] Trigger configuration persists across sessions
 
 ---
 
