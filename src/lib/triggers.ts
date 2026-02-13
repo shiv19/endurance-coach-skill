@@ -179,62 +179,54 @@ export function evaluateEarlyFade(laps: Lap[], threshold: number): TriggerEvalua
     return { fired: false, threshold, unit: "%" };
   }
 
-  const firstPowerValues: number[] = [];
-  const firstPaceValues: number[] = [];
-  const lastPowerValues: number[] = [];
-  const lastPaceValues: number[] = [];
+  const allFadeLaps = [...firstQuarter, ...lastQuarter];
+  const hasPowerForAll = allFadeLaps.every((lap) => {
+    const power = getPower(lap);
+    return power !== null && power > 0;
+  });
+
+  const firstValues: number[] = [];
+  const lastValues: number[] = [];
 
   for (const lap of firstQuarter) {
-    const pace = getPace(lap);
-    const power = getPower(lap);
-
-    if (power !== null && power > 0) {
-      firstPowerValues.push(power);
-    } else if (pace > 0) {
-      firstPaceValues.push(pace);
+    if (hasPowerForAll) {
+      const power = getPower(lap);
+      if (power !== null && power > 0) {
+        firstValues.push(power);
+      }
+    } else {
+      const pace = getPace(lap);
+      if (pace > 0) {
+        firstValues.push(pace);
+      }
     }
   }
 
   for (const lap of lastQuarter) {
-    const pace = getPace(lap);
-    const power = getPower(lap);
-
-    if (power !== null && power > 0) {
-      lastPowerValues.push(power);
-    } else if (pace > 0) {
-      lastPaceValues.push(pace);
+    if (hasPowerForAll) {
+      const power = getPower(lap);
+      if (power !== null && power > 0) {
+        lastValues.push(power);
+      }
+    } else {
+      const pace = getPace(lap);
+      if (pace > 0) {
+        lastValues.push(pace);
+      }
     }
   }
 
-  if (firstPowerValues.length > 0 && lastPowerValues.length > 0) {
-    const firstAvg = mean(firstPowerValues);
-    const lastAvg = mean(lastPowerValues);
+  if (firstValues.length > 0 && lastValues.length > 0) {
+    const firstAvg = mean(firstValues);
+    const lastAvg = mean(lastValues);
 
     if (firstAvg === 0) {
       return { fired: false, threshold, unit: "%" };
     }
 
-    const fade = ((firstAvg - lastAvg) / firstAvg) * 100;
-    const fired = fade > threshold;
-
-    return {
-      fired,
-      value: fade,
-      threshold,
-      unit: "%",
-      percentageOver: fired ? fade - threshold : undefined,
-    };
-  }
-
-  if (firstPaceValues.length > 0 && lastPaceValues.length > 0) {
-    const firstAvg = mean(firstPaceValues);
-    const lastAvg = mean(lastPaceValues);
-
-    if (firstAvg === 0) {
-      return { fired: false, threshold, unit: "%" };
-    }
-
-    const fade = ((lastAvg - firstAvg) / firstAvg) * 100;
+    const fade = hasPowerForAll
+      ? ((firstAvg - lastAvg) / firstAvg) * 100
+      : ((lastAvg - firstAvg) / firstAvg) * 100;
     const fired = fade > threshold;
 
     return {
