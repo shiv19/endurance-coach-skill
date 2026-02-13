@@ -113,7 +113,7 @@ export async function ensureFreshData(options: FreshnessOptions = {}): Promise<F
         synced: false,
         reason: "error",
         warning: result.error,
-        cached: latestDate !== null,
+        cached: false,
       };
     }
     return { synced: true, syncedCount: result.syncedCount };

@@ -80,7 +80,7 @@ function formatDate(isoDate: string): string {
   return parsed.toISOString().split("T")[0];
 }
 
-async function loadTriggerConfigs(): Promise<TriggerConfig[]> {
+function loadTriggerConfigs(): TriggerConfig[] {
   const rows = queryJson<{
     trigger_type: string;
     threshold_value: number;
@@ -96,7 +96,7 @@ async function loadTriggerConfigs(): Promise<TriggerConfig[]> {
   }));
 }
 
-async function loadActivityMetadata(workoutId: number): Promise<ActivityMetadata | null> {
+function loadActivityMetadata(workoutId: number): ActivityMetadata | null {
   const stmt = getDb().prepare(
     `SELECT id, name, sport_type, start_date, moving_time, distance,
             average_heartrate, max_heartrate, average_watts, suffer_score,
