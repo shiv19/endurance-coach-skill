@@ -600,7 +600,7 @@ notes: Optional notes here`;
       const sports = ["swim", "bike", "run", "strength", "brick"];
 
       for (const sport of sports) {
-        const sportTemplates = templates.list(sport as any);
+        const sportTemplates = templates.list(sport as unknown as "run");
         if (sportTemplates.length > 0) {
           const args: TemplatesArgs = {
             command: "templates",

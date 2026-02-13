@@ -1,7 +1,7 @@
 import { initDatabase, queryJson, getDb } from "../../db/client.js";
 import type { InterviewArgs } from "../args.js";
 import { ensureFreshData } from "../../lib/freshness.js";
-import { evaluateAllTriggers, type TriggerConfig } from "../../lib/triggers.js";
+import { evaluateAllTriggers, TriggerType, type TriggerConfig } from "../../lib/triggers.js";
 import { getActivityLaps } from "../../strava/api.js";
 import { getValidTokens } from "../../strava/oauth.js";
 import type { Lap } from "../../strava/types.js";
@@ -72,7 +72,7 @@ async function loadTriggerConfigs(): Promise<TriggerConfig[]> {
   }>("SELECT trigger_type, threshold_value, threshold_unit, enabled FROM interview_triggers");
 
   return rows.map((row) => ({
-    type: row.trigger_type as any,
+    type: row.trigger_type as TriggerType,
     threshold: row.threshold_value,
     unit: row.threshold_unit,
     enabled: row.enabled === 1,
@@ -221,14 +221,15 @@ async function runListMode(args: InterviewArgs & { mode: "list" }): Promise<Inte
   const syncResult = await ensureFreshData();
   const days = args.days ?? DEFAULT_LIST_DAYS;
   const activities = await getRecentActivities(days);
+  const totalInterviews = await getTotalInterviewCount();
 
   return {
     mode: "list",
     sync_status:
       syncResult.reason === "not_configured" ? "manual" : syncResult.synced ? "synced" : "cached",
     activities,
-    athlete_interview_count: await getTotalInterviewCount(),
-    preliminary_note_eligible: (await getTotalInterviewCount()) >= 5,
+    athlete_interview_count: totalInterviews,
+    preliminary_note_eligible: totalInterviews >= 5,
   };
 }
 

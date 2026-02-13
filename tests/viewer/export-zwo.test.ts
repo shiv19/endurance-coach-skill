@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isZwoSupported, generateZwo } from "../../src/viewer/lib/export/zwo.js";
-import type { Workout, Sport } from "../../src/schema/training-plan.js";
+import type { Workout } from "../../src/schema/training-plan.js";
 import type { Settings } from "../../src/viewer/stores/settings.js";
 
 // Mock Settings object

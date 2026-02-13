@@ -170,7 +170,7 @@ export async function runTriggers(args: TriggersArgs): Promise<void> {
 
     case "set": {
       const enabled = args.enabled !== undefined ? args.enabled : true;
-      const trigger = setTrigger(args.type!, args.threshold!, args.unit!, enabled);
+      setTrigger(args.type!, args.threshold!, args.unit!, enabled);
 
       log.success(
         `Trigger '${args.type}' set to ${args.threshold}${args.unit} (enabled: ${enabled ? "Yes" : "No"})`
@@ -179,7 +179,7 @@ export async function runTriggers(args: TriggersArgs): Promise<void> {
     }
 
     case "disable": {
-      const trigger = disableTrigger(args.type!);
+      disableTrigger(args.type!);
       log.success(`Trigger '${args.type}' disabled`);
       break;
     }

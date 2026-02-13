@@ -129,7 +129,7 @@ export function parseIntensity(
   }
 
   // First interpolate any variables
-  let parsed = interpolate(intensityStr, context);
+  const parsed = interpolate(intensityStr, context);
 
   // Check if it's a pace reference (e.g., "5:30/km", "9:00/mi")
   const pacePattern = /^(\d+:\d+(?:\.\d+)?)\/(km|mi|mile|m|meter|100m|400m)$/i;

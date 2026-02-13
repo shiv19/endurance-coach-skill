@@ -154,8 +154,8 @@ describe("downloadFile (browser environment required)", () => {
 
   it("should create a blob with correct content and MIME type", async () => {
     const content = "test content";
-    const createObjectSpy = vi.spyOn((global as any).URL, "createObjectURL");
-    const revokeObjectSpy = vi.spyOn((global as any).URL, "revokeObjectURL");
+    const createObjectSpy = vi.spyOn(globalThis.URL, "createObjectURL");
+    const revokeObjectSpy = vi.spyOn(globalThis.URL, "revokeObjectURL");
 
     downloadFile(content, "test.txt", "text/plain");
 
@@ -177,8 +177,10 @@ describe("downloadFile (browser environment required)", () => {
 
   it("should create a blob from Uint8Array with correct MIME type", async () => {
     const content = new Uint8Array([1, 2, 3, 4, 5]);
-    const createObjectSpy = vi.spyOn((global as any).URL, "createObjectURL");
-    const revokeObjectSpy = vi.spyOn((global as any).URL, "revokeObjectURL");
+
+    const createObjectSpy = vi.spyOn(globalThis.URL, "createObjectURL");
+
+    const revokeObjectSpy = vi.spyOn(globalThis.URL, "revokeObjectURL");
 
     downloadFile(content, "test.bin", "application/octet-stream");
 
@@ -263,10 +265,11 @@ describe("downloadFile (browser environment required)", () => {
   it("should perform operations in correct order", () => {
     const callOrder: string[] = [];
 
-    const originalCreateObjectURL = (global as any).URL.createObjectURL;
-    (global as any).URL.createObjectURL = vi.fn().mockImplementation((blob: Blob) => {
+    const originalCreateObjectURL = globalThis.URL.createObjectURL;
+    globalThis.URL.createObjectURL = vi.fn().mockImplementation((blob: Blob) => {
       callOrder.push("createObjectURL");
-      return originalCreateObjectURL(blob);
+
+      return originalCreateObjectURL(blob) as string;
     });
 
     const originalAppendChild = dom.window.document.body.appendChild;
@@ -293,10 +296,11 @@ describe("downloadFile (browser environment required)", () => {
         return originalRemoveChild.call(dom.window.document.body, node);
       });
 
-    const originalRevokeObjectURL = (global as any).URL.revokeObjectURL;
-    (global as any).URL.revokeObjectURL = vi.fn().mockImplementation((url: string) => {
+    const originalRevokeObjectURL = globalThis.URL.revokeObjectURL;
+    globalThis.URL.revokeObjectURL = vi.fn().mockImplementation((url: string) => {
       callOrder.push("revokeObjectURL");
-      return originalRevokeObjectURL(url);
+
+      return originalRevokeObjectURL(url) as void;
     });
 
     downloadFile("test", "file.txt", "text/plain");
@@ -309,8 +313,10 @@ describe("downloadFile (browser environment required)", () => {
       "revokeObjectURL",
     ]);
 
-    (global as any).URL.createObjectURL.mockRestore();
-    (global as any).URL.revokeObjectURL.mockRestore();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis.URL.createObjectURL as any).mockRestore();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis.URL.revokeObjectURL as any).mockRestore();
     appendChildSpy.mockRestore();
     removeChildSpy.mockRestore();
   });

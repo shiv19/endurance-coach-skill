@@ -29,7 +29,7 @@ export class UnknownTemplateError extends Error {
 
     if (suggestions.length > 0) {
       message += `Did you mean one of these?\n`;
-      suggestions.forEach((s, i) => {
+      suggestions.forEach((s) => {
         message += `  - ${s}\n`;
       });
     } else {

@@ -72,12 +72,6 @@ function splitLaps<T>(laps: T[], fraction: number): T[] {
   return laps.slice(0, splitIndex);
 }
 
-function getSecondHalf<T>(laps: T[]): T[] {
-  if (laps.length === 0) return [];
-  const splitIndex = Math.ceil(laps.length / 2);
-  return laps.slice(splitIndex);
-}
-
 export function evaluateHRDrift(laps: Lap[], threshold: number): TriggerEvaluationResult {
   if (laps.length < 2) {
     return { fired: false, threshold, unit: "%" };
@@ -293,10 +287,10 @@ export function evaluateAllTriggers(laps: Lap[], triggers: TriggerConfig[]): Fir
     if (result.fired && result.value !== undefined) {
       fired.push({
         trigger_type: trigger.type,
-        actual_value: result.value,
-        threshold: trigger.threshold,
-        unit: trigger.unit,
-        percentage_over: result.percentageOver ?? 0,
+        actual_value: result?.value,
+        threshold: result?.threshold,
+        unit: result?.unit,
+        percentage_over: result?.percentageOver ?? 0,
       });
     }
   }

@@ -14,7 +14,7 @@ import { execute, initDatabase, transaction } from "../../db/client.js";
 import { insertActivity, insertAthlete } from "../../db/storage.js";
 import { getValidTokens } from "../../strava/oauth.js";
 import { getActivityLaps, getAllActivities, getAthlete } from "../../strava/api.js";
-import type { StravaActivity, StravaTokenResponse } from "../../strava/types.js";
+import type { StravaTokenResponse } from "../../strava/types.js";
 import type { ActivityLapsArgs, AuthArgs, SyncArgs } from "../args.js";
 
 // ============================================================================
@@ -142,13 +142,14 @@ export interface SyncResult {
 export async function syncActivities(
   tokens: Tokens,
   days: number,
-  verbose = false
+  verbose = false,
+  preFetchedAthlete?: Awaited<ReturnType<typeof getAthlete>>
 ): Promise<SyncResult> {
   try {
     if (verbose) {
       log.start("Fetching athlete profile...");
     }
-    const athlete = await getAthlete(tokens);
+    const athlete = preFetchedAthlete ?? (await getAthlete(tokens));
     insertAthlete(athlete);
     if (verbose) {
       log.success(`Authenticated as ${athlete.firstname} ${athlete.lastname}`);
@@ -258,7 +259,7 @@ export async function runSync(args: SyncArgs): Promise<void> {
     const tokens = { ...tempTokens, athlete_id: athlete.id };
     saveTokens(tokens);
 
-    const result = await syncActivities(tokens, syncDays, true);
+    const result = await syncActivities(tokens, syncDays, true, athlete);
 
     if (result.error) {
       log.error(`Sync failed: ${result.error}`);

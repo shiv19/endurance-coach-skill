@@ -7,7 +7,9 @@
  * This is the browser equivalent of the CLI `modify` + `render` commands.
  */
 
-import type { TrainingPlan, TrainingDay, Workout } from "../../schema/training-plan.js";
+import type { TrainingPlan, Workout } from "../../schema/training-plan.js";
+
+import type { TrainingDay } from "../../schema/training-plan.js";
 
 export interface PlanChanges {
   moved: Record<string, string>;
@@ -112,7 +114,7 @@ function applyLocalChangesToPlan(
   });
 
   // 4. Add new workouts
-  Object.entries(changes.added).forEach(([workoutId, { date, workout }]) => {
+  Object.entries(changes.added).forEach(([_workoutId, { date, workout }]) => {
     let targetDay: TrainingDay | null = null;
 
     for (const week of modifiedPlan.weeks || []) {

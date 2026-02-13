@@ -179,10 +179,10 @@ function parsePaceToSpeedMps(pace: string): number | null {
  * @returns An object containing `steps`, the generated array of FIT step message objects, and `totalSteps`, the number of generated steps
  */
 function generateStepsFromStructure(structure: StructuredWorkout): {
-  steps: any[];
+  steps: Record<string, unknown>[];
   totalSteps: number;
 } {
-  const steps: any[] = [];
+  const steps: Record<string, unknown>[] = [];
   let stepIndex = 0;
 
   // Helper to add a step
@@ -193,7 +193,7 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
       step.duration?.unit ?? "minutes"
     );
 
-    const fitStep: any = {
+    const fitStep: Record<string, unknown> = {
       messageIndex: stepIndex,
       wktStepName: step.name || "",
       intensity: getStepIntensity(step.type),
@@ -269,7 +269,7 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
     }
 
     // Create the repeat step (must follow the block)
-    const repeatStep: any = {
+    const repeatStep: Record<string, unknown> = {
       messageIndex: stepIndex,
       wktStepName: intervalSet.name || "Intervals",
       durationType: "repeatUntilStepsCmplt",
@@ -312,8 +312,11 @@ function generateStepsFromStructure(structure: StructuredWorkout): {
 /**
  * Generate simple workout steps when no structure is provided
  */
-function generateSimpleSteps(workout: Workout): { steps: any[]; totalSteps: number } {
-  const steps: any[] = [];
+function generateSimpleSteps(workout: Workout): {
+  steps: Record<string, unknown>[];
+  totalSteps: number;
+} {
+  const steps: Record<string, unknown>[] = [];
   const totalMinutes = workout.durationMinutes || 60;
 
   // Warmup (10% of total, 5-15 min)

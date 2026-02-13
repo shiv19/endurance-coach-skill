@@ -9,9 +9,6 @@ describe("runExpand", () => {
   let tempDir: string;
   const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
   const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-  const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
-    throw new Error(`exit:${code}`);
-  }) as never);
 
   const createTempFile = (content: string, filename = "plan.yaml"): string => {
     if (!tempDir) {
@@ -23,7 +20,7 @@ describe("runExpand", () => {
     return filepath;
   };
 
-  const createValidPlan = (overrides = {}): string => {
+  const createValidPlan = (): string => {
     const basePlan = `version: "2.0"
 
 athlete:
@@ -115,26 +112,44 @@ weeks:
     }
     const nonExistentFile = join(tempDir, "nonexistent.yaml");
 
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit:${code}`);
+    }) as never);
+
     expect(() =>
       runExpand({ command: "expand", inputFile: nonExistentFile, format: "json" })
     ).toThrow("exit:1");
+
+    exitSpy.mockRestore();
   });
 
   it("exits on invalid YAML", () => {
     const invalidYaml = createTempFile("{key: unquoted colon: in middle}");
     const inputFile = invalidYaml;
 
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit:${code}`);
+    }) as never);
+
     expect(() => runExpand({ command: "expand", inputFile, format: "json" })).toThrow("exit:1");
+
+    exitSpy.mockRestore();
   });
 
   it("exits on validation failure", () => {
     const invalidPlan = createTempFile("version: '2.0'");
     const inputFile = invalidPlan;
 
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit:${code}`);
+    }) as never);
+
     expect(() => runExpand({ command: "expand", inputFile, format: "json" })).toThrow("exit:1");
     expect(consoleErrorSpy).toHaveBeenCalled();
     const errorCall = consoleErrorSpy.mock.calls[0][0] as string;
     expect(errorCall).toContain("Validation failed");
+
+    exitSpy.mockRestore();
   });
 
   it("exits on invalid template reference", () => {
@@ -159,7 +174,13 @@ weeks:
       Mon: run.nonexistent`;
     const inputFile = createTempFile(planWithInvalidRef);
 
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit:${code}`);
+    }) as never);
+
     expect(() => runExpand({ command: "expand", inputFile, format: "json" })).toThrow("exit:1");
+
+    exitSpy.mockRestore();
   });
 
   it("expands plan with rest workout successfully", () => {

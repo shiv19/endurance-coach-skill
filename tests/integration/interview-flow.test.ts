@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { initDatabase, resetDatabaseCache, getDb, queryJson } from "../../src/db/client.js";
+import { initDatabase, resetDatabaseCache, getDb } from "../../src/db/client.js";
 import { runInterview } from "../../src/cli/commands/interview.js";
 import { saveInterview } from "../../src/cli/commands/interview-persistence.js";
 import { recordManualActivity } from "../../src/cli/commands/activity-record.js";
@@ -9,7 +9,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdirSync, rmSync } from "node:fs";
 
-import * as configModule from "../../src/lib/config.js";
 import * as oauthModule from "../../src/strava/oauth.js";
 import * as apiModule from "../../src/strava/api.js";
 import * as stravaModule from "../../src/cli/commands/strava.js";
@@ -237,7 +236,7 @@ describe("Interview Flow Integration Tests", () => {
         });
 
         const { ensureFreshData } = await import("../../src/lib/freshness.js");
-        const result = await ensureFreshData();
+        await ensureFreshData();
 
         // Verify sync was attempted
         expect(stravaModule.syncActivities).toHaveBeenCalled();

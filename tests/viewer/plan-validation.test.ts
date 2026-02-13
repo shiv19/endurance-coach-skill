@@ -16,7 +16,7 @@ function getActualDayOfWeek(dateStr: string): string {
 /**
  * Extract plan data from HTML file
  */
-function extractPlanFromHtml(htmlContent: string): any {
+function extractPlanFromHtml(htmlContent: string) {
   const match = htmlContent.match(
     /<script type="application\/json" id="plan-data">\s*([\s\S]*?)\s*<\/script>/
   );

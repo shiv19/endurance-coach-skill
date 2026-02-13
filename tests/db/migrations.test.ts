@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { rmSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
+import { rmSync, mkdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { execSync } from "child_process";
@@ -83,7 +83,7 @@ describe("Database Migrations", () => {
     });
 
     it("should apply migration 002 to fresh database", async () => {
-      const { initDatabase, getDb } = await import("../../src/db/client.js");
+      const { initDatabase } = await import("../../src/db/client.js");
       await initDatabase();
 
       // Check expected interview tables exist
@@ -142,9 +142,8 @@ describe("Database Migrations", () => {
       await initDatabase();
 
       status = getMigrationStatus();
-      expect(status.applied).toBe(3); // Still 2, not 4
+      expect(status.applied).toBe(3);
 
-      // Check only two migrations were recorded
       const records = execSync(
         `sqlite3 "${dbPath}" "SELECT COUNT(*) as count FROM schema_migrations;"`,
         { encoding: "utf-8" }

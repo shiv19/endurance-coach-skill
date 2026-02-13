@@ -34,7 +34,7 @@ function getMigrationFiles(): Migration[] {
         filename: f,
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  } catch (error) {
+  } catch {
     // Directory doesn't exist yet
     return [];
   }
@@ -106,7 +106,6 @@ export function runMigrations(): number {
   const pendingMigrations = allMigrations.filter((m) => !appliedNames.has(m.name));
 
   if (pendingMigrations.length === 0) {
-    log.info("Database is up to date");
     return 0;
   }
 

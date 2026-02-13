@@ -35,7 +35,7 @@ function getMostRecentActivityDate(): Date | null {
       return null;
     }
     return new Date(rows[0].start_date);
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -54,7 +54,7 @@ function getMostRecentSyncTime(): Date | null {
     // SQLite stores timestamps in UTC without 'Z' suffix
     // Append 'Z' to parse as UTC instead of local time
     return new Date(rows[0].completed_at + "Z");
-  } catch (error) {
+  } catch {
     return null;
   }
 }

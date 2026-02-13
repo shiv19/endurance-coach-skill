@@ -39,7 +39,7 @@ weeks:
       Mon: run.rest`;
   };
 
-  const createValidFullPlan = (): string => {
+  const _createValidFullPlan = (): string => {
     return JSON.stringify({
       version: "1.0",
       meta: {

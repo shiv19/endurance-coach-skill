@@ -12,7 +12,6 @@ import type {
   QueryArgs,
   AuthArgs,
   ActivityLapsArgs,
-  HelpArgs,
   ValidateArgs,
   ExpandArgs,
   TemplatesArgs,

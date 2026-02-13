@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 import { getDb } from "../../db/client.js";
 import { log } from "../../lib/logging.js";
 import type { ActivityRecordArgs } from "../args.js";

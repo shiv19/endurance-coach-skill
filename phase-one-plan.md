@@ -54,7 +54,7 @@ Any CLI command that reads activity data should:
 
 **Implementation:**
 
-- Create shared `ensureFreshData()` utility in `src/lib/sync.ts`
+- Create shared `ensureFreshData()` utility in `src/lib/freshness.ts`
 - Returns `{ synced: boolean, syncedCount: number, warning?: string }`
 - Commands call this before querying activity data
 - Sync status included in command output for transparency
@@ -198,7 +198,7 @@ Any CLI command that reads activity data should:
 
 **Command signatures:**
 
-```
+```bash
 npx endurance-coach interview --latest [--laps] [--json]
 npx endurance-coach interview --list [--days=7] [--json]
 npx endurance-coach interview <workout_id> [--laps] [--json]
@@ -334,7 +334,7 @@ This removes sync orchestration from the agent entirely. Token-efficient by desi
 
 **Commands:**
 
-```
+```bash
 npx endurance-coach interview-save <workout_id> --reflection=<text> --notes=<text> --confidence=<Low|Medium|High>
 npx endurance-coach preliminary-note-save <workout_id> --note=<text>
 ```
@@ -382,7 +382,7 @@ npx endurance-coach preliminary-note-save <workout_id> --note=<text>
 
 **Command signature:**
 
-```
+```bash
 npx endurance-coach activity-record --type=<type> --duration=<minutes> [--distance=<km>] [--structure=<text>] [--notes=<text>]
 ```
 
@@ -434,7 +434,7 @@ npx endurance-coach activity-record --type=<type> --duration=<minutes> [--distan
 
 **Commands:**
 
-```
+```bash
 npx endurance-coach triggers list
 npx endurance-coach triggers set <type> --threshold=<value> --unit=<unit> [--enabled]
 npx endurance-coach triggers disable <type>
@@ -524,7 +524,7 @@ npx endurance-coach triggers disable <type>
 
 **Commands:**
 
-```
+```bash
 npx endurance-coach interviews list [--workout=<id>] [--limit=10]
 npx endurance-coach interviews get <interview_id>
 ```

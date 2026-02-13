@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { rmSync, mkdirSync, writeFileSync, existsSync } from "fs";
+import { rmSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { ensureFreshData, type FreshnessResult } from "../../src/lib/freshness.js";
-import { saveTokens } from "../../src/lib/config.js";
 import type { Tokens } from "../../src/lib/config.js";
 
 vi.mock("../../src/strava/oauth.js", () => ({
@@ -56,15 +55,6 @@ describe("ensureFreshData", () => {
     db.prepare(
       "INSERT INTO activities (id, name, sport_type, start_date, elapsed_time, moving_time) VALUES (?, ?, ?, ?, ?, ?)"
     ).run(1, "Test Run", "Run", start_date, 3600, 3600);
-  }
-
-  async function insertSyncLog(completed_at: string): Promise<void> {
-    const { initDatabase, getDb } = await import("../../src/db/client.js");
-    await initDatabase();
-    const db = getDb();
-    db.prepare(
-      "INSERT INTO sync_log (started_at, completed_at, activities_synced, status) VALUES (?, ?, ?, ?)"
-    ).run(completed_at, completed_at, 1, "success");
   }
 
   describe("when Strava is not configured", () => {

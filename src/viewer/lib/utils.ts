@@ -1,4 +1,4 @@
-import type { Settings, HrZone } from "../stores/settings.js";
+import type { Settings } from "../stores/settings.js";
 import type { Sport } from "../../schema/training-plan.js";
 
 const METERS_PER_YARD = 0.9144;
