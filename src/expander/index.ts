@@ -23,7 +23,7 @@ export type {
 } from "./types.js";
 
 // Core expander
-export { expandPlan, expandWorkout, validateWorkoutRefs } from "./expander.js";
+export { expandPlan, expandWorkout, validateWorkoutRefs, parseLocalDate } from "./expander.js";
 
 // Template validation
 export {

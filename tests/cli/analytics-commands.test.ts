@@ -11,6 +11,16 @@ import { runHrZones } from "../../src/cli/commands/hr-zones.js";
 import { runQuery } from "../../src/cli/commands/query.js";
 import { initDatabase, getDb, resetDatabaseCache } from "../../src/db/client.js";
 
+async function captureConsoleLogs(fn: () => Promise<void>): Promise<string[]> {
+  const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  try {
+    await fn();
+    return consoleSpy.mock.calls.map((call) => String(call[0]));
+  } finally {
+    consoleSpy.mockRestore();
+  }
+}
+
 describe("analytics-style CLI commands", () => {
   const testDir = join(tmpdir(), "endurance-coach-analytics-test-" + Date.now());
   const originalEnv = { ...process.env };
@@ -80,17 +90,16 @@ describe("analytics-style CLI commands", () => {
       insertSampleActivity({ sport_type: "Ride", distance: 40000, moving_time: 5400, daysAgo: 1 });
       insertSampleActivity({ sport_type: "Run", distance: 12000, moving_time: 2700, daysAgo: 8 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runStats({
-        command: "stats",
-        json: true,
-        weeks: 2,
-        longestWeeks: 2,
-        verbose: false,
-        noSync: true,
+      const [output] = await captureConsoleLogs(async () => {
+        await runStats({
+          command: "stats",
+          json: true,
+          weeks: 2,
+          longestWeeks: 2,
+          verbose: false,
+          noSync: true,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(parsed).toHaveProperty("weeklyVolume");
@@ -99,46 +108,40 @@ describe("analytics-style CLI commands", () => {
       expect(parsed.weeklyVolume.length).toBeGreaterThan(0);
       expect(parsed.longestSessions.length).toBeGreaterThan(0);
       expect(parsed.averageSessionDuration.length).toBeGreaterThan(0);
-
-      consoleSpy.mockRestore();
     });
 
     it("prints formatted tables for statistics", async () => {
       insertSampleActivity({ sport_type: "Run", distance: 15000, moving_time: 3600 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runStats({
-        command: "stats",
-        json: false,
-        weeks: 2,
-        longestWeeks: 2,
-        verbose: false,
-        noSync: true,
+      const outputLines = await captureConsoleLogs(async () => {
+        await runStats({
+          command: "stats",
+          json: false,
+          weeks: 2,
+          longestWeeks: 2,
+          verbose: false,
+          noSync: true,
+        });
       });
-
-      const output = consoleSpy.mock.calls.map((call) => String(call[0])).join("\n");
+      const output = outputLines.join("\n");
       expect(output).toContain("Weekly volume");
       expect(output).toContain("Longest recent sessions");
       expect(output).toContain("Average session duration");
-
-      consoleSpy.mockRestore();
     });
 
     it("prints no results message when no activities", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runStats({
-        command: "stats",
-        json: false,
-        weeks: 2,
-        longestWeeks: 2,
-        verbose: false,
-        noSync: true,
+      const outputLines = await captureConsoleLogs(async () => {
+        await runStats({
+          command: "stats",
+          json: false,
+          weeks: 2,
+          longestWeeks: 2,
+          verbose: false,
+          noSync: true,
+        });
       });
-
-      const output = consoleSpy.mock.calls.map((call) => String(call[0])).join("\n");
+      const output = outputLines.join("\n");
       expect(output).toContain("(no results)");
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -147,43 +150,37 @@ describe("analytics-style CLI commands", () => {
       insertSampleActivity({ suffer_score: 100, moving_time: 3600, daysAgo: 1 });
       insertSampleActivity({ suffer_score: 150, moving_time: 5400, daysAgo: 8 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runTrainingLoad({
-        command: "training-load",
-        json: true,
-        weeks: 2,
-        verbose: false,
-        noSync: true,
+      const [output] = await captureConsoleLogs(async () => {
+        await runTrainingLoad({
+          command: "training-load",
+          json: true,
+          weeks: 2,
+          verbose: false,
+          noSync: true,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(parsed).toHaveProperty("trainingLoad");
       expect(parsed.trainingLoad).toBeInstanceOf(Array);
       expect(parsed.trainingLoad.length).toBeGreaterThan(0);
-
-      consoleSpy.mockRestore();
     });
 
     it("uses default weeks when invalid", async () => {
       insertSampleActivity({ suffer_score: 100, moving_time: 3600 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runTrainingLoad({
-        command: "training-load",
-        json: true,
-        weeks: 0,
-        verbose: false,
-        noSync: true,
+      const [output] = await captureConsoleLogs(async () => {
+        await runTrainingLoad({
+          command: "training-load",
+          json: true,
+          weeks: 0,
+          verbose: false,
+          noSync: true,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(parsed.trainingLoad).toBeDefined();
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -192,32 +189,26 @@ describe("analytics-style CLI commands", () => {
       insertSampleActivity({ workout_type: 1, distance: 21000 });
       insertSampleActivity({ id: 1002, sport_type: "Ride", distance: 90000 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runFoundation({ command: "foundation", json: true, topWeeks: 5 });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
+      const [output] = await captureConsoleLogs(async () => {
+        await runFoundation({ command: "foundation", json: true, topWeeks: 5 });
+      });
       const parsed = JSON.parse(output);
 
       expect(parsed).toHaveProperty("raceHistory");
       expect(parsed).toHaveProperty("lifetimePeaks");
       expect(parsed).toHaveProperty("peakTrainingWeeks");
       expect(parsed).toHaveProperty("trainingHistoryDepth");
-
-      consoleSpy.mockRestore();
     });
 
     it("uses default top weeks when invalid", async () => {
       insertSampleActivity({ workout_type: 1, distance: 21000 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runFoundation({ command: "foundation", json: true, topWeeks: -2 });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
+      const [output] = await captureConsoleLogs(async () => {
+        await runFoundation({ command: "foundation", json: true, topWeeks: -2 });
+      });
       const parsed = JSON.parse(output);
 
       expect(parsed.peakTrainingWeeks).toBeDefined();
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -232,48 +223,42 @@ describe("analytics-style CLI commands", () => {
         distance: 80000,
       });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runStrength({
-        command: "strength",
-        json: true,
-        months: 6,
-        longMonths: 12,
-        easyHrMax: 145,
-        longMinutes: 60,
-        years: 2,
+      const [output] = await captureConsoleLogs(async () => {
+        await runStrength({
+          command: "strength",
+          json: true,
+          months: 6,
+          longMonths: 12,
+          easyHrMax: 145,
+          longMinutes: 60,
+          years: 2,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(parsed).toHaveProperty("efficiency");
       expect(parsed).toHaveProperty("aerobicStrength");
       expect(parsed).toHaveProperty("lastActivity");
       expect(parsed).toHaveProperty("historicalPeaks");
-
-      consoleSpy.mockRestore();
     });
 
     it("uses default thresholds when invalid", async () => {
       insertSampleActivity({ average_heartrate: 140, moving_time: 4200, distance: 15000 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runStrength({
-        command: "strength",
-        json: true,
-        months: 0,
-        longMonths: 0,
-        easyHrMax: 0,
-        longMinutes: 0,
-        years: 0,
+      const [output] = await captureConsoleLogs(async () => {
+        await runStrength({
+          command: "strength",
+          json: true,
+          months: 0,
+          longMonths: 0,
+          easyHrMax: 0,
+          longMinutes: 0,
+          years: 0,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(parsed.efficiency).toBeDefined();
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -295,39 +280,34 @@ describe("analytics-style CLI commands", () => {
         daysAgo: 1,
       });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runSchedulePreferences({
-        command: "schedule-preferences",
-        json: true,
-        rideMinutes: 90,
-        runMinutes: 60,
+      const [output] = await captureConsoleLogs(async () => {
+        await runSchedulePreferences({
+          command: "schedule-preferences",
+          json: true,
+          rideMinutes: 90,
+          runMinutes: 60,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(parsed).toHaveProperty("longRideDays");
       expect(parsed).toHaveProperty("longRunDays");
       expect(parsed).toHaveProperty("swimDays");
-
-      consoleSpy.mockRestore();
     });
 
     it("uses default thresholds when invalid", async () => {
       insertSampleActivity({ sport_type: "Ride", moving_time: 5400 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runSchedulePreferences({
-        command: "schedule-preferences",
-        json: false,
-        rideMinutes: -1,
-        runMinutes: 0,
+      const outputLines = await captureConsoleLogs(async () => {
+        await runSchedulePreferences({
+          command: "schedule-preferences",
+          json: false,
+          rideMinutes: -1,
+          runMinutes: 0,
+        });
       });
-
-      const output = consoleSpy.mock.calls.map((call) => String(call[0])).join("\n");
+      const output = outputLines.join("\n");
       expect(output).toContain("Preferred long ride days");
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -341,30 +321,24 @@ describe("analytics-style CLI commands", () => {
         max_heartrate: 165,
       });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runHrZones({ command: "hr-zones", json: true, weeks: 8, distributionWeeks: 12 });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
+      const [output] = await captureConsoleLogs(async () => {
+        await runHrZones({ command: "hr-zones", json: true, weeks: 8, distributionWeeks: 12 });
+      });
       const parsed = JSON.parse(output);
 
       expect(parsed).toHaveProperty("averageHeartRate");
       expect(parsed).toHaveProperty("distribution");
-
-      consoleSpy.mockRestore();
     });
 
     it("uses default week ranges when invalid", async () => {
       insertSampleActivity({ average_heartrate: 145, max_heartrate: 175 });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runHrZones({ command: "hr-zones", json: true, weeks: 0, distributionWeeks: 0 });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
+      const [output] = await captureConsoleLogs(async () => {
+        await runHrZones({ command: "hr-zones", json: true, weeks: 0, distributionWeeks: 0 });
+      });
       const parsed = JSON.parse(output);
 
       expect(parsed.averageHeartRate).toBeDefined();
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -372,52 +346,46 @@ describe("analytics-style CLI commands", () => {
     it("outputs JSON for query results", async () => {
       insertSampleActivity({ sport_type: "Run", name: "Morning Run" });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runQuery({
-        command: "query",
-        sql: "SELECT sport_type, name FROM activities LIMIT 1",
-        json: true,
+      const [output] = await captureConsoleLogs(async () => {
+        await runQuery({
+          command: "query",
+          sql: "SELECT sport_type, name FROM activities LIMIT 1",
+          json: true,
+        });
       });
-
-      const output = consoleSpy.mock.calls[0]?.[0] as string;
       const parsed = JSON.parse(output);
 
       expect(Array.isArray(parsed)).toBe(true);
       expect(parsed.length).toBeGreaterThan(0);
       expect(parsed[0]).toHaveProperty("sport_type");
       expect(parsed[0]).toHaveProperty("name");
-
-      consoleSpy.mockRestore();
     });
 
     it("outputs formatted table for query results", async () => {
       insertSampleActivity({ sport_type: "Run", name: "Morning Run" });
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runQuery({
-        command: "query",
-        sql: "SELECT sport_type, name FROM activities LIMIT 1",
-        json: false,
+      const outputLines = await captureConsoleLogs(async () => {
+        await runQuery({
+          command: "query",
+          sql: "SELECT sport_type, name FROM activities LIMIT 1",
+          json: false,
+        });
       });
-
-      const output = consoleSpy.mock.calls.map((call) => String(call[0])).join("\n");
+      const output = outputLines.join("\n");
       expect(output).toContain("sport_type");
       expect(output).toContain("name");
-
-      consoleSpy.mockRestore();
     });
 
     it("outputs nothing for empty query results", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      await runQuery({
-        command: "query",
-        sql: "SELECT * FROM activities WHERE id = 99999",
-        json: false,
+      const outputLines = await captureConsoleLogs(async () => {
+        await runQuery({
+          command: "query",
+          sql: "SELECT * FROM activities WHERE id = 99999",
+          json: false,
+        });
       });
 
-      expect(consoleSpy.mock.calls.length).toBe(0);
-
-      consoleSpy.mockRestore();
+      expect(outputLines.length).toBe(0);
     });
   });
 });

@@ -35,7 +35,7 @@ import { validateTemplateExists } from "./validation.js";
  * to the previous day in timezones behind UTC. This function creates a date in
  * local timezone.
  */
-function parseLocalDate(dateStr: string): Date {
+export function parseLocalDate(dateStr: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day);
 }

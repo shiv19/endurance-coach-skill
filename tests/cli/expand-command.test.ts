@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach, afterAll } from "vitest";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -53,6 +53,11 @@ weeks:
       rmSync(tempDir, { recursive: true, force: true });
       tempDir = "";
     }
+  });
+
+  afterAll(() => {
+    consoleLogSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 
   it("prints JSON to stdout when no output file", () => {
@@ -124,8 +129,7 @@ weeks:
   });
 
   it("exits on invalid YAML", () => {
-    const invalidYaml = createTempFile("{key: unquoted colon: in middle}");
-    const inputFile = invalidYaml;
+    const inputFile = createTempFile("{key: unquoted colon: in middle}");
 
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
@@ -137,8 +141,7 @@ weeks:
   });
 
   it("exits on validation failure", () => {
-    const invalidPlan = createTempFile("version: '2.0'");
-    const inputFile = invalidPlan;
+    const inputFile = createTempFile("version: '2.0'");
 
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);

@@ -10,7 +10,7 @@ import {
 } from "../../lib/config.js";
 import { log } from "../../lib/logging.js";
 import { migrate } from "../../db/migrate.js";
-import { execute, initDatabase, transaction } from "../../db/client.js";
+import { execute, getDb, initDatabase, transaction } from "../../db/client.js";
 import { insertActivity, insertAthlete } from "../../db/storage.js";
 import { getValidTokens } from "../../strava/oauth.js";
 import { getActivityLaps, getAllActivities, getAthlete } from "../../strava/api.js";
@@ -181,10 +181,12 @@ export async function syncActivities(
       log.success(`Stored ${activities.length} activities`);
     }
 
-    execute(`
-      INSERT INTO sync_log (started_at, completed_at, activities_synced, status)
-      VALUES (datetime('now'), datetime('now'), ${activities.length}, 'success');
-    `);
+    getDb()
+      .prepare(
+        `INSERT INTO sync_log (started_at, completed_at, activities_synced, status)
+         VALUES (datetime('now'), datetime('now'), ?, 'success')`
+      )
+      .run(activities.length);
 
     return { syncedCount: activities.length };
   } catch (error) {

@@ -59,8 +59,25 @@ interface InterviewPromptData {
 }
 
 function formatDate(isoDate: string): string {
-  const d = new Date(isoDate);
-  return d.toISOString().split("T")[0];
+  if (!isoDate) {
+    return "";
+  }
+
+  const trimmed = isoDate.trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const normalized =
+    trimmed.includes(" ") && !trimmed.includes("T") ? trimmed.replace(" ", "T") : trimmed;
+  const parsed = new Date(normalized);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return trimmed;
+  }
+
+  return parsed.toISOString().split("T")[0];
 }
 
 async function loadTriggerConfigs(): Promise<TriggerConfig[]> {

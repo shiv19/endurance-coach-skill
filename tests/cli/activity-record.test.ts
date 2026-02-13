@@ -6,6 +6,16 @@ import { recordManualActivity } from "../../src/cli/commands/activity-record.js"
 import { initDatabase, getDb, resetDatabaseCache } from "../../src/db/client.js";
 import type { ActivityRecordArgs } from "../../src/cli/args.js";
 
+function withSilencedConsole(fn: () => void): ReturnType<typeof vi.spyOn> {
+  const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  try {
+    fn();
+  } finally {
+    consoleSpy.mockRestore();
+  }
+  return consoleSpy;
+}
+
 describe("activity-record command", () => {
   const testDir = join(tmpdir(), "endurance-coach-activity-record-test-" + Date.now());
   const originalEnv = { ...process.env };
@@ -31,8 +41,9 @@ describe("activity-record command", () => {
         duration: 30,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const db = getDb();
       const activity = db
@@ -44,8 +55,6 @@ describe("activity-record command", () => {
       expect(activity.elapsed_time).toBe(1800);
       expect(activity.source).toBe("manual");
       expect(activity.name).toBe("Manual: Run");
-
-      consoleSpy.mockRestore();
     });
 
     it("should capitalize sport type", () => {
@@ -55,8 +64,9 @@ describe("activity-record command", () => {
         duration: 45,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const db = getDb();
       const activity = db
@@ -64,8 +74,6 @@ describe("activity-record command", () => {
         .get() as { sport_type: string };
 
       expect(activity.sport_type).toBe("Bike");
-
-      consoleSpy.mockRestore();
     });
 
     it("should calculate average speed when distance is provided", () => {
@@ -76,8 +84,9 @@ describe("activity-record command", () => {
         distance: 5,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const db = getDb();
       const activity = db
@@ -86,8 +95,6 @@ describe("activity-record command", () => {
 
       expect(activity.distance).toBe(5000);
       expect(activity.average_speed).toBeCloseTo(2.78, 2);
-
-      consoleSpy.mockRestore();
     });
 
     it("should not store Infinity average speed when duration is zero", () => {
@@ -98,8 +105,9 @@ describe("activity-record command", () => {
         distance: 5,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const db = getDb();
       const activity = db
@@ -111,8 +119,6 @@ describe("activity-record command", () => {
       expect(activity.elapsed_time).toBe(0);
       expect(activity.distance).toBe(5000);
       expect(activity.average_speed).toBe(0);
-
-      consoleSpy.mockRestore();
     });
 
     it("should store structure and notes in raw_json", () => {
@@ -124,8 +130,9 @@ describe("activity-record command", () => {
         notes: "Felt good, legs fresh",
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const db = getDb();
       const activity = db
@@ -135,8 +142,6 @@ describe("activity-record command", () => {
       const rawJson = JSON.parse(activity.raw_json);
       expect(rawJson.structure).toBe("2x10min tempo");
       expect(rawJson.notes).toBe("Felt good, legs fresh");
-
-      consoleSpy.mockRestore();
     });
 
     it("should use negative ID for manual activities", () => {
@@ -146,8 +151,9 @@ describe("activity-record command", () => {
         duration: 30,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const db = getDb();
       const activity = db.prepare("SELECT id FROM activities WHERE source = 'manual'").get() as {
@@ -155,26 +161,24 @@ describe("activity-record command", () => {
       };
 
       expect(activity.id).toBeLessThan(0);
-
-      consoleSpy.mockRestore();
     });
 
     it("should generate sequential negative IDs for multiple activities", () => {
       const db = getDb();
       db.prepare("DELETE FROM activities WHERE source = 'manual'").run();
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      withSilencedConsole(() => {
+        recordManualActivity({
+          command: "activity-record",
+          type: "run",
+          duration: 30,
+        });
 
-      recordManualActivity({
-        command: "activity-record",
-        type: "run",
-        duration: 30,
-      });
-
-      recordManualActivity({
-        command: "activity-record",
-        type: "bike",
-        duration: 45,
+        recordManualActivity({
+          command: "activity-record",
+          type: "bike",
+          duration: 45,
+        });
       });
 
       const activities = db
@@ -184,8 +188,6 @@ describe("activity-record command", () => {
       expect(activities).toHaveLength(2);
       expect(activities[0].id).toBe(-1);
       expect(activities[1].id).toBe(-2);
-
-      consoleSpy.mockRestore();
     });
 
     it("should output JSON with activity ID", () => {
@@ -195,18 +197,23 @@ describe("activity-record command", () => {
         duration: 30,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      const logMessages: string[] = [];
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+        logMessages.push(args.join(" "));
+      });
+      try {
+        recordManualActivity(args);
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"id":'));
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"message":'));
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"id":'));
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"message":'));
 
-      const output = consoleSpy.mock.calls[0][0] as string;
-      const result = JSON.parse(output);
-      expect(result.id).toBeLessThan(0);
-      expect(result.message).toBe("Manual activity recorded successfully");
-
-      consoleSpy.mockRestore();
+        const output = logMessages[0];
+        const result = JSON.parse(output);
+        expect(result.id).toBeLessThan(0);
+        expect(result.message).toBe("Manual activity recorded successfully");
+      } finally {
+        consoleSpy.mockRestore();
+      }
     });
   });
 
@@ -221,16 +228,15 @@ describe("activity-record command", () => {
         duration: 30,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const activity = db.prepare("SELECT id FROM activities WHERE source = 'manual'").get() as {
         id: number;
       };
 
       expect(activity.id).toBe(-1);
-
-      consoleSpy.mockRestore();
     });
 
     it("should continue from -1 when positive Strava activities exist", () => {
@@ -246,16 +252,15 @@ describe("activity-record command", () => {
         duration: 30,
       };
 
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      recordManualActivity(args);
+      withSilencedConsole(() => {
+        recordManualActivity(args);
+      });
 
       const activity = db.prepare("SELECT id FROM activities WHERE source = 'manual'").get() as {
         id: number;
       };
 
       expect(activity.id).toBe(-1);
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -274,8 +279,9 @@ describe("activity-record command", () => {
           duration: 30,
         };
 
-        const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        recordManualActivity(args);
+        withSilencedConsole(() => {
+          recordManualActivity(args);
+        });
 
         const db = getDb();
         const count = db
@@ -284,7 +290,6 @@ describe("activity-record command", () => {
         expect(count.count).toBeGreaterThan(0);
 
         db.prepare("DELETE FROM activities WHERE source = 'manual'").run();
-        consoleSpy.mockRestore();
       });
 
       exitSpy.mockRestore();

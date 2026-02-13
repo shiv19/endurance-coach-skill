@@ -313,10 +313,8 @@ describe("downloadFile (browser environment required)", () => {
       "revokeObjectURL",
     ]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis.URL.createObjectURL as any).mockRestore();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis.URL.revokeObjectURL as any).mockRestore();
+    globalThis.URL.createObjectURL = originalCreateObjectURL;
+    globalThis.URL.revokeObjectURL = originalRevokeObjectURL;
     appendChildSpy.mockRestore();
     removeChildSpy.mockRestore();
   });

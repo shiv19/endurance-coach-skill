@@ -689,7 +689,9 @@ export function runTemplates(args: TemplatesArgs): void {
       const suggestions = findSimilarTemplates(templateId, templates, 5);
       if (suggestions.length > 0) {
         console.log(`\n${colors.dim("Did you mean one of these?")}`);
-        suggestions.forEach((s) => console.log(`  - ${colors.green(s)}`));
+        suggestions.forEach((s) => {
+          console.log(`  - ${colors.green(s)}`);
+        });
       }
 
       console.log(`\nList all templates with: ${colors.green("endurance-coach templates list")}`);

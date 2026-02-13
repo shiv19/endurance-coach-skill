@@ -16,6 +16,23 @@ afterEach(() => {
   }
 });
 
+function withSilencedConsole(fn: () => void): string[] {
+  const logMessages: string[] = [];
+  const logSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+    logMessages.push(args.join(" "));
+  });
+  const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+  try {
+    fn();
+  } finally {
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  }
+
+  return logMessages;
+}
+
 describe("runRender", () => {
   it("renders compact YAML into HTML file", () => {
     const yamlContent = `version: "2.0"
@@ -46,13 +63,9 @@ weeks:
 
     writeFileSync(inputFile, yamlContent);
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    runRender({ command: "render", inputFile, outputFile });
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    withSilencedConsole(() => {
+      runRender({ command: "render", inputFile, outputFile });
+    });
 
     expect(existsSync(outputFile)).toBe(true);
 
@@ -91,17 +104,9 @@ weeks:
 
     expect(existsSync(inputFile)).toBe(true);
 
-    const logMessages: string[] = [];
-
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
-      logMessages.push(args.join(" "));
+    const logMessages = withSilencedConsole(() => {
+      runRender({ command: "render", inputFile });
     });
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    runRender({ command: "render", inputFile });
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
 
     expect(logMessages.length).toBeGreaterThan(0);
 
@@ -114,18 +119,17 @@ weeks:
     const inputFile = join(tempDir, "invalid.json");
     writeFileSync(inputFile, "{ not valid json }");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runRender({ command: "render", inputFile })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runRender({ command: "render", inputFile });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("exits with error for invalid YAML compact plan", () => {
@@ -135,35 +139,33 @@ athlete: invalid: structure`;
     const inputFile = join(tempDir, "invalid.yaml");
     writeFileSync(inputFile, yamlContent);
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runRender({ command: "render", inputFile })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runRender({ command: "render", inputFile });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("exits with error for non-existent input file", () => {
     const inputFile = join(tempDir, "nonexistent.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runRender({ command: "render", inputFile })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runRender({ command: "render", inputFile });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("renders YAML to specific output file path", () => {
@@ -193,13 +195,9 @@ weeks:
 
     writeFileSync(inputFile, yamlContent);
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    runRender({ command: "render", inputFile, outputFile });
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    withSilencedConsole(() => {
+      runRender({ command: "render", inputFile, outputFile });
+    });
 
     expect(existsSync(outputFile)).toBe(true);
 

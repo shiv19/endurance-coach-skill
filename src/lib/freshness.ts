@@ -34,7 +34,12 @@ function getMostRecentActivityDate(): Date | null {
     if (rows.length === 0) {
       return null;
     }
-    return new Date(rows[0].start_date);
+    const dateStr = rows[0].start_date;
+    // Handle both ISO format (with Z) and SQLite format (without Z)
+    if (dateStr.endsWith("Z")) {
+      return new Date(dateStr);
+    }
+    return new Date(dateStr + "Z");
   } catch {
     return null;
   }
@@ -51,9 +56,12 @@ function getMostRecentSyncTime(): Date | null {
     if (rows.length === 0) {
       return null;
     }
-    // SQLite stores timestamps in UTC without 'Z' suffix
-    // Append 'Z' to parse as UTC instead of local time
-    return new Date(rows[0].completed_at + "Z");
+    const dateStr = rows[0].completed_at;
+    // Handle both ISO format (with Z) and SQLite format (without Z)
+    if (dateStr.endsWith("Z")) {
+      return new Date(dateStr);
+    }
+    return new Date(dateStr + "Z");
   } catch {
     return null;
   }

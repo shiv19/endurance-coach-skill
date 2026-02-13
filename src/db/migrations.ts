@@ -140,11 +140,13 @@ export function getMigrationStatus(): {
   ensureSchemaMigrationsTable();
 
   const appliedMigrations = getAppliedMigrations();
+  const appliedNames = new Set(appliedMigrations.map((m) => m.name));
   const allMigrations = getMigrationFiles();
+  const pending = allMigrations.filter((m) => !appliedNames.has(m.name)).length;
 
   return {
     applied: appliedMigrations.length,
-    pending: allMigrations.length - appliedMigrations.length,
+    pending,
     latestApplied:
       appliedMigrations.length > 0 ? appliedMigrations[appliedMigrations.length - 1].name : null,
   };

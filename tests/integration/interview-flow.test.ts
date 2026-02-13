@@ -354,6 +354,24 @@ describe("Interview Flow Integration Tests", () => {
     });
 
     describe("interview --latest", () => {
+      it("should render text output without crashing when activity has ISO datetime", async () => {
+        const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+        await runInterview({
+          command: "interview",
+          mode: "latest",
+          laps: false,
+          json: false,
+        });
+
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const output = consoleLogSpy.mock.calls[0][0] as string;
+        expect(output).toContain("Workout Interview");
+        expect(output).toContain("Date:");
+
+        consoleLogSpy.mockRestore();
+      });
+
       it("should return most recent activity without lap data by default", async () => {
         const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         await runInterview({

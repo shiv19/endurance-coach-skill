@@ -4,6 +4,18 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { runValidate } from "../../src/cli/commands/validate.js";
 
+function withSilencedConsole(fn: () => void): void {
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+  const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+  try {
+    fn();
+  } finally {
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  }
+}
+
 describe("runValidate", () => {
   let tempDir: string;
 
@@ -83,13 +95,9 @@ weeks:
     const planContent = createValidCompactPlan();
     const inputFile = createTempFile(planContent, "valid-plan.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    runValidate({ command: "validate", inputFile, compact: true });
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    withSilencedConsole(() => {
+      runValidate({ command: "validate", inputFile, compact: true });
+    });
   });
 
   it("validates a valid full plan JSON", () => {
@@ -179,65 +187,59 @@ weeks:
     }`;
     const inputFile = createTempFile(planContent, "valid-plan.json");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    runValidate({ command: "validate", inputFile, compact: false });
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    withSilencedConsole(() => {
+      runValidate({ command: "validate", inputFile, compact: false });
+    });
   });
 
   it("exits with error for invalid JSON", () => {
     const invalidContent = "{ not valid json }";
     const inputFile = createTempFile(invalidContent, "invalid.json");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: false })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: false });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("exits with error for invalid YAML", () => {
     const invalidContent = "key: unquoted colon: in middle";
     const inputFile = createTempFile(invalidContent, "invalid.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: true })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: true });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("exits with error for non-existent file", () => {
     const nonExistentFile = join(tmpdir(), "nonexistent-plan.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() =>
-      runValidate({ command: "validate", inputFile: nonExistentFile, compact: true })
-    ).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile: nonExistentFile, compact: true });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("exits with error for compact plan missing required fields", () => {
@@ -247,17 +249,17 @@ athlete:
 
     const inputFile = createTempFile(invalidPlan, "invalid-compact.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: true })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: true });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("exits with error for compact plan with invalid template reference", () => {
@@ -283,17 +285,17 @@ weeks:
 
     const inputFile = createTempFile(planWithInvalidRef, "invalid-ref.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: true })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: true });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("validates compact plan with valid template references", () => {
@@ -321,13 +323,9 @@ weeks:
 
     const inputFile = createTempFile(planWithValidRefs, "valid-refs.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    runValidate({ command: "validate", inputFile, compact: true });
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    withSilencedConsole(() => {
+      runValidate({ command: "validate", inputFile, compact: true });
+    });
   });
 
   it("exits with error for full plan missing required fields", () => {
@@ -335,17 +333,17 @@ weeks:
 
     const inputFile = createTempFile(invalidFullPlan, "invalid-full.json");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: false })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: false });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("logs error message for invalid pace format", () => {
@@ -371,17 +369,17 @@ weeks:
 
     const inputFile = createTempFile(planWithInvalidPace, "invalid-pace.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: true })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: true });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 
   it("detects non-sequential week numbers", () => {
@@ -411,16 +409,16 @@ weeks:
 
     const inputFile = createTempFile(planWithBadWeeks, "bad-weeks.yaml");
 
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit:${code}`);
     }) as never);
 
-    expect(() => runValidate({ command: "validate", inputFile, compact: true })).toThrow("exit:1");
+    expect(() => {
+      withSilencedConsole(() => {
+        runValidate({ command: "validate", inputFile, compact: true });
+      });
+    }).toThrow("exit:1");
 
     exitSpy.mockRestore();
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
   });
 });

@@ -28,6 +28,26 @@ function createTemplateFile(dir: string, sport: string, filename: string, conten
   writeFileSync(join(sportDir, filename), content, "utf-8");
 }
 
+function withSilencedConsoleLog(assertions: (logSpy: ReturnType<typeof vi.spyOn>) => void): void {
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  try {
+    assertions(logSpy);
+  } finally {
+    logSpy.mockRestore();
+  }
+}
+
+function withSilencedConsoleError(
+  assertions: (errorSpy: ReturnType<typeof vi.spyOn>) => void
+): void {
+  const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    assertions(errorSpy);
+  } finally {
+    errorSpy.mockRestore();
+  }
+}
+
 describe("templates validate command", () => {
   beforeEach(() => {
     testDir = setupTestDir();
@@ -628,29 +648,27 @@ notes: Optional notes here`;
 
   describe("console logging side effects", () => {
     it("should log validation success message when template is valid", () => {
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       const args: TemplatesArgs = {
         command: "templates",
         validate: "run.easy",
       };
 
-      runTemplates(args);
-
-      expect(logSpy).toHaveBeenCalled();
-      logSpy.mockRestore();
+      withSilencedConsoleLog((logSpy) => {
+        runTemplates(args);
+        expect(logSpy).toHaveBeenCalled();
+      });
     });
 
     it("should not log to error console when template is valid", () => {
-      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       const args: TemplatesArgs = {
         command: "templates",
         validate: "run.easy",
       };
 
-      runTemplates(args);
-
-      expect(errorSpy).not.toHaveBeenCalled();
-      errorSpy.mockRestore();
+      withSilencedConsoleError((errorSpy) => {
+        runTemplates(args);
+        expect(errorSpy).not.toHaveBeenCalled();
+      });
     });
   });
 });
