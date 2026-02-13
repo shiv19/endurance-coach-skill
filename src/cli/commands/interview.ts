@@ -108,7 +108,7 @@ function loadActivityMetadata(workoutId: number): ActivityMetadata | null {
   return rows.length > 0 ? rows[0] : null;
 }
 
-async function loadPreviousInterviews(workoutId: number, limit = 3): Promise<InterviewSummary[]> {
+function loadPreviousInterviews(workoutId: number, limit = 3): InterviewSummary[] {
   const stmt = getDb().prepare(
     `SELECT created_at, athlete_reflection_summary
      FROM workout_interviews
@@ -127,14 +127,14 @@ async function loadPreviousInterviews(workoutId: number, limit = 3): Promise<Int
   }));
 }
 
-async function getMostRecentActivityId(): Promise<number | null> {
+function getMostRecentActivityId(): number | null {
   const rows = queryJson<{ id: number }>(
     "SELECT id FROM activities ORDER BY start_date DESC LIMIT 1"
   );
   return rows.length > 0 ? rows[0].id : null;
 }
 
-async function getRecentActivities(days: number): Promise<ActivitySummary[]> {
+function getRecentActivities(days: number): ActivitySummary[] {
   const stmt = getDb().prepare(
     `SELECT id, date(start_date) as date, sport_type, name,
             ROUND(moving_time / 60.0) as duration_minutes,
@@ -147,7 +147,7 @@ async function getRecentActivities(days: number): Promise<ActivitySummary[]> {
   return stmt.all(`-${days} days`) as ActivitySummary[];
 }
 
-async function getTotalInterviewCount(): Promise<number> {
+function getTotalInterviewCount(): number {
   const rows = queryJson<{ count: number }>("SELECT COUNT(*) as count FROM workout_interviews");
   return rows[0]?.count ?? 0;
 }
@@ -166,7 +166,7 @@ async function buildInterviewData(
       const tokens = await getValidTokens();
       laps = await getActivityLaps(tokens, workoutId);
 
-      const triggers = await loadTriggerConfigs();
+      const triggers = loadTriggerConfigs();
       firedTriggers = evaluateAllTriggers(laps, triggers).map((t) => ({
         trigger_type: t.trigger_type,
         actual_value: t.actual_value,
@@ -180,16 +180,16 @@ async function buildInterviewData(
         mode: "strava",
         sync_status: syncResult.synced ? "synced" : "cached",
         workout_metadata: metadata,
-        athlete_interview_count: await getTotalInterviewCount(),
+        athlete_interview_count: getTotalInterviewCount(),
         preliminary_note_eligible: false,
-        previous_interviews: await loadPreviousInterviews(workoutId),
+        previous_interviews: loadPreviousInterviews(workoutId),
         warning: `Failed to fetch laps: ${warning}`,
       };
     }
   }
 
-  const totalInterviews = await getTotalInterviewCount();
-  const previousInterviews = await loadPreviousInterviews(workoutId);
+  const totalInterviews = getTotalInterviewCount();
+  const previousInterviews = loadPreviousInterviews(workoutId);
 
   return {
     mode: "strava",
@@ -212,29 +212,29 @@ async function runLatestMode(
     return {
       mode: "manual",
       sync_status: "manual",
-      athlete_interview_count: await getTotalInterviewCount(),
+      athlete_interview_count: getTotalInterviewCount(),
       preliminary_note_eligible: false,
       warning: "Strava not configured. Use manual entry mode.",
     };
   }
 
-  const workoutId = await getMostRecentActivityId();
+  const workoutId = getMostRecentActivityId();
   if (!workoutId) {
     return {
       mode: "manual",
       sync_status: syncResult.cached ? "cached" : "synced",
-      athlete_interview_count: await getTotalInterviewCount(),
+      athlete_interview_count: getTotalInterviewCount(),
       preliminary_note_eligible: false,
       warning: "No activities found in database.",
     };
   }
 
-  const metadata = await loadActivityMetadata(workoutId);
+  const metadata = loadActivityMetadata(workoutId);
   if (!metadata) {
     return {
       mode: "manual",
       sync_status: syncResult.cached ? "cached" : "synced",
-      athlete_interview_count: await getTotalInterviewCount(),
+      athlete_interview_count: getTotalInterviewCount(),
       preliminary_note_eligible: false,
       warning: `Activity ${workoutId} not found in database.`,
     };
@@ -246,8 +246,8 @@ async function runLatestMode(
 async function runListMode(args: InterviewArgs & { mode: "list" }): Promise<InterviewPromptData> {
   const syncResult = await ensureFreshData();
   const days = args.days ?? DEFAULT_LIST_DAYS;
-  const activities = await getRecentActivities(days);
-  const totalInterviews = await getTotalInterviewCount();
+  const activities = getRecentActivities(days);
+  const totalInterviews = getTotalInterviewCount();
 
   return {
     mode: "list",
@@ -268,18 +268,18 @@ async function runSpecificMode(
     return {
       mode: "manual",
       sync_status: "manual",
-      athlete_interview_count: await getTotalInterviewCount(),
+      athlete_interview_count: getTotalInterviewCount(),
       preliminary_note_eligible: false,
       warning: "Strava not configured. Use manual entry mode.",
     };
   }
 
-  const metadata = await loadActivityMetadata(args.workoutId!);
+  const metadata = loadActivityMetadata(args.workoutId!);
   if (!metadata) {
     return {
       mode: "manual",
       sync_status: syncResult.cached ? "cached" : "synced",
-      athlete_interview_count: await getTotalInterviewCount(),
+      athlete_interview_count: getTotalInterviewCount(),
       preliminary_note_eligible: false,
       warning: `Activity ${args.workoutId} not found in database.`,
     };
@@ -289,7 +289,7 @@ async function runSpecificMode(
 }
 
 async function runManualMode(): Promise<InterviewPromptData> {
-  const totalInterviews = await getTotalInterviewCount();
+  const totalInterviews = getTotalInterviewCount();
 
   return {
     mode: "manual",
