@@ -34,8 +34,12 @@ function getMigrationFiles(): Migration[] {
         filename: f,
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  } catch {
-    // Directory doesn't exist yet
+  } catch (error: unknown) {
+    const err = error as NodeJS.ErrnoException;
+    if (err?.code && ["ENOENT", "EACCES", "EPERM", "ENOTDIR"].includes(err.code)) {
+      const reason = err.message || err.code;
+      log.warn(`Migrations directory unavailable at ${MIGRATIONS_DIR}: ${reason}`);
+    }
     return [];
   }
 }
