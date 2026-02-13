@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { StravaActivity, StravaAthlete } from "../src/strava/types.js";
+import type { StravaActivity, StravaAthlete } from "../../src/strava/types.js";
 
 describe("Strava Types", () => {
   describe("StravaActivity", () => {

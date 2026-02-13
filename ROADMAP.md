@@ -118,6 +118,100 @@ No UI yet.
 
 ---
 
+# Phase 1.5: Athlete Context Memory
+
+### Epic: Persistent Coach Notes
+
+Goal: Accumulate **general athlete context** beyond workout-specific interviews, building coaching relationship memory.
+
+---
+
+## Problem
+
+Each session starts fresh. The coach must re-learn:
+
+- Athlete terminology ("foot transition" = smooth leg turnover)
+- Life constraints (work schedule, family commitments)
+- Training preferences (morning runner, responds well to tempo)
+- Injury history and sensitivities
+- Communication style
+
+Workout interviews capture workout-specific signal. General athlete context has no home.
+
+---
+
+## Solution
+
+A simple `coach_notes` table where the agent persists observations after interactions.
+
+---
+
+## Persistence
+
+New table: `coach_notes`
+
+```sql
+CREATE TABLE coach_notes (
+  id INTEGER PRIMARY KEY,
+  note TEXT NOT NULL,
+  category TEXT,  -- 'terminology', 'preference', 'constraint', 'observation'
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Categories are optional, free-form. No rigid schema - let patterns emerge.
+
+---
+
+## CLI Commands
+
+**Save a note:**
+
+```bash
+npx endurance-coach note-save --note="Athlete uses 'foot transition' for smooth leg turnover" --category=terminology
+```
+
+**List notes:**
+
+```bash
+npx endurance-coach notes list [--category=<category>]
+```
+
+**Search notes (stretch):**
+
+```bash
+npx endurance-coach notes search <term>
+```
+
+---
+
+## Agent Behavior
+
+- After interviews or coaching conversations, agent saves relevant context
+- At session start, agent can retrieve notes to inform interaction
+- Notes are coach-written (not athlete self-reported, initially)
+- Athlete can request to view stored notes for transparency
+
+---
+
+## Design Constraints
+
+- Notes live in `coach.db` - single backup restores everything
+- No automatic deletion - accumulation is the point
+- Keep it simple: text + optional category + timestamp
+- Structured athlete profiles (height, weight, PRs) are separate concern
+
+---
+
+## Success Criteria
+
+- Agent recalls athlete-specific terminology without re-explanation
+- Training preferences persist across sessions
+- Life constraints inform scheduling recommendations
+- Coaching relationship feels continuous, not episodic
+
+---
+
 # Phase 2: Intelligence Compounding
 
 Goal: Build **memory + trend awareness**, not automation.
@@ -273,3 +367,14 @@ No exploratory graphs.
 - Data + perception > either alone
 - UI amplifies insight, never replaces it
 - Discomfort in service of improvement is acceptable
+
+## Roadmap Suggestions
+
+1. Pre-workout state capture - Consider adding a lightweight "how do you feel going in" signal. "Felt terrible, executed well" is a different story than "felt great, still faded." Could be as simple as a 1-5 readiness score before the workout. Informs the post-workout interpretation significantly.
+2. Auto-draft Coach Notes from laps - You already have activity --laps. Before the interview starts, generate a preliminary coach assessment from the data alone. Then the interview validates, challenges, or adds context. This gives the athlete something concrete to react to rather than open-ended "how did it feel?"
+3. Close the loop to plan modification - Phase 2 detects patterns and flags them. But what's the action? Consider explicitly
+   connecting intelligence outputs to plan adjustment suggestions. "Accumulating fatigue detected → recommend recovery week" or
+   "Execution improving → ready for intensity progression."
+4. Phase 3 might be lower priority - Strava write-back is appealing but Phase 2's intelligence compounding is where the coaching value
+   compounds. I'd consider swapping their order unless the public accountability loop is core to your vision.
+5. Interview completion criteria - Beyond turn count, consider explicit signal: "Do I have enough to write confident Coach Notes?" If confidence would be Low after 7 turns, maybe that's fine - just surface it.

@@ -3,6 +3,7 @@ import type { StatsArgs } from "../args.js";
 import { formatTable } from "../utils/format-table.js";
 import { toPositiveInt } from "../utils/number-utils.js";
 import { printSection } from "../utils/printSection.js";
+import { ensureFreshData } from "../../lib/freshness.js";
 
 const DEFAULT_WEEKS = 8;
 const DEFAULT_LONGEST_WEEKS = 12;
@@ -19,6 +20,7 @@ const DEFAULT_LONGEST_WEEKS = 12;
  *   - `json`: when true, output is emitted as a JSON object instead of formatted tables.
  */
 export async function runStats(args: StatsArgs): Promise<void> {
+  await ensureFreshData({ verbose: args.verbose, noSync: args.noSync });
   await initDatabase();
 
   const weeks = toPositiveInt(args.weeks, DEFAULT_WEEKS);

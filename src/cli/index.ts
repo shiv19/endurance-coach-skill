@@ -16,6 +16,12 @@ import { runFoundation } from "./commands/foundation.js";
 import { runStrength } from "./commands/strength.js";
 import { runSchedulePreferences } from "./commands/schedule-preferences.js";
 import { runHrZones } from "./commands/hr-zones.js";
+import { runInterview } from "./commands/interview.js";
+import { initDatabase } from "../db/client.js";
+import { recordManualActivity } from "./commands/activity-record.js";
+import { saveInterview, savePreliminaryNote } from "./commands/interview-persistence.js";
+import { runTriggers } from "./commands/triggers.js";
+import { runInterviews } from "./commands/interviews.js";
 
 // ============================================================================
 // MARK: Proxy Configuration
@@ -58,6 +64,10 @@ async function main(): Promise<void> {
     case "activity":
       await runActivityLaps(args);
       break;
+    case "activity-record":
+      await initDatabase();
+      recordManualActivity(args);
+      break;
     case "sync":
       await runSync(args);
       break;
@@ -99,6 +109,21 @@ async function main(): Promise<void> {
       break;
     case "modify":
       await runModify(args);
+      break;
+    case "interview":
+      await runInterview(args);
+      break;
+    case "interview-save":
+      await saveInterview(args);
+      break;
+    case "preliminary-note-save":
+      await savePreliminaryNote(args);
+      break;
+    case "interviews":
+      await runInterviews(args);
+      break;
+    case "triggers":
+      await runTriggers(args);
       break;
     default:
       await printHelp();

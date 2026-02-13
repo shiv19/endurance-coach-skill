@@ -52,13 +52,15 @@ function applyLocalChangesToPlan(
   });
 
   // 1. Apply deleted workouts
-  changes.deleted.forEach((workoutId) => {
-    const location = workoutMap.get(workoutId);
-    if (location) {
-      const { weekIdx, dayIdx, workoutIdx } = location;
-      modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
-    }
-  });
+  if (changes.deleted.length > 0) {
+    const deletedIds = new Set(changes.deleted);
+    modifiedPlan.weeks?.forEach((week) => {
+      week.days?.forEach((day) => {
+        if (!day.workouts) return;
+        day.workouts = day.workouts.filter((workout) => !deletedIds.has(workout.id));
+      });
+    });
+  }
 
   // Rebuild workout map after deletions
   workoutMap.clear();
@@ -81,38 +83,53 @@ function applyLocalChangesToPlan(
   });
 
   // 3. Apply moved workouts
-  Object.entries(changes.moved).forEach(([workoutId, newDate]) => {
-    const location = workoutMap.get(workoutId);
-    if (!location) return;
+  if (Object.keys(changes.moved).length > 0) {
+    const movedWorkouts: Array<{ workoutId: string; newDate: string; workout: Workout }> = [];
 
-    const { weekIdx, dayIdx, workoutIdx } = location;
+    Object.entries(changes.moved).forEach(([workoutId, newDate]) => {
+      const location = workoutMap.get(workoutId);
+      if (!location) return;
 
-    // Remove workout from original location
-    const [workout] = modifiedPlan.weeks![weekIdx].days![dayIdx].workouts!.splice(workoutIdx, 1);
+      const { weekIdx, dayIdx, workoutIdx } = location;
+      const workout = modifiedPlan.weeks![weekIdx].days![dayIdx].workouts![workoutIdx];
+      if (!workout) return;
 
-    // Find the target day
-    let targetDay: TrainingDay | null = null;
+      movedWorkouts.push({ workoutId, newDate, workout });
+    });
 
-    for (const week of modifiedPlan.weeks || []) {
-      for (const day of week.days || []) {
-        if (day.date === newDate) {
-          targetDay = day;
-          break;
+    const movedIds = new Set(movedWorkouts.map((entry) => entry.workoutId));
+    modifiedPlan.weeks?.forEach((week) => {
+      week.days?.forEach((day) => {
+        if (!day.workouts) return;
+        day.workouts = day.workouts.filter((workout) => !movedIds.has(workout.id));
+      });
+    });
+
+    movedWorkouts.forEach(({ newDate, workout }) => {
+      // Find the target day
+      let targetDay: TrainingDay | null = null;
+
+      for (const week of modifiedPlan.weeks || []) {
+        for (const day of week.days || []) {
+          if (day.date === newDate) {
+            targetDay = day;
+            break;
+          }
         }
+        if (targetDay) break;
       }
-      if (targetDay) break;
-    }
 
-    if (targetDay) {
-      if (!targetDay.workouts) {
-        targetDay.workouts = [];
+      if (targetDay) {
+        if (!targetDay.workouts) {
+          targetDay.workouts = [];
+        }
+        targetDay.workouts.push(workout);
       }
-      targetDay.workouts.push(workout);
-    }
-  });
+    });
+  }
 
   // 4. Add new workouts
-  Object.entries(changes.added).forEach(([workoutId, { date, workout }]) => {
+  Object.entries(changes.added).forEach(([_workoutId, { date, workout }]) => {
     let targetDay: TrainingDay | null = null;
 
     for (const week of modifiedPlan.weeks || []) {

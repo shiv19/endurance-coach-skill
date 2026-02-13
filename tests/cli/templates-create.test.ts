@@ -248,7 +248,7 @@ humanReadable: Tempo
       const args: TemplatesArgs = {
         command: "templates",
         create: "test_workout",
-        type: "invalid_sport" as any,
+        type: "invalid_sport" as unknown as "run",
         userTemplatesDir: testDir,
       };
 
@@ -260,7 +260,7 @@ humanReadable: Tempo
         command: "templates",
         create: "test_workout2",
         type: "run",
-        category: "invalid_category" as any,
+        category: "invalid_category" as unknown as "endurance",
         userTemplatesDir: testDir,
       };
 

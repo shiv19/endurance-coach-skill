@@ -60,7 +60,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
 
@@ -86,7 +86,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
 
@@ -111,7 +111,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-12", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
 
@@ -137,7 +137,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-4", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
 
@@ -161,7 +161,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-4", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const options = { startDate: new Date("2025-02-15") };
     const expanded = expandPlan(compact, templates, options);
@@ -186,7 +186,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-4", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
 
@@ -212,7 +212,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
     const lastWeek = expanded.weeks[expanded.weeks.length - 1];
@@ -237,7 +237,7 @@ describe("Training Start Date Calculation", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     const expanded = expandPlan(compact, templates);
 
@@ -265,7 +265,7 @@ describe("Template Validation - Fail-Fast", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     expect(() => expandPlan(compact, templates)).toThrow();
   });
@@ -286,7 +286,7 @@ describe("Template Validation - Fail-Fast", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     try {
       expandPlan(compact, templates);
@@ -314,7 +314,7 @@ describe("Template Validation - Fail-Fast", () => {
       },
       phases: [{ name: "Base", weeks: "1-8", focus: "Base" }],
       weeks,
-    } as any;
+    } as unknown as Parameters<typeof expandPlan>[0];
 
     expect(() => expandPlan(compact, templates)).toThrow();
     // Error should happen before any expansion occurs

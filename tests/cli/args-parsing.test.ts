@@ -132,4 +132,105 @@ describe("parseArgs", () => {
 
     exitSpy.mockRestore();
   });
+
+  describe("activity-record --help", () => {
+    it("displays help when --help flag is provided", () => {
+      setArgv(["activity-record", "--help"]);
+      const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+        throw new Error(`exit:${code}`);
+      }) as never);
+
+      const messages: string[] = [];
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+        messages.push(args.join(" "));
+      });
+      try {
+        expect(() => parseArgs()).toThrow("exit:0");
+      } finally {
+        consoleSpy.mockRestore();
+      }
+
+      expect(messages.join("\n")).toContain("activity-record - Manually record an activity");
+      expect(messages.join("\n")).toContain("--type=TYPE");
+      expect(messages.join("\n")).toContain("--duration=MINUTES");
+
+      exitSpy.mockRestore();
+    });
+
+    it("displays help when -h flag is provided", () => {
+      setArgv(["activity-record", "-h"]);
+      const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
+        throw new Error(`exit:${code}`);
+      }) as never);
+
+      const messages: string[] = [];
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+        messages.push(args.join(" "));
+      });
+      try {
+        expect(() => parseArgs()).toThrow("exit:0");
+      } finally {
+        consoleSpy.mockRestore();
+      }
+      expect(messages.join("\n")).toContain("activity-record - Manually record an activity");
+
+      exitSpy.mockRestore();
+    });
+
+    it("does not display help when --help is not present", () => {
+      setArgv(["activity-record", "--type=Run", "--duration=30"]);
+
+      const messages: string[] = [];
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+        messages.push(args.join(" "));
+      });
+      let result;
+      try {
+        result = parseArgs();
+      } finally {
+        consoleSpy.mockRestore();
+      }
+
+      expect(result.command).toBe("activity-record");
+      if (result.command === "activity-record") {
+        expect(result.type).toBe("Run");
+        expect(result.duration).toBe(30);
+      }
+      expect(messages.join("\n")).not.toContain("activity-record - Manually record an activity");
+    });
+  });
+
+  describe("interview-save parsing", () => {
+    it("preserves '=' characters in reflection and notes", () => {
+      setArgv([
+        "interview-save",
+        "123",
+        "--reflection=Felt=good=overall",
+        "--notes=Coach=note=kept",
+        "--confidence=High",
+      ]);
+      const result = parseArgs();
+
+      expect(result.command).toBe("interview-save");
+      if (result.command === "interview-save") {
+        expect(result.workoutId).toBe(123);
+        expect(result.reflection).toBe("Felt=good=overall");
+        expect(result.notes).toBe("Coach=note=kept");
+        expect(result.confidence).toBe("High");
+      }
+    });
+  });
+
+  describe("preliminary-note-save parsing", () => {
+    it("preserves '=' characters in note", () => {
+      setArgv(["preliminary-note-save", "123", "--note=Key=Value=More"]);
+      const result = parseArgs();
+
+      expect(result.command).toBe("preliminary-note-save");
+      if (result.command === "preliminary-note-save") {
+        expect(result.workoutId).toBe(123);
+        expect(result.note).toBe("Key=Value=More");
+      }
+    });
+  });
 });

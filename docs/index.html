@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Endurance Coach - Free AI-Powered Training Plans for Endurance Athletes</title>
+    <title>Endurance Coach - Free AI Coaching for Endurance Athletes</title>
     <meta
       name="description"
-      content="Create personalized triathlon, marathon, and ultra training plans with AI. Free, open source, fully local, powered by Claude and Strava."
+      content="AI-powered coaching for triathlon, marathon, and ultra athletes. Personalized training plans, post-workout interviews, and data-driven insights. Free, open source, fully local."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -204,12 +204,37 @@
 
       .hero-grid {
         position: absolute;
-        inset: 0;
+        inset: -50%;
+        width: 200%;
+        height: 200%;
         background-image:
           linear-gradient(var(--border-subtle) 1px, transparent 1px),
           linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-        background-size: 60px 60px;
-        mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, black, transparent);
+        background-size: 80px 80px;
+        transform: rotate(45deg);
+        mask-image: radial-gradient(ellipse 40% 30% at 50% 50%, black 20%, transparent 70%);
+        -webkit-mask-image: radial-gradient(ellipse 40% 30% at 50% 50%, black 20%, transparent 70%);
+        animation: mesh-drift 20s linear infinite;
+      }
+
+      .hero-grid::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border-medium) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border-medium) 1px, transparent 1px);
+        background-size: 240px 240px;
+        opacity: 0.5;
+      }
+
+      @keyframes mesh-drift {
+        0% {
+          transform: rotate(45deg) translate(0, 0);
+        }
+        100% {
+          transform: rotate(45deg) translate(80px, 80px);
+        }
       }
 
       .hero-content {
@@ -513,6 +538,16 @@
       .feature-card:nth-child(4) .feature-icon {
         background: var(--accent-glow);
         color: var(--accent);
+      }
+
+      .feature-card:nth-child(5) .feature-icon {
+        background: var(--strength-glow);
+        color: var(--strength);
+      }
+
+      .feature-card:nth-child(6) .feature-icon {
+        background: var(--brick-glow);
+        color: var(--brick);
       }
 
       .feature-title {
@@ -1134,11 +1169,11 @@
           <span class="badge-dot"></span>
           Free and Open Source
         </div>
-        <h1>Free Personalized<br />Training Plans with <span>AI</span></h1>
+        <h1>Your Personal AI<br />Endurance <span>Coach</span></h1>
         <p class="hero-subtitle">
-          Create personalized triathlon, marathon, and ultra training plans powered by Claude and
-          Strava. Professional periodization, beautiful plan viewer, export to your favorite
-          training apps. Fully local, your data stays yours.
+          More than a plan generator. Get personalized training schedules, post-workout coaching
+          interviews, and insights that compound over time. Works with any AI agent that supports
+          skills. Fully local, your data stays yours.
         </p>
         <div class="hero-cta">
           <a href="#docs" class="btn btn-primary">
@@ -1195,10 +1230,10 @@
       <div class="section-inner">
         <div class="section-header fade-in">
           <span class="section-label">Features</span>
-          <h2 class="section-title">Everything You Need to Train</h2>
+          <h2 class="section-title">Everything You Need to Train Smarter</h2>
           <p class="section-subtitle">
-            From data analysis to race day strategy, Endurance Coach handles the complexity so you
-            can focus on training.
+            From personalized plans to post-workout reflections, Endurance Coach learns with you
+            over time.
           </p>
         </div>
         <div class="features-grid">
@@ -1242,6 +1277,26 @@
               training wherever you go.
             </p>
           </div>
+          <div class="feature-card fade-in">
+            <div class="feature-icon">
+              <i data-lucide="message-circle" style="width: 24px; height: 24px"></i>
+            </div>
+            <h3 class="feature-title">Post-Workout Interviews</h3>
+            <p class="feature-desc">
+              Have a conversational interview with your coach after every workout. Your reflections
+              become structured data that shapes future training decisions.
+            </p>
+          </div>
+          <div class="feature-card fade-in">
+            <div class="feature-icon">
+              <i data-lucide="activity" style="width: 24px; height: 24px"></i>
+            </div>
+            <h3 class="feature-title">Smart Triggers</h3>
+            <p class="feature-desc">
+              Data-aware coaching that notices patterns in your training. Heart rate drift, pace
+              deviations, and early fade detection shape personalized follow-up questions.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -1250,8 +1305,8 @@
       <div class="section-inner">
         <div class="section-header fade-in">
           <span class="section-label">How It Works</span>
-          <h2 class="section-title">Your Plan in Three Steps</h2>
-          <p class="section-subtitle">From zero to fully personalized training plan in minutes.</p>
+          <h2 class="section-title">Start Coaching in Three Steps</h2>
+          <p class="section-subtitle">From zero to ongoing AI coaching relationship in minutes.</p>
         </div>
         <div class="steps">
           <div class="step fade-in">
@@ -1264,18 +1319,18 @@
           </div>
           <div class="step fade-in">
             <div class="step-number">2</div>
-            <h3 class="step-title">Share Your Fitness</h3>
+            <h3 class="step-title">Share Your Story</h3>
             <p class="step-desc">
               Connect Strava for automatic analysis, or describe your training history manually.
-              Tell Claude about your target event.
+              Tell your AI coach about your goals and start coaching conversations.
             </p>
           </div>
           <div class="step fade-in">
             <div class="step-number">3</div>
-            <h3 class="step-title">Get Your Plan</h3>
+            <h3 class="step-title">Train & Reflect</h3>
             <p class="step-desc">
-              Receive a complete periodized training plan with zones, workouts, race strategy, and
-              an interactive viewer.
+              Get your periodized plan, complete workouts, then have post-workout interviews. Your
+              reflections shape future training decisions.
             </p>
           </div>
         </div>
@@ -1318,6 +1373,12 @@
                 ><i data-lucide="check" style="width: 12px; height: 12px"></i
               ></span>
               Interactive plan viewer
+            </li>
+            <li>
+              <span class="check-icon"
+                ><i data-lucide="check" style="width: 12px; height: 12px"></i
+              ></span>
+              Post-workout coaching interviews
             </li>
             <li>
               <span class="check-icon"
@@ -1605,7 +1666,8 @@
           <div class="docs-text">
             <h3>Getting Started</h3>
             <p>
-              Endurance Coach works with both Claude.ai and Claude Code. Choose your platform below.
+              Endurance Coach works with any AI agent that supports skills. Choose your platform
+              below.
             </p>
 
             <div class="docs-tabs">
@@ -1631,7 +1693,7 @@
                   <code>*.strava.com</code>
                 </li>
                 <li>
-                  <strong>Start chatting</strong> and ask Claude to create a training plan for your
+                  <strong>Start chatting</strong> and ask your AI to create a training plan for your
                   target event
                 </li>
               </ol>
@@ -1643,22 +1705,21 @@
                   <strong>Install the skill:</strong> Run
                   <code>npx skills add shiv19/endurance-coach-skill</code> in your terminal
                 </li>
-                <li><strong>Open Claude Code</strong> in your terminal</li>
+                <li><strong>Open your AI agent</strong> in your terminal</li>
                 <li>
-                  <strong>Start a conversation</strong> and ask Claude to create a training plan for
-                  your target event
+                  <strong>Start a conversation</strong> and ask your AI to create a training plan
+                  for your target event
                 </li>
               </ol>
             </div>
 
             <div class="disclaimer-box">
-              <strong>Note:</strong> Endurance Coach is an independent, open-source project. It is
-              not made by, endorsed by, or affiliated with Anthropic. It is a skill/tool that works
-              with Claude products.
+              <strong>Note:</strong> Endurance Coach is an independent, open-source project designed
+              to work with any AI agent that supports the skills format.
             </div>
           </div>
           <div class="code-block">
-            <div><span class="comment"># Example prompt for Claude</span></div>
+            <div><span class="comment"># Example prompt</span></div>
             <br />
             <div><span class="string">"Help me create a training plan for the</span></div>
             <div><span class="string">Boston Marathon on April 21st 2025</span></div>
@@ -1691,10 +1752,9 @@
           <a href="https://twitter.com/multishiv19">@multishiv19</a>. MIT License.
         </p>
         <div class="footer-disclaimer">
-          <strong>Disclaimer:</strong> Endurance Coach is an independent, open-source project and is
-          not made by, endorsed by, or affiliated with Anthropic, PBC. "Claude" is a trademark of
-          Anthropic. This tool is a skill/plugin that works with Claude products but is developed
-          and maintained independently.
+          <strong>Disclaimer:</strong> Endurance Coach is an independent, open-source project
+          designed to work with any AI agent that supports skills. It is not made by, endorsed by,
+          or affiliated with any AI provider.
         </div>
       </div>
     </footer>

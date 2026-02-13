@@ -74,9 +74,12 @@ export interface Lap {
   total_elevation_gain: number;
   average_speed: number;
   max_speed: number;
-  average_cadence: number;
+  average_cadence?: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
   device_watts: boolean;
-  average_watts: number;
+  average_watts?: number;
+  max_watts?: number;
   lap_index: number;
   split: number;
 }

@@ -3,10 +3,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as readline from "readline";
 
-const CONFIG_DIR = join(homedir(), ".endurance-coach");
-const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-const TOKENS_FILE = join(CONFIG_DIR, "tokens.json");
-const DB_FILE = join(CONFIG_DIR, "coach.db");
+// Allow override via environment variable for testing
+// Must be a function to support runtime changes (e.g., test isolation)
+function getConfigDir(): string {
+  return process.env.ENDURANCE_COACH_CONFIG_DIR || join(homedir(), ".endurance-coach");
+}
 
 export interface StravaConfig {
   client_id: string;
@@ -26,55 +27,58 @@ export interface Tokens {
 }
 
 export function ensureConfigDir(): void {
-  if (!existsSync(CONFIG_DIR)) {
-    mkdirSync(CONFIG_DIR, { recursive: true });
+  const configDir = getConfigDir();
+  if (!existsSync(configDir)) {
+    mkdirSync(configDir, { recursive: true });
   }
 }
 
 export function getConfigPath(): string {
-  return CONFIG_FILE;
+  return join(getConfigDir(), "config.json");
 }
 
 export function getTokensPath(): string {
-  return TOKENS_FILE;
+  return join(getConfigDir(), "tokens.json");
 }
 
 export function getDbPath(): string {
-  return DB_FILE;
+  return join(getConfigDir(), "coach.db");
 }
 
 export function configExists(): boolean {
-  return existsSync(CONFIG_FILE);
+  return existsSync(getConfigPath());
 }
 
 export function tokensExist(): boolean {
-  return existsSync(TOKENS_FILE);
+  return existsSync(getTokensPath());
 }
 
 export function loadConfig(): Config {
+  const configPath = getConfigPath();
   if (!configExists()) {
-    throw new Error(`Config not found at ${CONFIG_FILE}. Run setup first.`);
+    throw new Error(`Config not found at ${configPath}. Run setup first.`);
   }
-  const data = readFileSync(CONFIG_FILE, "utf-8");
+  const data = readFileSync(configPath, "utf-8");
   return JSON.parse(data);
 }
 
 export function saveConfig(config: Config): void {
   ensureConfigDir();
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  writeFileSync(getConfigPath(), JSON.stringify(config, null, 2));
 }
 
 export function loadTokens(): Tokens {
+  const tokensPath = getTokensPath();
   if (!tokensExist()) {
-    throw new Error(`Tokens not found at ${TOKENS_FILE}. Run auth first.`);
+    throw new Error(`Tokens not found at ${tokensPath}. Run auth first.`);
   }
-  const data = readFileSync(TOKENS_FILE, "utf-8");
+  const data = readFileSync(tokensPath, "utf-8");
   return JSON.parse(data);
 }
 
 export function saveTokens(tokens: Tokens): void {
   ensureConfigDir();
-  writeFileSync(TOKENS_FILE, JSON.stringify(tokens, null, 2));
+  writeFileSync(getTokensPath(), JSON.stringify(tokens, null, 2));
 }
 
 export function tokensExpired(tokens: Tokens): boolean {

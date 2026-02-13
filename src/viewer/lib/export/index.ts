@@ -9,7 +9,7 @@
  * - ICS (iCalendar) - full plan calendar events
  */
 
-import type { Workout, TrainingPlan, TrainingDay, Sport } from "../../../schema/training-plan.js";
+import type { Workout, TrainingPlan, Sport } from "../../../schema/training-plan.js";
 import type { Settings } from "../../stores/settings.js";
 import { generateZwo, isZwoSupported } from "./zwo.js";
 import { generateFit, isFitSupported } from "./fit.js";
