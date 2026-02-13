@@ -3,7 +3,7 @@ import { mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { recordManualActivity } from "../../src/cli/commands/activity-record.js";
-import { initDatabase, getDb, resetDatabaseCache, queryJson } from "../../src/db/client.js";
+import { initDatabase, getDb, resetDatabaseCache } from "../../src/db/client.js";
 import type { ActivityRecordArgs } from "../../src/cli/args.js";
 
 describe("activity-record command", () => {

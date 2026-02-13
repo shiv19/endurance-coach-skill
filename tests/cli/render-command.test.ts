@@ -4,7 +4,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { runRender } from "../../src/cli/commands/render.js";
 
-const tempDir = join(tmpdir(), "render-test");
+const tempDir = join(tmpdir(), `render-test-${Date.now()}`);
 
 beforeEach(() => {
   mkdirSync(tempDir, { recursive: true });

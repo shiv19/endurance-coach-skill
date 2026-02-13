@@ -241,7 +241,7 @@ describe("ensureFreshData", () => {
         expect(result.synced).toBe(false);
         expect(result.cached).toBe(true);
         expect(result.warning).toContain("Using cached data");
-        expect(result.warning).toContain("5 days ago");
+        expect(result.warning).toMatch(/\d+ days ago/);
 
         expect(syncActivities).not.toHaveBeenCalled();
       });

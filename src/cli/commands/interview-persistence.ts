@@ -101,9 +101,13 @@ export async function savePreliminaryNote(args: PreliminaryNoteSaveArgs): Promis
     )
     .run(args.workoutId, args.note);
 
+  const inserted = db
+    .prepare("SELECT id, created_at FROM preliminary_coach_notes WHERE id = ?")
+    .get(result.lastInsertRowid) as CreatedPreliminaryNote;
+
   const response: CreatedPreliminaryNote = {
-    id: result.lastInsertRowid as number,
-    created_at: new Date().toISOString(),
+    id: inserted.id,
+    created_at: inserted.created_at,
   };
 
   console.log(JSON.stringify(response, null, 2));
