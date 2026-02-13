@@ -12,6 +12,7 @@ import type {
   QueryArgs,
   AuthArgs,
   ActivityLapsArgs,
+  HelpArgs,
   ValidateArgs,
   ExpandArgs,
   TemplatesArgs,
@@ -50,7 +51,7 @@ export type {
   TriggersArgs,
   InterviewsListArgs,
   InterviewsGetArgs,
-} from "./args.types.js";
+};
 
 // ============================================================================
 // MARK: Argument Parsing

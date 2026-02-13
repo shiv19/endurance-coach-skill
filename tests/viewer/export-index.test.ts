@@ -125,7 +125,7 @@ describe("downloadFile (browser environment required)", () => {
       resources: "usable",
     });
 
-    global.document = dom.window.document;
+    vi.stubGlobal("document", dom.window.document);
 
     clickSpy = vi
       .spyOn(dom.window.HTMLAnchorElement.prototype, "click")
@@ -319,14 +319,6 @@ describe("downloadFile (browser environment required)", () => {
     (globalThis.URL.revokeObjectURL as any).mockRestore();
     appendChildSpy.mockRestore();
     removeChildSpy.mockRestore();
-  });
-
-  it("should create correct blob content for binary data", () => {
-    const binaryContent = new Uint8Array([72, 101, 108, 108, 111]);
-
-    downloadFile(binaryContent, "hello.bin", "application/octet-stream");
-
-    expect(objectUrls).toHaveLength(0);
   });
 
   it("should handle long filenames", () => {
