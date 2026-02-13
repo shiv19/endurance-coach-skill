@@ -552,9 +552,23 @@ Examples:
       } else if (args[i] === "--laps") {
         laps = true;
       } else if (args[i].startsWith("--days=")) {
-        days = parseInt(readEqualsValue(args[i]), 10);
+        const parsed = parseInt(readEqualsValue(args[i]), 10);
+        if (Number.isNaN(parsed)) {
+          log.error("Invalid --days value: must be a number");
+          process.exit(1);
+        }
+        days = parsed;
       } else if (args[i] === "--days") {
-        days = parseInt(args[i + 1], 10);
+        if (!args[i + 1]) {
+          log.error("--days requires a value");
+          process.exit(1);
+        }
+        const parsed = parseInt(args[i + 1], 10);
+        if (Number.isNaN(parsed)) {
+          log.error("Invalid --days value: must be a number");
+          process.exit(1);
+        }
+        days = parsed;
         i++;
       } else if (args[i] === "--json") {
         json = true;
@@ -809,8 +823,8 @@ Examples:
   # Set HR drift threshold to 10%
   npx endurance-coach triggers set --type=hr_drift --threshold=10 --unit=percent
 
-  # Set pace deviation to 15 bpm
-  npx endurance-coach triggers set --type=pace_deviation --threshold=15 --unit=bpm
+  # Set pace deviation to 15 seconds
+  npx endurance-coach triggers set --type=pace_deviation --threshold=15 --unit=seconds
 
   # Disable lap variability trigger
   npx endurance-coach triggers disable --type=lap_variability
@@ -836,10 +850,12 @@ Examples:
       } else if (args[i].startsWith("--type=")) {
         triggersArgs.type = readEqualsValue(args[i]);
       } else if (args[i] === "--threshold") {
-        triggersArgs.threshold = parseFloat(args[i + 1]);
+        const value = parseFloat(args[i + 1]);
+        triggersArgs.threshold = Number.isNaN(value) ? undefined : value;
         i++;
       } else if (args[i].startsWith("--threshold=")) {
-        triggersArgs.threshold = parseFloat(readEqualsValue(args[i]));
+        const value = parseFloat(readEqualsValue(args[i]));
+        triggersArgs.threshold = Number.isNaN(value) ? undefined : value;
       } else if (args[i] === "--unit") {
         triggersArgs.unit = args[i + 1];
         i++;
