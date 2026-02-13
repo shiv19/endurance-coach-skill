@@ -54,15 +54,18 @@ function seedDefaultTriggers(): void {
     "INSERT INTO interview_triggers (trigger_type, threshold_value, threshold_unit, enabled) VALUES (?, ?, ?, ?)"
   );
 
-  for (const trigger of defaultTriggers) {
-    stmt.run(
-      trigger.trigger_type,
-      trigger.threshold_value,
-      trigger.threshold_unit,
-      trigger.enabled
-    );
-  }
+  const insertAll = db.transaction(() => {
+    for (const trigger of defaultTriggers) {
+      stmt.run(
+        trigger.trigger_type,
+        trigger.threshold_value,
+        trigger.threshold_unit,
+        trigger.enabled
+      );
+    }
+  });
 
+  insertAll();
   log.info("Seeded default interview triggers (disabled by default)");
 }
 

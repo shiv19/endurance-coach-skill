@@ -548,34 +548,29 @@ describe("Interview Flow Integration Tests", () => {
       });
 
       it("should reject invalid confidence level", async () => {
-        const originalExit = process.exit;
-        let exitCalled = false;
-        process.exit = () => {
-          exitCalled = true;
+        const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
           throw new Error("Exit called");
+        });
+
+        await expect(async () => {
+          await saveInterview({
+            command: "interview-save",
+            workoutId: 1,
+            reflection: "Test reflection",
+            notes: "Test notes",
+            confidence: "Invalid" as "Low" | "Medium" | "High",
+          });
+        }).rejects.toThrow("Exit called");
+        expect(exitSpy).toHaveBeenCalled();
+
+        // Verify no interview was saved to database
+        const db = getDb();
+        const interviews = db.prepare("SELECT COUNT(*) as count FROM workout_interviews").get() as {
+          count: number;
         };
+        expect(interviews.count).toBe(0);
 
-        try {
-          await expect(async () => {
-            await saveInterview({
-              command: "interview-save",
-              workoutId: 1,
-              reflection: "Test reflection",
-              notes: "Test notes",
-              confidence: "Invalid" as "Low" | "Medium" | "High",
-            });
-          }).rejects.toThrow("Exit called");
-          expect(exitCalled).toBe(true);
-
-          // Verify no interview was saved to database
-          const db = getDb();
-          const interviews = db
-            .prepare("SELECT COUNT(*) as count FROM workout_interviews")
-            .get() as { count: number };
-          expect(interviews.count).toBe(0);
-        } finally {
-          process.exit = originalExit;
-        }
+        exitSpy.mockRestore();
       });
     });
   });
@@ -680,32 +675,27 @@ describe("Interview Flow Integration Tests", () => {
       });
 
       it("should reject invalid sport type and not save to database", async () => {
-        const originalExit = process.exit;
-        let exitCalled = false;
-        process.exit = () => {
-          exitCalled = true;
+        const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
           throw new Error("Exit called");
-        };
+        });
 
-        try {
-          await expect(async () => {
-            recordManualActivity({
-              command: "activity-record",
-              type: "invalid_sport",
-              duration: 30,
-            });
-          }).rejects.toThrow("Exit called");
-          expect(exitCalled).toBe(true);
+        await expect(async () => {
+          recordManualActivity({
+            command: "activity-record",
+            type: "invalid_sport",
+            duration: 30,
+          });
+        }).rejects.toThrow("Exit called");
+        expect(exitSpy).toHaveBeenCalled();
 
-          // Verify no activity was saved to database
-          const db = getDb();
-          const activities = db
-            .prepare("SELECT COUNT(*) as count FROM activities WHERE source = 'manual'")
-            .get() as { count: number };
-          expect(activities.count).toBe(0);
-        } finally {
-          process.exit = originalExit;
-        }
+        // Verify no activity was saved to database
+        const db = getDb();
+        const activities = db
+          .prepare("SELECT COUNT(*) as count FROM activities WHERE source = 'manual'")
+          .get() as { count: number };
+        expect(activities.count).toBe(0);
+
+        exitSpy.mockRestore();
       });
     });
 
